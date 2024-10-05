@@ -1,0 +1,344 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    /* Light background for the whole app */
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: #007BFF;
+    /* Blue background for the navbar */
+    color: white;
+    /* White text color */
+    padding: 15px;
+    /* Padding inside the navbar */
+    display: flex;
+    /* Flexbox layout for navbar items */
+    justify-content: space-between;
+    /* Space between logo and links */
+    align-items: center;
+    /* Center items vertically */
+}
+
+.navbar .logo {
+    font-size: 1.5em;
+    /* Larger font size for the logo */
+}
+
+.navbar .nav-links a {
+    color: white;
+    /* White color for navigation links */
+    text-decoration: none;
+    /* Remove underline */
+    margin-left: 20px;
+    /* Space between links */
+}
+
+.navbar .nav-links a:hover {
+    text-decoration: underline;
+    /* Underline on hover */
+}
+
+.quiz-body {
+    user-select: none;
+    display: flex;
+    /* Flexbox for quiz body layout */
+    padding: 20px;
+    /* Padding around quiz body */
+}
+
+/* Quiz Container */
+.quiz-app {
+    flex: 1;
+    /* Allow quiz app to grow and fill the space */
+    max-width: 1000px;
+    /* Limit the maximum width for readability */
+    margin: 100px auto;
+    /* Center the container */
+    background-color: white;
+    /* White background for quiz container */
+    padding: 20px;
+    /* Padding inside the quiz container */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    /* Soft shadow */
+    border-radius: 8px;
+    /* Rounded corners */
+}
+
+/* Question Section */
+.question-section h1 {
+    font-size: 1.75em;
+    /* Font size for the question header */
+    color: #333;
+    /* Dark color for the question */
+    margin-bottom: 20px;
+    /* Space below the question header */
+}
+
+/* Option Styles */
+.options {
+    list-style-type: none;
+    /* Remove bullet points */
+    padding: 0;
+    /* Reset padding */
+}
+
+.option {
+    display: flex;
+    /* Flexbox for option layout */
+    align-items: center;
+    /* Center items vertically */
+    background-color: #f4f4f9;
+    /* Light gray background for options */
+    border-radius: 25px;
+    /* Rounded edges */
+    padding: 12px 20px;
+    /* Padding inside the option */
+    margin: 10px 0;
+    /* Space between options */
+    cursor: pointer;
+    /* Pointer cursor on hover */
+    transition: background-color 0.3s;
+    /* Smooth background transition */
+}
+
+/* Highlight selected option */
+.option.selected {
+    background-color: #007BFF;
+    /* Change background to blue when selected */
+    color: white;
+    /* Text color turns white when selected */
+}
+
+/* Radio and Checkbox Styles */
+input[type="radio"]:checked+label,
+input[type="checkbox"]:checked+label {
+    background-color: #007BFF;
+    /* Change background to blue when checked */
+    color: white;
+    /* Text color turns white when checked */
+}
+
+/* Hide actual radio and checkbox inputs */
+input[type="radio"],
+input[type="checkbox"] {
+    display: none;
+    /* Hide original input */
+}
+
+input[type="radio"]+label,
+input[type="checkbox"]+label {
+    display: flex;
+    /* Flexbox for label */
+    align-items: center;
+    /* Center items vertically */
+    padding: 12px 20px;
+    /* Padding inside the label */
+    border-radius: 25px;
+    /* Rounded edges */
+    margin: 10px 0;
+    /* Space between options */
+    background-color: #e7e7e7;
+    /* Light gray background for label */
+    transition: background-color 0.3s ease;
+    /* Smooth background transition */
+    width: 100%;
+    /* Full width */
+}
+
+/* Highlight on hover */
+label:hover {
+    background-color: #d3d3d3;
+    /* Darker gray on hover */
+}
+
+/* Option Text Styling */
+label #option {
+    font-weight: bold;
+    /* Bold text for the option */
+    margin-right: 10px;
+    /* Space between option text and checkbox */
+}
+
+.timer-section {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    /* Stack items vertically */
+    align-items: center;
+    /* Center items horizontally */
+    /*margin-bottom: 20px;*/
+    /* Space below the timer section */
+}
+
+.timer-circle {
+    position: relative;
+    /* Positioning for the timer circle */
+    width: 120px;
+    /* Width of the timer circle */
+    height: 120px;
+    /* Height of the timer circle */
+}
+
+.timer-circle svg {
+    position: absolute;
+    /* Absolute positioning for SVG */
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Full width of the circle */
+    height: 100%;
+    /* Full height of the circle */
+    transform: rotate(-90deg);
+    /* Rotate to start from the top */
+}
+
+.timer-circle circle {
+    fill: none;
+    /* No fill for the circles */
+}
+
+.timer-text {
+    position: absolute;
+    /* Absolute positioning for timer text */
+    top: 50%;
+    /* Center vertically */
+    left: 50%;
+    /* Center horizontally */
+    transform: translate(-50%, -50%);
+    /* Center the text */
+    font-size: 1.5em;
+    /* Font size for timer text */
+    color: #333;
+    /* Dark color for text */
+    font-weight: bold;
+    /* Bold text */
+}
+
+.timer-section div {
+    margin-top: 10px;
+    /* Space above the "Time Remaining" text */
+    font-size: 1.2em;
+    /* Font size for the label */
+    color: #555;
+    /* Medium gray color */
+}
+
+.question-number-container {
+    margin-top: 10px;
+    background-color: white;
+    /* White background for the container */
+    padding: 30px;
+    /* Padding around the content */
+    border-radius: 10px;
+    /* Rounded corners */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    /* Soft shadow for depth */
+}
+
+/* Use class name instead of nth-child(2) if you have multiple containers */
+.grid-layout {
+    max-height: 22rem;
+    overflow-y: scroll;
+    display: grid;
+    /* Use grid layout */
+    grid-template-columns: repeat(5, 1fr);
+    /* Five equal columns */
+    gap: 10px;
+    /* Space between question numbers */
+}
+
+.question-number {
+    height: 50px;
+    /* Fixed height */
+    width: 50px;
+    /* Fixed width */
+    background-color: #bbb;
+    /* Background color for the circle */
+    display: flex;
+    /* Use flexbox for centering */
+    border-radius: 50%;
+    /* Make it a circle */
+    align-items: center;
+    /* Center items vertically */
+    justify-content: center;
+    /* Center items horizontally */
+    font-size: 1.2em;
+    /* Font size for the question number */
+    color: white;
+    /* Text color */
+    transition: background-color 0.3s;
+    /* Smooth background transition */
+}
+
+/* Change background color on hover */
+.question-number:hover {
+    background-color: #007BFF;
+    /* Change color on hover */
+}
+
+/* Highlight the current question number */
+.question-number.selected {
+    background-color: #04AA6D; /* Change color for the selected question */
+}
+/* Navigation Buttons */
+.footer {
+    text-align: center;
+    /* Center footer text */
+    margin-top: 20px;
+    /* Space above footer */
+    color: #555;
+    /* Medium gray color for footer text */
+}
+
+.footer button {
+    margin: 0 10px;
+    /* Margin between buttons */
+}
+
+/* Button Styles */
+button {
+    background-color: #007BFF;
+    /* Blue background for buttons */
+    color: white;
+    /* White text color */
+    border: none;
+    /* No border */
+    border-radius: 25px;
+    /* Rounded edges */
+    padding: 10px 20px;
+    /* Padding inside buttons */
+    cursor: pointer;
+    /* Pointer cursor */
+    transition: background-color 0.3s ease;
+    /* Smooth background transition */
+}
+
+button:hover {
+    background-color: #0056b3;
+    /* Darker blue on hover */
+}
+
+button:disabled {
+    background-color: #ccc;
+    /* Gray background for disabled buttons */
+    cursor: not-allowed;
+    /* Not allowed cursor for disabled buttons */
+}
+
+/* Footer Button Styles */
+.navigation-buttons .submit-button {
+    background-color: #28a745;
+    /* Green background for submit button */
+}
+
+.navigation-buttons .submit-button:hover {
+    background-color: #218838;
+    /* Darker green on hover */
+}
