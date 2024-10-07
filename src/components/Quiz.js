@@ -2,93 +2,135 @@ import React, { useState, useEffect } from "react";
 import "../styles/Quiz.css";
 
 const Quiz = ({ initialTime, questions = [] }) => {
-  const [timeLeft, setTimeLeft] = useState(initialTime); // Initial time from DB
-  const [totalTime, setTotalTime] = useState(initialTime); // Also store total time
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Index to track the current question
-  const [selectedOptions, setSelectedOptions] = useState([]); // Store selected options for each question
-  const [highlitedOptions, setHighlightedOptions] = useState([]); // Store selected options for each question
+  const [timeLeft, setTimeLeft] = useState(initialTime);
+  const [totalTime, setTotalTime] = useState(initialTime);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [highlightedOptions, setHighlightedOptions] = useState([]);
+  //setTotalTime(initialTime);
+  const totalQuestions = questions.length;
 
-  const totalQuestions = questions.length; // Total number of questions
-
-  // Timer logic, decrements timeLeft every second
   useEffect(() => {
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer); // Clear the timer on component unmount
+      return () => clearTimeout(timer);
     }
   }, [timeLeft]);
 
-  // Handle option selection
   const handleOptionSelect = (option, type) => {
-    const updatedSelections = [...highlitedOptions];
-
+    const updatedSelections = [...highlightedOptions];
+  
     if (type === "radio") {
-      // For radio, only one option is allowed
-      updatedSelections[currentQuestionIndex] = option;
-    } else if (type === "checkbox") {
-      // For checkboxes, toggle the option in the selected array
-      const currentSelections = updatedSelections[currentQuestionIndex] || [];
-      if (currentSelections.includes(option)) {
-        // Remove if already selected
-        updatedSelections[currentQuestionIndex] = currentSelections.filter(
-          (o) => o !== option
-        );
+      // Toggle selection for radio buttons
+      if (updatedSelections[currentQuestionIndex] === option) {
+        updatedSelections[currentQuestionIndex] = "not-answered"; // Deselect if clicked again
       } else {
-        // Add if not selected
-        updatedSelections[currentQuestionIndex] = [
-          ...currentSelections,
-          option,
-        ];
+        updatedSelections[currentQuestionIndex] = option !== undefined ? option : "not-answered";
       }
+    } else if (type === "checkbox") {
+      const currentSelections = updatedSelections[currentQuestionIndex] || [];
+  
+      // Toggle checkbox selection
+      if (currentSelections.includes(option)) {
+        updatedSelections[currentQuestionIndex] = currentSelections.filter(o => o !== option);
+      } else {
+        updatedSelections[currentQuestionIndex] = [...currentSelections, option];
+      }
+  
+      // Check if any selections are made
+      if (updatedSelections[currentQuestionIndex].length === 0) {
+        updatedSelections[currentQuestionIndex] = "not-answered"; // Mark as not-answered
+      } else if (updatedSelections[currentQuestionIndex] === "not-answered" || updatedSelections[currentQuestionIndex] === "skipped") {
+        updatedSelections[currentQuestionIndex] = []; // Clear "not-answered" status
+      }
+    }
+  
+    // Update states
+    setHighlightedOptions(updatedSelections);
+    setSelectedOptions(updatedSelections);
+  };
+  
+
+  const handleNextQuestion = () => {
+    const updatedSelections = [...highlightedOptions];
+
+    // If no option is selected, mark as 'not-answered'
+    if (updatedSelections[currentQuestionIndex] === undefined) {
+      updatedSelections[currentQuestionIndex] = "not-answered";
     }
 
     setHighlightedOptions(updatedSelections);
-  };
+    setSelectedOptions(updatedSelections);
 
-  // Go to the next question
-  const handleNextQuestion = () => {
-    const selectedOptions = [...highlitedOptions];
-    setSelectedOptions(selectedOptions);
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prevIndex) => prevIndex + 1); // Go to the next question
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
-  // Go to the previous question
   const handlePreviousQuestion = () => {
-    const selectedOptions = [...highlitedOptions];
-    setSelectedOptions(selectedOptions);
+    const updatedSelections = [...highlightedOptions];
+
+    if (updatedSelections[currentQuestionIndex] === undefined) {
+      updatedSelections[currentQuestionIndex] = "not-answered";
+    }
+
+    setHighlightedOptions(updatedSelections);
+    setSelectedOptions(updatedSelections);
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prevIndex) => prevIndex - 1); // Go to the previous question
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
-  // Handle quiz submission
+  const handleSkip = () => {
+    const updatedSelections = [...highlightedOptions];
+
+    updatedSelections[currentQuestionIndex] = "skipped";
+
+    setHighlightedOptions(updatedSelections);
+
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+  const handleQuestionClick = (index) => {
+    const updatedSelections = [...highlightedOptions];
+
+    // If the question is neither answered nor skipped, mark it as not-answered
+    if (updatedSelections[index] === undefined) {
+      updatedSelections[index] = "not-answered";
+    }
+
+    setHighlightedOptions(updatedSelections);
+    setCurrentQuestionIndex(index);
+  };
+
   const handleSubmit = () => {
     console.log("Quiz Submitted:", selectedOptions);
     alert("Quiz Submitted!");
   };
 
   const currentQuestion = questions[currentQuestionIndex];
-  const selectedOption = highlitedOptions[currentQuestionIndex] || [];
+  const selectedOption = highlightedOptions[currentQuestionIndex] || [];
 
-  const radius = 50; // Radius of the circle
-  const circumference = 2 * Math.PI * radius; // Circumference of the circle
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
 
   return (
     <>
       {/* Top Navigation Bar */}
       <div>
         <nav className="navbar">
-          <div className="logo">Company Name</div>
+          <div className="logo">Quizzards</div>
           <div className="nav-links">
             <a href="#home">Home</a>
             <a href="#about">About</a>
-            <a href="#contact">Contact</a>
+            <a target="_blank" href="https://sanjaikumaran.online/contact/">
+              Contact
+            </a>
           </div>
         </nav>
       </div>
-      {/* Main Content Area */}
+
       <div className="quiz-body">
         <div className="quiz-app">
           <div className="quiz-content">
@@ -122,7 +164,7 @@ const Quiz = ({ initialTime, questions = [] }) => {
                           type="radio"
                           name={`question-${currentQuestionIndex}`}
                           value={option}
-                          checked={selectedOption === option}
+                          checked={selectedOption === option} // Will reflect deselection
                           onChange={() => handleOptionSelect(option, "radio")}
                         />
                         {option}
@@ -147,16 +189,34 @@ const Quiz = ({ initialTime, questions = [] }) => {
             </div>
           </div>
 
-          {/* Navigation and Footer Section */}
           <div className="footer">
+            {currentQuestionIndex !== 0 ? (
+              <button
+                onClick={handlePreviousQuestion}
+                disabled={currentQuestionIndex === 0}
+              >
+                Previous
+              </button>
+            ) : (
+              ""
+            )}
             <button
-              onClick={handlePreviousQuestion}
-              disabled={currentQuestionIndex === 0}
+              onClick={
+                currentQuestionIndex !== totalQuestions - 1
+                  ? handleNextQuestion
+                  : handleSubmit
+              }
+              className={
+                currentQuestionIndex !== totalQuestions - 1
+                  ? ""
+                  : "submit-button"
+              }
             >
-              Previous
+              {currentQuestionIndex !== totalQuestions - 1 ? "Next" : "Submit"}
             </button>
-
-            <button onClick={handleNextQuestion}>Next</button>
+            {currentQuestionIndex !== totalQuestions - 1 && (
+              <button onClick={handleSkip}>Skip</button>
+            )}
 
             <p>
               Question {currentQuestionIndex + 1} of {totalQuestions}
@@ -186,7 +246,7 @@ const Quiz = ({ initialTime, questions = [] }) => {
                   strokeDasharray={circumference}
                   strokeDashoffset={
                     circumference - (timeLeft / totalTime) * circumference
-                  } // Dynamic time calculation
+                  }
                   style={{
                     transition: "stroke-dashoffset 1s linear",
                   }}
@@ -198,6 +258,7 @@ const Quiz = ({ initialTime, questions = [] }) => {
             </div>
             <div>Time Remaining</div>
           </div>
+
           {/* Question Number Section */}
           <div className="question-number-container">
             <h1>Questions List</h1>
@@ -205,10 +266,18 @@ const Quiz = ({ initialTime, questions = [] }) => {
               {Array.from({ length: totalQuestions }, (_, i) => (
                 <div
                   className={`question-number ${
-                    selectedOptions[i] !== undefined ? "selected" : ""
+                    i === currentQuestionIndex ? "current-question" : ""
+                  } ${
+                    highlightedOptions[i] === "skipped"
+                      ? "skipped"
+                      : highlightedOptions[i] === "not-answered"
+                      ? "not-answered"
+                      : highlightedOptions[i] !== undefined
+                      ? "answered"
+                      : ""
                   }`}
                   key={i + 1}
-                  onClick={() => setCurrentQuestionIndex(i)} // Allow clicking on question numbers to jump
+                  onClick={() => handleQuestionClick(i)} // Handle question click
                 >
                   {i + 1}
                 </div>

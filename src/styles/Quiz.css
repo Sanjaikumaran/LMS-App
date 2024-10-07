@@ -230,6 +230,33 @@ label #option {
     /* Medium gray color */
 }
 
+
+.question-number-container  ::-webkit-scrollbar {
+    width: 5px;
+
+}
+
+
+.question-number-container  ::-webkit-scrollbar-thumb {
+    background-color: #5C509C;
+
+    border-radius: 5px;
+
+}
+
+
+.question-number-container  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+
+    border-radius: 5px;
+
+}
+
+
+.question-number-container  ::-webkit-scrollbar-corner {
+    background: #f1f1f1;
+
+}
 .question-number-container {
     margin-top: 10px;
     background-color: white;
@@ -241,52 +268,56 @@ label #option {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     /* Soft shadow for depth */
 }
-
-/* Use class name instead of nth-child(2) if you have multiple containers */
 .grid-layout {
     max-height: 22rem;
     overflow-y: scroll;
     display: grid;
-    /* Use grid layout */
-    grid-template-columns: repeat(5, 1fr);
-    /* Five equal columns */
-    gap: 10px;
-    /* Space between question numbers */
+    grid-template-columns: repeat(5, 1fr); /* Five equal columns */
+    gap: 10px; /* Space between question numbers */
 }
-
 .question-number {
     height: 50px;
-    /* Fixed height */
     width: 50px;
-    /* Fixed width */
     background-color: #bbb;
-    /* Background color for the circle */
     display: flex;
-    /* Use flexbox for centering */
     border-radius: 50%;
-    /* Make it a circle */
     align-items: center;
-    /* Center items vertically */
     justify-content: center;
-    /* Center items horizontally */
     font-size: 1.2em;
-    /* Font size for the question number */
     color: white;
-    /* Text color */
-    transition: background-color 0.3s;
-    /* Smooth background transition */
+    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
+
+.question-number.current-question{
+border: 2px solid #333;
+}
 /* Change background color on hover */
 .question-number:hover {
-    background-color: #007BFF;
-    /* Change color on hover */
+    cursor: pointer;
+    background-color: #007BFF; /* Change color on hover */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Soft glow effect on hover */
 }
 
-/* Highlight the current question number */
-.question-number.selected {
-    background-color: #04AA6D; /* Change color for the selected question */
+
+/* Mark answered questions with a distinct color */
+.question-number.answered {
+    background-color: #04AA6D; /* Green for answered */
+    border: 2px solid #028a52; /* Darker green border for emphasis */
 }
+
+/* Mark not-answered questions with a distinct color */
+.question-number.not-answered {
+    background-color: #aa2b04; /* Red for not answered */
+    border: 2px solid #861f02; /* Darker red border for emphasis */
+}
+
+/* Mark skipped questions with a distinct color */
+.question-number.skipped {
+    background-color: #0439aa; /* Blue for skipped */
+    border: 2px solid #032d7a; /* Darker blue border for emphasis */
+}
+
 /* Navigation Buttons */
 .footer {
     text-align: center;
@@ -319,7 +350,9 @@ button {
     transition: background-color 0.3s ease;
     /* Smooth background transition */
 }
-
+button.submit-button{
+    background-color: #028a52;
+}
 button:hover {
     background-color: #0056b3;
     /* Darker blue on hover */
