@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
-import Quiz from "./components/Quiz";
-import Instructions from "./components/Instructions";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Quiz from "./pages/Quiz";
+import Instructions from "./pages/Instructions";
+import Signin from "./pages/Signin";
+import Admin from "./pages/Admin";
+import Students from "./pages/Students";
 
 const App = () => {
-  // Retrieve the flag from localStorage or default to 0
-  const [flag, setFlag] = useState(() => {
-    const savedFlag = localStorage.getItem("flag");
-    return savedFlag !== null ? JSON.parse(savedFlag) : 0;
-  });
-
-  const initialTime = 10; // Time for the quiz (in minutes)
+  const initialTime = 100; // Time for the quiz (in minutes)
 
   // Example questions data
   const questions = [
@@ -23,48 +21,51 @@ const App = () => {
       type: "radio",
       options: ["Berlin", "Madrid", "Paris", "Rome"],
     },
-    {
-      question: "Which programming languages do you know?",
-      type: "checkbox",
-      options: ["Python", "JavaScript", "C++", "Ruby"],
-    },
-    {
-      question: "What is the largest planet in our solar system?",
-      type: "radio",
-      options: ["Earth", "Mars", "Jupiter", "Venus"],
-    },
-    {
-      question: "What is the largest planet in our solar system?",
-      type: "radio",
-      options: ["Earth", "Mars", "Jupiter", "Venus"],
-    },
+    // Add more questions here
   ];
 
   const instructions = [
     "Instruction 1: Please read carefully.",
     "Instruction 2: Choose the correct answers.",
     "Instruction 3: Time limit is 10 minutes.",
-    "Instruction 4: Once you start the quiz, no going back.",
-    "Instruction 5: Submit your answers at the end.",
   ];
 
-  // Whenever `flag` changes, save it to localStorage
-  useEffect(() => {
-    localStorage.setItem("flag", JSON.stringify(flag));
-  }, [flag]);
+  const profile = {
+    Name: "SK",
+    Department: "B.E Computer Science And Engineering",
+    "Roll Number": "310821104083",
+  };
 
   return (
-    <>
-      {flag === 0 ? (
-        <div className="App">
-          <Instructions instructions={instructions} setFlag={setFlag} />
-        </div>
-      ) : (
-        <div className="App">
-          <Quiz initialTime={initialTime} questions={questions} />
-        </div>
-      )}
-    </>
+    <Router>
+      <Routes>
+        <Route index element={<Signin />} />
+        <Route
+          path="/instructions"
+          element={
+            <Instructions instructions={instructions} profile1={profile} />
+          }
+        />
+        <Route
+          path="/quiz"
+          element={
+            <Quiz
+              initialTime={initialTime}
+              profile1={profile}
+              questions={questions}
+            />
+          }
+        />
+        <Route
+          path="/admin"
+          element={<Admin initialTime={initialTime} profile1={profile} />}
+        />
+        <Route
+          path="/students-module"
+          element={<Students profile1={profile} />}
+        />
+      </Routes>
+    </Router>
   );
 };
 

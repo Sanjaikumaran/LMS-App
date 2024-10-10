@@ -1,0 +1,43 @@
+.students-action-div {
+  margin: 20px;
+  padding: 10px;
+  display: flex;
+}
+.students-action-div input[type="file"] {
+  outline: 2px solid #007bff;
+  font-weight: 550;
+
+  border-radius: 15px;
+}
+.students-action-div input[type="file"]::file-selector-button {
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
+}
+.students-action-div:nth-child(2){
+    align-items: end;
+}
+.students-action-div .upload-button{
+    margin: 0 0 0 10px;
+}
+.datatable ::-webkit-scrollbar {
+  width: 5px;
+}
+
+.datatable ::-webkit-scrollbar-thumb {
+  background-color: #007bff;
+
+  border-radius: 5px;
+}
+
+.datatable ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+
+  border-radius: 5px;
+}
+
+.datatable ::-webkit-scrollbar-corner {
+  background: #f1f1f1;
+}

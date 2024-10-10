@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
-import "../styles/Quiz.css";
 
-const Quiz = ({ initialTime, questions = [] }) => {
+import { CgProfile } from "react-icons/cg";
+
+import "../styles/Quiz.css";
+import { useNavigate } from "react-router-dom";
+
+const Quiz = ({ initialTime, questions, profile1 = [] }) => {
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [totalTime, setTotalTime] = useState(initialTime);
+  const [totalTime] = useState(initialTime);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [highlightedOptions, setHighlightedOptions] = useState([]);
@@ -19,37 +24,45 @@ const Quiz = ({ initialTime, questions = [] }) => {
 
   const handleOptionSelect = (option, type) => {
     const updatedSelections = [...highlightedOptions];
-  
+
     if (type === "radio") {
       // Toggle selection for radio buttons
       if (updatedSelections[currentQuestionIndex] === option) {
         updatedSelections[currentQuestionIndex] = "not-answered"; // Deselect if clicked again
       } else {
-        updatedSelections[currentQuestionIndex] = option !== undefined ? option : "not-answered";
+        updatedSelections[currentQuestionIndex] =
+          option !== undefined ? option : "not-answered";
       }
     } else if (type === "checkbox") {
       const currentSelections = updatedSelections[currentQuestionIndex] || [];
-  
+
       // Toggle checkbox selection
       if (currentSelections.includes(option)) {
-        updatedSelections[currentQuestionIndex] = currentSelections.filter(o => o !== option);
+        updatedSelections[currentQuestionIndex] = currentSelections.filter(
+          (o) => o !== option
+        );
       } else {
-        updatedSelections[currentQuestionIndex] = [...currentSelections, option];
+        updatedSelections[currentQuestionIndex] = [
+          ...currentSelections,
+          option,
+        ];
       }
-  
+
       // Check if any selections are made
       if (updatedSelections[currentQuestionIndex].length === 0) {
         updatedSelections[currentQuestionIndex] = "not-answered"; // Mark as not-answered
-      } else if (updatedSelections[currentQuestionIndex] === "not-answered" || updatedSelections[currentQuestionIndex] === "skipped") {
+      } else if (
+        updatedSelections[currentQuestionIndex] === "not-answered" ||
+        updatedSelections[currentQuestionIndex] === "skipped"
+      ) {
         updatedSelections[currentQuestionIndex] = []; // Clear "not-answered" status
       }
     }
-  
+
     // Update states
     setHighlightedOptions(updatedSelections);
     setSelectedOptions(updatedSelections);
   };
-  
 
   const handleNextQuestion = () => {
     const updatedSelections = [...highlightedOptions];
@@ -105,16 +118,51 @@ const Quiz = ({ initialTime, questions = [] }) => {
   };
 
   const handleSubmit = () => {
-    console.log("Quiz Submitted:", selectedOptions);
-    alert("Quiz Submitted!");
+    if (window.confirm("Are you sure you want to start the test?")) {
+      console.log("Quiz Submitted:", selectedOptions);
+      alert("Quiz Submitted!");
+      navigate("/");
+    }
   };
+  const showProfile = (profileDetails) => {
+    const isExist = document.querySelector(".profile-container");
+    if (isExist) {
+      return;
+    }
+    const profileContainer = document.createElement("div");
+    profileContainer.className = "profile-container";
+    const profileInfo = document.createElement("div");
+    profileInfo.className = "profile-info";
+    Object.keys(profileDetails).map(async (detail) => {
+      const detailList = document.createElement("li");
+      detailList.classList = "detail";
+      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span> ${profileDetails[detail]}</span></p>`;
+      profileInfo.appendChild(detailList);
+    });
+    profileContainer.appendChild(profileInfo);
+    document.body.appendChild(profileContainer);
+  };
+
+  document.body.addEventListener("click", (event) => {
+    if (event.target.closest("li.profile")) {
+      return;
+    } else if (event.target.closest("div.profile-container")) {
+      return;
+    }
+
+    const profileExist = document.querySelector(".profile-container");
+
+    if (profileExist) {
+      profileExist.remove();
+    }
+  });
 
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = highlightedOptions[currentQuestionIndex] || [];
 
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
-
+  //const element = <FontAwesomeIcon icon={byPrefixAndName.fas["house"]} />;
   return (
     <>
       {/* Top Navigation Bar */}
@@ -122,11 +170,25 @@ const Quiz = ({ initialTime, questions = [] }) => {
         <nav className="navbar">
           <div className="logo">Quizzards</div>
           <div className="nav-links">
-            <a href="#home">Home</a>
-            <a href="#about">About</a>
-            <a target="_blank" href="https://sanjaikumaran.online/contact/">
-              Contact
+            <a href="" onClick={() => navigate("/admin")}>
+              Home
             </a>
+            <a href="#about">About</a>
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://sanjaikumaran.online/contact/"
+            >
+              Contact
+            </a>{" "}
+            <li
+              onClick={() => {
+                showProfile(profile1);
+              }}
+              className="profile"
+            >
+              {<CgProfile style={{ fontSize: "1.5rem" }} />}
+            </li>
           </div>
         </nav>
       </div>
@@ -226,42 +288,45 @@ const Quiz = ({ initialTime, questions = [] }) => {
         <div>
           {/* Timer Section */}
           <div className="timer-section">
-            <div className="timer-circle">
-              <svg width="120" height="120">
-                <circle
-                  r={radius}
-                  cx="60"
-                  cy="60"
-                  fill="none"
-                  stroke="#e7e7e7"
-                  strokeWidth="8"
-                ></circle>
-                <circle
-                  r={radius}
-                  cx="60"
-                  cy="60"
-                  fill="none"
-                  stroke="#007BFF"
-                  strokeWidth="8"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={
-                    circumference - (timeLeft / totalTime) * circumference
-                  }
-                  style={{
-                    transition: "stroke-dashoffset 1s linear",
-                  }}
-                ></circle>
-              </svg>
-              <div className="timer-text">
-                {Math.floor(timeLeft / 60)}m {timeLeft % 60}s
+            <h1 className="header">Timer</h1>
+            <div className="timer-container">
+              <div className="timer-circle">
+                <svg width="120" height="120">
+                  <circle
+                    r={radius}
+                    cx="60"
+                    cy="60"
+                    fill="none"
+                    stroke="#e7e7e7"
+                    strokeWidth="8"
+                  ></circle>
+                  <circle
+                    r={radius}
+                    cx="60"
+                    cy="60"
+                    fill="none"
+                    stroke="#007BFF"
+                    strokeWidth="8"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={
+                      circumference - (timeLeft / totalTime) * circumference
+                    }
+                    style={{
+                      transition: "stroke-dashoffset 1s linear",
+                    }}
+                  ></circle>
+                </svg>
+                <div className="timer-text">
+                  {Math.floor(timeLeft / 60)}m {timeLeft % 60}s
+                </div>
               </div>
+              <div>Time Remaining</div>
             </div>
-            <div>Time Remaining</div>
           </div>
 
           {/* Question Number Section */}
           <div className="question-number-container">
-            <h1>Questions List</h1>
+            <h1 className="header">Questions List</h1>
             <div className="grid-layout">
               {Array.from({ length: totalQuestions }, (_, i) => (
                 <div
