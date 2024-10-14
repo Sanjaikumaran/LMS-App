@@ -1,12 +1,33 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
+import axios from "axios";
 
 const Signin = () => {
+  const [hosts, setHosts] = useState([]);
   const navigate = useNavigate();
+  useEffect(() => {
+    const localIps = JSON.parse(sessionStorage.getItem("localIps"));
 
+    if (localIps) {
+      setHosts(localIps);
+    }
+  }, []);
   const handleLogin = () => {
-    navigate("/instructions");
+    const userID = document.getElementsByName("user-id")[0].value;
+    const userPassword = document.getElementsByName("password")[0].value;
+
+    //08148802594
+    axios
+      .post(`http://${hosts[0]}:5000/login`, {
+        Id: userID,
+        password: userPassword,
+      })
+      .then(() => {
+        window.alert("User Authentication Successful!");
+        navigate("/instructions");
+      });
   };
 
   return (

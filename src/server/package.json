@@ -10,5 +10,8 @@
     "node"
   ],
   "author": "SK",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express-session": "^1.18.1"
+  }
 }

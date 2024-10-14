@@ -5,10 +5,7 @@ async function connectToReplicaSet() {
   const uri =
     "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
 
-  const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  const client = new MongoClient(uri);
 
   const db = client.db("Quizzards");
 
@@ -35,17 +32,30 @@ async function connectToReplicaSet() {
   async function loadCollection(collectionName) {
     try {
       const collection = db.collection(collectionName);
-      await collection.find({}).toArray(function (err, result) {
-        if (err) throw err;
-        console.log(result);
-      });
+
+      // Use async/await for toArray
+      const result = await collection.find({}).toArray();
+      return result;
     } catch (e) {
       console.error("Error connecting to MongoDB:", e);
     } finally {
-      await db.close();
+      await client.close(); // Ensure the client closes after operation
     }
   }
-  return { insertData, loadCollection };
+  async function getDocument(collectionName, uniqueKey, value) {
+    try {
+      const collection = db.collection(collectionName);
+
+      // Use square brackets to use the dynamic key
+      const result = await collection.findOne({ [uniqueKey]: value });
+      return result;
+    } catch (e) {
+      console.error("Error fetching document from MongoDB:", e);
+    }
+    // Don't close the client here to allow reuse
+  }
+
+  return { insertData, loadCollection, getDocument };
 }
 
 module.exports = connectToReplicaSet; // Export the connection function
