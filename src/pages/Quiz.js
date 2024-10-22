@@ -5,7 +5,12 @@ import { CgProfile } from "react-icons/cg";
 import "../styles/Quiz.css";
 import { useNavigate } from "react-router-dom";
 
-const Quiz = ({ initialTime, questions, profile1 = [] }) => {
+const Quiz = ({ initialTime, questions }) => {
+  const [userData, setUserData] = useState();
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    setUserData(userData);
+  }, []);
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [totalTime] = useState(initialTime);
@@ -183,7 +188,7 @@ const Quiz = ({ initialTime, questions, profile1 = [] }) => {
             </a>{" "}
             <li
               onClick={() => {
-                showProfile(profile1);
+                showProfile(userData);
               }}
               className="profile"
             >

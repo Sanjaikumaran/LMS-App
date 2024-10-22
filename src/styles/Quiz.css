@@ -44,7 +44,7 @@ body {
 .profile-container{
     position: absolute;
     background-color: rgb(255, 255, 255);
-
+z-index: 10;
     padding: 56px;
     border-radius: 10px;
     top: 70px;
@@ -146,8 +146,8 @@ margin: 8px;    }
 }
 
 
-input[type="radio"]:checked+label,
-input[type="checkbox"]:checked+label {
+.option input[type="radio"]:checked+label,
+.option input[type="checkbox"]:checked+label {
     background-color: #007BFF;
    
     color: white;
@@ -155,14 +155,14 @@ input[type="checkbox"]:checked+label {
 }
 
 
-input[type="radio"],
-input[type="checkbox"] {
+.option input[type="radio"],
+.option input[type="checkbox"] {
     display: none;
    
 }
 
-input[type="radio"]+label,
-input[type="checkbox"]+label {
+.option input[type="radio"]+label,
+.option input[type="checkbox"]+label {
     display: flex;
    
     align-items: center;

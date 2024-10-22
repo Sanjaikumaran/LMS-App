@@ -6,18 +6,19 @@ import Instructions from "./pages/Instructions";
 import Signin from "./pages/Signin";
 import Admin from "./pages/Admin";
 import Students from "./pages/Students";
+import Tests from "./pages/Tests";
 
 const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch local IP addresses
-        const response = await fetch(`http://localhost:5000/data`);
+        const response = await fetch(`http://192.168.1.152:5000/data`);
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
         const result = await response.json();
-        sessionStorage.setItem("localIps", JSON.stringify(result));
+        localStorage.setItem("localIps", JSON.stringify(result));
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -92,6 +93,15 @@ const App = () => {
             <>
               <ChangeTitle title="Students Module" />
               <Students />
+            </>
+          }
+        />{" "}
+        <Route
+          path="/test-module"
+          element={
+            <>
+              <ChangeTitle title="Test Module" />
+              <Tests />
             </>
           }
         />

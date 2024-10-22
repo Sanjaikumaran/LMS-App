@@ -48,14 +48,47 @@ async function connectToReplicaSet() {
 
       // Use square brackets to use the dynamic key
       const result = await collection.findOne({ [uniqueKey]: value });
+      delete result._id;
       return result;
     } catch (e) {
       console.error("Error fetching document from MongoDB:", e);
     }
     // Don't close the client here to allow reuse
   }
+  async function insertDocument(collectionName, doc) {
+    try {
+      const collection = db.collection(collectionName);
 
-  return { insertData, loadCollection, getDocument };
+      // Use square brackets to use the dynamic key
+      const result = await collection.insertOne(doc);
+
+      return result;
+    } catch (e) {
+      console.error("Error fetching document from MongoDB:", e);
+    }
+    // Don't close the client here to allow reuse
+  }
+  async function deleteDocument(collectionName, docs) {
+    try {
+      const collection = db.collection(collectionName);
+
+      // Use $in to match multiple _id values directly as strings
+      const result = await collection.deleteMany({ Contact: { $in: docs } });
+
+      return result;
+    } catch (e) {
+      console.error("Error deleting documents from MongoDB:", e);
+      throw e; // Rethrow the error to handle it in the route
+    }
+  }
+
+  return {
+    insertData,
+    loadCollection,
+    getDocument,
+    insertDocument,
+    deleteDocument,
+  };
 }
 
 module.exports = connectToReplicaSet; // Export the connection function

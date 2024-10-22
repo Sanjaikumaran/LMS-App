@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/Students.css";
+import "../styles/Tests.css";
 import DataTable from "react-data-table-component";
 import { CgProfile } from "react-icons/cg";
 
-const Students = () => {
+const Tests = () => {
   const [hosts, setHosts] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
@@ -37,7 +37,7 @@ const Students = () => {
     if (!hosts[0]) return;
 
     axios
-      .post(`http://${hosts[0]}:5000/load-data`, { collection: "Users" })
+      .post(`http://${hosts[0]}:5000/load-data`, { collection: "Tests" })
       .then((result) => {
         setTableColumns(Object.keys(result.data[0]).slice(1));
         setTableData(result.data);
@@ -81,33 +81,60 @@ const Students = () => {
   });
 
   const fileUpload = () => {
-    let file = document.querySelector("#students-list").files[0];
+    let file = document.querySelector("#tests-list").files[0];
     if (!file) return;
+    const csvToQuestions = (csv) => {
+      const rows = csv.trim().split("\n");
+      const headers = rows.shift().split(",");
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      axios
-        .post(`http://${hosts[0]}:5000/Upload-file`, { data: reader.result })
-        .then(() => {
-          window.alert("Uploaded to primary server");
-        })
-        .catch(() => {
-          if (hosts[1]) {
-            axios
-              .post(`http://${hosts[1]}:5000/Upload-file`, {
-                data: reader.result,
-              })
-              .then(() => {
-                console.log("Uploaded to secondary server");
-              })
-              .catch((error) => {
-                console.error("Error uploading to secondary server:", error);
-              });
-          }
-        });
+      const questions = rows.map((row) => {
+        const [question, optionsStr, answer] = row.split(
+          /,(?=(?:(?:[^"]*"){2})*[^"]*$)/
+        );
+        console.log(question);
+
+        const options = optionsStr
+          .replace(/"/g, "") // Remove quotes around the options
+          .split("\n") // Split options by newline
+          .map((opt) => opt.replace(/^[A-Z]\) /, "")); // Remove "A)", "B)", etc.
+
+        return {
+          question: question.trim(),
+          options: options,
+          answer: answer.trim(),
+        };
+      });
+
+      return questions;
     };
 
+    const reader = new FileReader();
     reader.readAsText(file);
+    reader.onload = () => {
+      const questions = csvToQuestions(reader.result);
+      console.log(questions);
+      //axios
+      //  .post(`http://${hosts[0]}:5000/Upload-file`, { data: reader.result })
+      //  .then(() => {
+
+      //    return;
+      //    window.alert("Uploaded to primary server");
+      //  })
+      //  .catch(() => {
+      //    if (hosts[1]) {
+      //      axios
+      //        .post(`http://${hosts[1]}:5000/Upload-file`, {
+      //          data: reader.result,
+      //        })
+      //        .then(() => {
+      //          console.log("Uploaded to secondary server");
+      //        })
+      //        .catch((error) => {
+      //          console.error("Error uploading to secondary server:", error);
+      //        });
+      //    }
+      //  });
+    };
   };
 
   const addNew = () => {
@@ -267,7 +294,7 @@ const Students = () => {
           </li>
         </div>
       </nav>
-      <div className="students-action-div">
+      <div className="tests-action-div">
         <div
           style={{
             display: "inline-flex",
@@ -276,9 +303,9 @@ const Students = () => {
           }}
         >
           <label style={{ marginLeft: "5px", marginBottom: "5px" }}>
-            Upload Students List
+            Upload Tests List
           </label>
-          <input name="student-list" id="students-list" type="file" required />
+          <input name="student-list" id="tests-list" type="file" required />
         </div>
         <div>
           <button type="button" onClick={fileUpload} className="upload-button">
@@ -311,4 +338,4 @@ const Students = () => {
   );
 };
 
-export default Students;
+export default Tests;

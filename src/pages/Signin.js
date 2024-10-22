@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
 import axios from "axios";
 
-const Signin = () => {
+const Signin = ({ handleUserData }) => {
   const [hosts, setHosts] = useState([]);
   const navigate = useNavigate();
   useEffect(() => {
-    const localIps = JSON.parse(sessionStorage.getItem("localIps"));
+    const localIps = localStorage.getItem("localIps");
 
     if (localIps) {
-      setHosts(localIps);
+      setHosts(JSON.parse(localIps));
     }
   }, []);
   const handleLogin = () => {
@@ -24,8 +24,10 @@ const Signin = () => {
         Id: userID,
         password: userPassword,
       })
-      .then(() => {
+      .then((result) => {
         window.alert("User Authentication Successful!");
+        //handleUserData(result.data);
+        localStorage.setItem("userData", JSON.stringify(result.data));
         navigate("/instructions");
       });
   };

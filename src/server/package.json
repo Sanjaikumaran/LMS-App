@@ -12,6 +12,7 @@
   "author": "SK",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "express-session": "^1.18.1"
   }
 }

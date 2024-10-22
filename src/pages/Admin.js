@@ -1,10 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../styles/Admin.css";
 import { CgProfile } from "react-icons/cg";
 
-const Admin = ({ profile1 }) => {
+const Admin = () => {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState();
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    setUserData(userData);
+  }, []);
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
@@ -58,7 +64,7 @@ const Admin = ({ profile1 }) => {
             </a>{" "}
             <li
               onClick={() => {
-                showProfile(profile1);
+                showProfile(userData);
               }}
               className="profile"
             >
@@ -71,7 +77,12 @@ const Admin = ({ profile1 }) => {
         <div className="card-container">
           <h1 className="card-header">Students Module</h1>
           <div className="card-body">
-            <div>{/*<img src="" />*/}</div>
+            <div>
+              <img
+                src="/home/sk/Documents/quiz-app/src/pages/education.png"
+                alt="Students Icon"
+              />
+            </div>
 
             <button
               onClick={() => {
