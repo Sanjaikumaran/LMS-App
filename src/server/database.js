@@ -12,7 +12,6 @@ async function connectToReplicaSet() {
   async function insertData(collectionName, data) {
     try {
       await client.connect();
-      console.log("Connected to MongoDB Replica Set");
       const options = { ordered: true };
       const collection = db.collection(collectionName);
       if (Array.isArray(data) && data.length > 1) {
@@ -20,7 +19,6 @@ async function connectToReplicaSet() {
       } else {
         await collection.insertOne(data);
       }
-      console.log("Data inserted successfully");
       return true;
     } catch (e) {
       console.error("Error connecting to MongoDB:", e);
@@ -71,9 +69,17 @@ async function connectToReplicaSet() {
   async function deleteDocument(collectionName, docs) {
     try {
       const collection = db.collection(collectionName);
-
+      let result;
       // Use $in to match multiple _id values directly as strings
-      const result = await collection.deleteMany({ Contact: { $in: docs } });
+      if (collectionName === "Users") {
+        result = await collection.deleteMany({ Contact: { $in: docs } });
+      } else {
+        docs = docs.map((doc) => doc.split(",")); // Convert each string to an array
+
+        result = await collection.deleteMany({
+          Answer: { $in: docs },
+        });
+      }
 
       return result;
     } catch (e) {

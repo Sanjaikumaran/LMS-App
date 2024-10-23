@@ -4,6 +4,8 @@ const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const connectToReplicaSet = require("./database"); // Import the DB connection
+require("dotenv").config();
+const fs = require("node:fs");
 
 const app = express();
 app.use(cors());
@@ -18,31 +20,46 @@ app.use(
   })
 );
 
-async function getLocalIPs() {
-  const networkInterfaces = os.networkInterfaces();
-  let localIPs = [];
+function getLocalIPs() {
+  const interfaces = os.networkInterfaces();
+  const ips = [];
 
-  for (const iface in networkInterfaces) {
-    const ifaceDetails = networkInterfaces[iface];
-    for (const detail of ifaceDetails) {
-      if (detail.family === "IPv4" && !detail.internal) {
-        localIPs.push({ interface: iface, address: detail.address });
+  for (const iface of Object.values(interfaces)) {
+    for (const alias of iface) {
+      if (alias.family === "IPv4" && !alias.internal) {
+        ips.push(alias.address); // Collect only external IPv4 addresses
       }
     }
   }
 
-  return localIPs;
+  return ips;
 }
 
-// Route to get local IPs
-app.get("/data", async (req, res) => {
-  const localIPs = await getLocalIPs();
-  const address = localIPs.map((obj) => obj.address);
-  res.json(address);
-});
+// Read the existing .env file
+fs.readFile(".env", "utf8", (err, data) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
 
+  const localIPs = getLocalIPs(); // Get array of local IP addresses
+  let address = ""; // Initialize a string to hold the IP entries
+
+  // Loop through local IPs and assign LOCAL_IP1, LOCAL_IP2, etc.
+  localIPs.forEach((ip, index) => {
+    address += `LOCAL_IP${index + 1}=${ip}\n`; // Create numbered IP entries
+  });
+
+  // Append the IP addresses to the .env file
+  fs.writeFile("../../.env", data + address, (err) => {
+    if (err) {
+      console.error(err);
+    } else {
+    }
+  });
+});
 // Route to upload and insert data
-app.post("/Upload-file", async (req, res) => {
+app.post("/Upload-data", async (req, res) => {
   let docs = [];
   const data = req.body.data.split("\n");
   const keys = data[0].split(",");
@@ -68,6 +85,19 @@ app.post("/Upload-file", async (req, res) => {
     res.status(500).json({ message: "Error inserting data" });
   }
 });
+app.post("/Upload-question", async (req, res) => {
+  const collection = req.body.collection;
+  const questions = req.body.questions;
+
+  const dbConnection = await connectToReplicaSet();
+  const result = await dbConnection.insertData(collection, questions);
+
+  if (result) {
+    res.status(200).json({ message: "Questions uploaded successfully" });
+  } else {
+    res.status(500).json({ message: "Error inserting data" });
+  }
+});
 
 // Route to load all data from the "Users" collection
 app.post("/load-data", async (req, res) => {
@@ -87,7 +117,7 @@ app.post("/insert-data", async (req, res) => {
   const data = req.body;
 
   const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.insertDocument("Users", data.data);
+  const result = await dbConnection.insertDocument(data.collection, data.data);
 
   if (result) {
     res.status(200).send(result);
@@ -96,11 +126,14 @@ app.post("/insert-data", async (req, res) => {
   }
 });
 app.post("/delete-data", async (req, res) => {
-  const data = req.body.data; // Assuming this is an array of IDs to delete
+  const data = req.body;
 
   try {
     const dbConnection = await connectToReplicaSet();
-    const result = await dbConnection.deleteDocument("Users", data);
+    const result = await dbConnection.deleteDocument(
+      data.collection,
+      data.data
+    );
 
     if (result) {
       res.status(200).json({

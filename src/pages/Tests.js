@@ -80,60 +80,57 @@ const Tests = () => {
     }
   });
 
-  const fileUpload = () => {
-    let file = document.querySelector("#tests-list").files[0];
-    if (!file) return;
-    const csvToQuestions = (csv) => {
-      const rows = csv.trim().split("\n");
-      const headers = rows.shift().split(",");
+  const fileUpload = (loadData) => {
+    let file = document.querySelector("#tests-list");
+    if (!file.files[0]) return;
+    const GIFTParser = (text) => {
+      const questions = [];
+      const regex = /::Question \d+:: (.*?)\n\{([\s\S]*?)\}/g;
+      let match;
 
-      const questions = rows.map((row) => {
-        const [question, optionsStr, answer] = row.split(
-          /,(?=(?:(?:[^"]*"){2})*[^"]*$)/
-        );
-        console.log(question);
+      while ((match = regex.exec(text)) !== null) {
+        const questionText = match[1].trim();
+        const optionsBlock = match[2].trim().split("\n");
 
-        const options = optionsStr
-          .replace(/"/g, "") // Remove quotes around the options
-          .split("\n") // Split options by newline
-          .map((opt) => opt.replace(/^[A-Z]\) /, "")); // Remove "A)", "B)", etc.
+        const options = [];
+        const correctAnswers = [];
 
-        return {
-          question: question.trim(),
-          options: options,
-          answer: answer.trim(),
-        };
-      });
+        optionsBlock.forEach((option) => {
+          const optionText = option.replace(/[=~]/g, "").trim();
+
+          if (option.trim().startsWith("=")) {
+            correctAnswers.push(optionText);
+          }
+          options.push(optionText);
+        });
+
+        questions.push({
+          Question: questionText,
+          Option: options,
+          Answer: correctAnswers,
+        });
+      }
 
       return questions;
     };
 
     const reader = new FileReader();
-    reader.readAsText(file);
+    reader.readAsText(file.files[0]);
     reader.onload = () => {
-      const questions = csvToQuestions(reader.result);
-      console.log(questions);
-      //axios
-      //  .post(`http://${hosts[0]}:5000/Upload-file`, { data: reader.result })
-      //  .then(() => {
-
-      //    return;
-      //    window.alert("Uploaded to primary server");
-      //  })
-      //  .catch(() => {
-      //    if (hosts[1]) {
-      //      axios
-      //        .post(`http://${hosts[1]}:5000/Upload-file`, {
-      //          data: reader.result,
-      //        })
-      //        .then(() => {
-      //          console.log("Uploaded to secondary server");
-      //        })
-      //        .catch((error) => {
-      //          console.error("Error uploading to secondary server:", error);
-      //        });
-      //    }
-      //  });
+      const parsedQuestions = GIFTParser(reader.result);
+      axios
+        .post(`http://${hosts[0]}:5000/Upload-question`, {
+          collection: "Tests",
+          questions: parsedQuestions,
+        })
+        .then(() => {
+          window.alert("Question Uploaded!");
+          loadData();
+          file.value = null;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     };
   };
 
@@ -162,9 +159,13 @@ const Tests = () => {
         const val = document.getElementsByClassName(column)[0].value;
         data[column] = val;
       });
+      console.log(data);
 
       axios
-        .post(`http://${hosts[0]}:5000/insert-data`, { data })
+        .post(`http://${hosts[0]}:5000/insert-data`, {
+          data,
+          collection: "Tests",
+        })
         .then(() => {
           setTableData([...tableData, data]);
           window.alert("New user added successfully!");
@@ -208,7 +209,9 @@ const Tests = () => {
 
         axios
           .post(`http://${hosts[0]}:5000/delete-data`, {
-            data: selectedRows.map((row) => row.Contact), // Sending the _id values
+            collection: "Tests",
+
+            data: selectedRows.map((row) => row.Answer), // Sending the _id values
           })
           .then((result) => {
             window.alert(`${result.data.deletedCount} Deleted Successfully!`);
@@ -224,7 +227,6 @@ const Tests = () => {
   };
 
   const handleRowSelected = (state) => {
-    //console.log(selectedRows);
     setSelectedRows(state.selectedRows);
   };
 
@@ -241,7 +243,10 @@ const Tests = () => {
       sortable: true,
     })),
   ];
-
+  tableData.forEach((data) => {
+    data["Option"] = data["Option"].toString();
+    data["Answer"] = data["Answer"].toString();
+  });
   const data = tableData;
 
   const customStyles = {
@@ -308,7 +313,11 @@ const Tests = () => {
           <input name="student-list" id="tests-list" type="file" required />
         </div>
         <div>
-          <button type="button" onClick={fileUpload} className="upload-button">
+          <button
+            type="button"
+            onClick={() => fileUpload(loadData)}
+            className="upload-button"
+          >
             Upload
           </button>
           <button type="button" onClick={addNew} className="upload-button">
@@ -330,7 +339,7 @@ const Tests = () => {
           customStyles={customStyles}
           responsive
           fixedHeader
-          selectableRows={isSelectable} // Conditional selection
+          selectableRows={isSelectable}
           onSelectedRowsChange={handleRowSelected}
         />
       </div>

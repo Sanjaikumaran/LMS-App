@@ -80,16 +80,18 @@ const Students = () => {
     }
   });
 
-  const fileUpload = () => {
-    let file = document.querySelector("#students-list").files[0];
-    if (!file) return;
+  const fileUpload = (loadData) => {
+    let file = document.querySelector("#students-list");
+    if (!file.files[0]) return;
 
     const reader = new FileReader();
     reader.onload = () => {
       axios
-        .post(`http://${hosts[0]}:5000/Upload-file`, { data: reader.result })
+        .post(`http://${hosts[0]}:5000/Upload-data`, { data: reader.result })
         .then(() => {
           window.alert("Uploaded to primary server");
+          file.value = null;
+          loadData();
         })
         .catch(() => {
           if (hosts[1]) {
@@ -99,6 +101,7 @@ const Students = () => {
               })
               .then(() => {
                 console.log("Uploaded to secondary server");
+                loadData();
               })
               .catch((error) => {
                 console.error("Error uploading to secondary server:", error);
@@ -107,7 +110,7 @@ const Students = () => {
         });
     };
 
-    reader.readAsText(file);
+    reader.readAsText(file.files[0]);
   };
 
   const addNew = () => {
@@ -137,7 +140,10 @@ const Students = () => {
       });
 
       axios
-        .post(`http://${hosts[0]}:5000/insert-data`, { data })
+        .post(`http://${hosts[0]}:5000/insert-data`, {
+          data,
+          collection: "Users",
+        })
         .then(() => {
           setTableData([...tableData, data]);
           window.alert("New user added successfully!");
@@ -181,6 +187,7 @@ const Students = () => {
 
         axios
           .post(`http://${hosts[0]}:5000/delete-data`, {
+            collection: "Users",
             data: selectedRows.map((row) => row.Contact), // Sending the _id values
           })
           .then((result) => {
@@ -281,7 +288,11 @@ const Students = () => {
           <input name="student-list" id="students-list" type="file" required />
         </div>
         <div>
-          <button type="button" onClick={fileUpload} className="upload-button">
+          <button
+            type="button"
+            onClick={() => fileUpload(loadData)}
+            className="upload-button"
+          >
             Upload
           </button>
           <button type="button" onClick={addNew} className="upload-button">

@@ -27,6 +27,12 @@ const App = () => {
     // Fetch local IPs when component mounts
     fetchData();
   }, []); // Empty dependency array ensures this runs only once
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const otherVar = process.env.REACT_APP_OTHER_VAR;
+  console.log(process.env);
+
+  console.log("API URL:", apiUrl); // This should print the value from .env
+  console.log("Other Var:", otherVar);
 
   const initialTime = 100;
   const questions = [

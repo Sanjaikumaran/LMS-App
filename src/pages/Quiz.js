@@ -4,28 +4,67 @@ import { CgProfile } from "react-icons/cg";
 
 import "../styles/Quiz.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Quiz = ({ initialTime, questions }) => {
+const Quiz = (props) => {
+  const { initialTime } = props;
   const [userData, setUserData] = useState();
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    setUserData(userData);
-  }, []);
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [totalTime] = useState(initialTime);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const [highlightedOptions, setHighlightedOptions] = useState([]);
-  //setTotalTime(initialTime);
-  const totalQuestions = questions.length;
+
+  const [hosts, setHosts] = useState([]);
 
   useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}"),
+      localIps = localStorage.getItem("localIps");
+    userData && setUserData(userData);
+
+    if (localIps) {
+      setHosts(JSON.parse(localIps));
     }
-  }, [timeLeft]);
+  }, [props]);
+
+  useEffect(() => {
+    hosts.length &&
+      axios
+        .post(`http://${hosts[0]}:5000/load-data`, { collection: "Tests" })
+        .then((result) => {
+          result.data.forEach((qn) => {
+            delete qn["_id"];
+          });
+          const questionsObj = result.data.map((question) => {
+            return {
+              ...question,
+              type: question.Answer.length > 1 ? "checkbox" : "radio", // Multiple answers => checkbox, single answer => radio
+            };
+          });
+          setQuestions(questionsObj);
+        });
+  }, [hosts]);
+
+  useEffect(() => {
+    if (questions.length) {
+      const intTimer = setInterval(() => {
+        setTimeLeft((prevTimeLeft) => {
+          prevTimeLeft = prevTimeLeft - 1;
+          if (prevTimeLeft <= 2) {
+            clearInterval(intTimer);
+            return 0;
+          }
+          return prevTimeLeft;
+        });
+
+        return () => clearInterval(intTimer);
+      }, 1000);
+    }
+  }, [questions]);
+
+  const totalQuestions = questions.length;
 
   const handleOptionSelect = (option, type) => {
     const updatedSelections = [...highlightedOptions];
@@ -148,19 +187,25 @@ const Quiz = ({ initialTime, questions }) => {
     document.body.appendChild(profileContainer);
   };
 
-  document.body.addEventListener("click", (event) => {
-    if (event.target.closest("li.profile")) {
-      return;
-    } else if (event.target.closest("div.profile-container")) {
-      return;
-    }
+  useEffect(() => {
+    const bodyClick = (event) => {
+      if (event.target.closest("li.profile")) {
+        return;
+      } else if (event.target.closest("div.profile-container")) {
+        return;
+      }
 
-    const profileExist = document.querySelector(".profile-container");
+      const profileExist = document.querySelector(".profile-container");
 
-    if (profileExist) {
-      profileExist.remove();
-    }
-  });
+      if (profileExist) {
+        profileExist.remove();
+      }
+    };
+    document.body.addEventListener("click", bodyClick);
+    return () => {
+      document.body.removeEventListener("click", bodyClick);
+    };
+  }, []);
 
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = highlightedOptions[currentQuestionIndex] || [];
@@ -175,9 +220,14 @@ const Quiz = ({ initialTime, questions }) => {
         <nav className="navbar">
           <div className="logo">Quizzards</div>
           <div className="nav-links">
-            <a href="" onClick={() => navigate("/admin")}>
+            {/*{console.log(questions)}*/}
+            <span
+              onClick={() => {
+                navigate("/admin");
+              }}
+            >
               Home
-            </a>
+            </span>
             <a href="#about">About</a>
             <a
               target="_blank"
@@ -202,9 +252,9 @@ const Quiz = ({ initialTime, questions }) => {
         <div className="quiz-app">
           <div className="quiz-content">
             <div className="question-section">
-              <h1>{currentQuestion?.question}</h1>
+              <h1>{currentQuestion?.Question}</h1>
               <ul className="options">
-                {currentQuestion?.options.map((option, index) => (
+                {currentQuestion?.Option.map((option, index) => (
                   <li
                     key={index}
                     onClick={() =>
