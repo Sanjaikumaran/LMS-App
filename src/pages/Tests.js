@@ -23,7 +23,7 @@ const Tests = () => {
     const localIps = localStorage.getItem("localIps");
 
     if (localIps) {
-      setHosts(JSON.parse(localIps.split(",")));
+      setHosts(localIps.split(","));
     }
   }, []);
 
@@ -32,6 +32,23 @@ const Tests = () => {
       loadData();
     }
   }, [hosts]);
+  useEffect(() => {
+    if (tableData) {
+      // Filter out objects that have the "title" key
+      const filteredData = tableData.filter(
+        (obj) => !obj.hasOwnProperty("title")
+      );
+
+      // Check if there are any objects left after filtering
+      if (filteredData.length > 0) {
+        // Set table columns based on keys of the first object
+        setTableColumns(Object.keys(filteredData[0]));
+      } else {
+        // Handle case where no objects are left after filtering
+        setTableColumns([]); // or set a default value
+      }
+    }
+  }, [tableData]);
 
   const loadData = () => {
     if (!hosts[0]) return;
@@ -39,7 +56,6 @@ const Tests = () => {
     axios
       .post(`http://${hosts[0]}:5000/load-data`, { collection: "Tests" })
       .then((result) => {
-        setTableColumns(Object.keys(result.data[0]).slice(1));
         setTableData(result.data);
       })
       .catch((error) => {
@@ -225,12 +241,107 @@ const Tests = () => {
       setIsSelectable(false);
     }
   };
+  const setTime = () => {
+    setIsModalOpen(true);
+
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    document.body.appendChild(overlay);
+
+    const modalContainer = document.createElement("div");
+    modalContainer.className = "modal-container";
+
+    const createInputField = (column, value = "") => {
+      const inputField = document.createElement("input");
+      inputField.className = column;
+      inputField.placeholder = column;
+      inputField.value = value;
+      inputField.type = "number";
+      return inputField;
+    };
+
+    axios
+      .post(`http://${hosts[0]}:5000/find-data`, {
+        collection: "Tests",
+        condition: { title: "Time" },
+      })
+      .then((result) => {
+        const data = result.data.result;
+        ["Hours", "Minutes", "Seconds"].forEach((column) => {
+          modalContainer.appendChild(createInputField(column, data[column]));
+        });
+      })
+      .catch(() => {
+        // If there's an error, allow manual input
+        window.alert("Error fetching time data, please enter manually.");
+        ["Hours", "Minutes", "Seconds"].forEach((column) => {
+          modalContainer.appendChild(createInputField(column));
+        });
+      })
+      .finally(() => {
+        const saveButton = document.createElement("button");
+        saveButton.innerText = "Save";
+        saveButton.onclick = () => {
+          let data = { title: "Time" };
+          ["Hours", "Minutes", "Seconds"].forEach((column) => {
+            const val = document.getElementsByClassName(column)[0].value;
+            data[column] = parseInt(val, 10);
+          });
+
+          axios
+            .post(`http://${hosts[0]}:5000/update-data`, {
+              condition: { title: "Time" },
+              data: data,
+              collection: "Tests",
+            })
+            .then((result) => {
+              if (result.data.upsertedCount || result.data.modifiedCount) {
+                window.alert("Time updated successfully!");
+              } else {
+                throw new Error("No data found for update.");
+              }
+            })
+            .catch(() => {
+              // If no update, insert new data
+              axios
+                .post(`http://${hosts[0]}:5000/insert-data`, {
+                  data,
+                  collection: "Tests",
+                })
+                .then(() => {
+                  window.alert("Time added successfully!");
+                })
+                .catch((error) => {
+                  console.error(error);
+                  window.alert("Error saving time data.");
+                });
+            });
+
+          closeModalAndCleanup();
+        };
+
+        const closeButton = document.createElement("button");
+        closeButton.innerText = "Close";
+        closeButton.onclick = closeModalAndCleanup;
+
+        modalContainer.appendChild(saveButton);
+        modalContainer.appendChild(closeButton);
+      });
+
+    document.body.appendChild(modalContainer);
+
+    const closeModalAndCleanup = () => {
+      setIsModalOpen(false);
+      modalContainer.remove();
+      document.body.removeChild(overlay);
+    };
+  };
 
   const handleRowSelected = (state) => {
     setSelectedRows(state.selectedRows);
   };
 
-  const columns = [
+  let columns = [
     {
       name: "S.No",
       selector: (row, index) => index + 1,
@@ -243,11 +354,16 @@ const Tests = () => {
       sortable: true,
     })),
   ];
+
   tableData.forEach((data) => {
-    data["Option"] = data["Option"].toString();
-    data["Answer"] = data["Answer"].toString();
+    if (data["Option"] && data["Answer"]) {
+      delete data["_id"];
+      data["Option"] = data["Option"].toString();
+      data["Answer"] = data["Answer"].toString();
+    }
   });
-  const data = tableData;
+
+  const data = tableData.filter((obj) => !obj.hasOwnProperty("title"));
 
   const customStyles = {
     rows: {
@@ -325,6 +441,9 @@ const Tests = () => {
           </button>
           <button type="button" onClick={remove} className="upload-button">
             Remove
+          </button>{" "}
+          <button type="button" onClick={setTime} className="upload-button">
+            Set Time
           </button>
         </div>
       </div>

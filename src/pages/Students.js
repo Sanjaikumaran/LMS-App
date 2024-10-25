@@ -23,7 +23,7 @@ const Students = () => {
     const localIps = localStorage.getItem("localIps");
 
     if (localIps) {
-      setHosts(JSON.parse(localIps.split(",")));
+      setHosts(localIps.split(","));
     }
   }, []);
 
@@ -41,6 +41,7 @@ const Students = () => {
       .then((result) => {
         setTableColumns(Object.keys(result.data[0]).slice(1));
         setTableData(result.data);
+        console.log();
       })
       .catch((error) => {
         console.error("Error uploading to primary server:", error);

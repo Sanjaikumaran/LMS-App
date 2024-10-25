@@ -7,11 +7,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Quiz = (props) => {
-  const { initialTime } = props;
-  const [userData, setUserData] = useState();
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [totalTime] = useState(initialTime);
+  const [userData, setUserData] = useState();
+
+  const [isAutoSubmit, setIsAutoSubmit] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(1);
+  const [totalTime, setTotalTime] = useState(1);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [questions, setQuestions] = useState([]);
@@ -25,7 +26,7 @@ const Quiz = (props) => {
     userData && setUserData(userData);
 
     if (localIps) {
-      setHosts(JSON.parse(localIps));
+      setHosts(localIps.split(","));
     }
   }, [props]);
 
@@ -38,12 +39,26 @@ const Quiz = (props) => {
             delete qn["_id"];
           });
           const questionsObj = result.data.map((question) => {
-            return {
-              ...question,
-              type: question.Answer.length > 1 ? "checkbox" : "radio", // Multiple answers => checkbox, single answer => radio
-            };
+            if (question.title) {
+              const minutes = question.Hours * 60 + question.Minutes;
+              const seconds = minutes * 60 + question.Seconds;
+
+              // Set total time and time left only once, using the last question's time values
+              setTotalTime((prev) => seconds);
+              setTimeLeft((prev) => seconds);
+
+              // Do not include this question in the final array
+              return null;
+            } else {
+              // Return the question with a modified 'type'
+              return {
+                ...question,
+                type: question.Answer.length > 1 ? "checkbox" : "radio", // Multiple answers => checkbox, single answer => radio
+              };
+            }
           });
-          setQuestions(questionsObj);
+
+          setQuestions(questionsObj.filter((question) => question !== null));
         });
   }, [hosts]);
 
@@ -51,18 +66,35 @@ const Quiz = (props) => {
     if (questions.length) {
       const intTimer = setInterval(() => {
         setTimeLeft((prevTimeLeft) => {
-          prevTimeLeft = prevTimeLeft - 1;
-          if (prevTimeLeft <= 2) {
+          if (prevTimeLeft <= -1) {
             clearInterval(intTimer);
             return 0;
           }
-          return prevTimeLeft;
+          return prevTimeLeft - 1;
         });
-
-        return () => clearInterval(intTimer);
       }, 1000);
+
+      return () => clearInterval(intTimer);
     }
   }, [questions]);
+
+  useEffect(() => {
+    if (timeLeft === 0 && !isAutoSubmit) {
+      window.alert("Time Out!\nYour test will be submitted in 10 secs");
+      setTimeLeft(11);
+
+      setIsAutoSubmit(true);
+    }
+  }, [timeLeft]);
+  useEffect(() => {
+    if (isAutoSubmit) {
+      setTimeout(() => {
+        console.log("Quiz Submitted:", selectedOptions);
+        alert("Quiz Submitted!");
+        navigate("/");
+      }, 10000);
+    }
+  }, [isAutoSubmit]);
 
   const totalQuestions = questions.length;
 
@@ -163,11 +195,70 @@ const Quiz = (props) => {
 
   const handleSubmit = () => {
     if (window.confirm("Are you sure you want to start the test?")) {
-      console.log("Quiz Submitted:", selectedOptions);
-      alert("Quiz Submitted!");
-      navigate("/");
+      let correctAnswers = [];
+
+      questions.forEach((question) => {
+        if (!question["title"]) {
+          correctAnswers.push(
+            question["Answer"].length === 1
+              ? question["Answer"][0]
+              : question["Answer"]
+          );
+        }
+      });
+
+      let score = 0;
+
+      correctAnswers.forEach((correctAnswer, index) => {
+        const userAnswer = selectedOptions[index];
+
+        if (Array.isArray(correctAnswer)) {
+          if (
+            Array.isArray(userAnswer) &&
+            correctAnswer.length === userAnswer.length &&
+            correctAnswer.every((ans) => userAnswer.includes(ans))
+          ) {
+            score++;
+            console.log(
+              "Correct (multiple choice):",
+              correctAnswer,
+              userAnswer
+            );
+          } else {
+            console.log(
+              "Incorrect (multiple choice):",
+              correctAnswer,
+              userAnswer
+            );
+          }
+        } else {
+          // Check single answer correctness
+          if (correctAnswer === userAnswer) {
+            score++;
+            console.log("Correct (single choice):", correctAnswer, userAnswer);
+          } else {
+            console.log(
+              "Incorrect (single choice):",
+              correctAnswer,
+              userAnswer
+            );
+          }
+        }
+      });
+      axios.post(`http://${hosts[0]}:5000/update-data`, {
+        condition: { Contact: userData.Contact },
+        collection: "Users",
+        data: { Answer: selectedOptions, Score: score },
+      });
+      alert(
+        `Quiz Submitted! Your score is ${score} out of ${correctAnswers.length}`
+      );
+
+      // Navigate to another page or show final results
+      // navigate("/");
     }
   };
+
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
@@ -212,7 +303,7 @@ const Quiz = (props) => {
 
   const radius = 50;
   const circumference = 2 * Math.PI * radius;
-  //const element = <FontAwesomeIcon icon={byPrefixAndName.fas["house"]} />;
+
   return (
     <>
       {/* Top Navigation Bar */}

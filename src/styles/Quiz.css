@@ -249,7 +249,7 @@ margin: 8px;    }
 }
 
 .timer-section div {
- 
+ text-align: center;
     font-size: 1.2em;
     display: flex;
     color: #555;

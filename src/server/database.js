@@ -6,20 +6,36 @@ async function connectToReplicaSet() {
     "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
 
   const client = new MongoClient(uri);
+  let db;
+  async function connectToDatabase() {
+    try {
+      await client.connect();
+      db = client.db("Quizzards");
 
-  const db = client.db("Quizzards");
+      await db.listCollections().toArray();
+    } catch (error) {
+      console.error("Error connecting to Quizzards database:", error);
 
+      const db = client.db("Quizzards");
+      await db.createCollection("Tests");
+      await db.createCollection("Users");
+    }
+  }
+
+  connectToDatabase();
   async function insertData(collectionName, data) {
     try {
       await client.connect();
       const options = { ordered: true };
       const collection = db.collection(collectionName);
+      let result;
       if (Array.isArray(data) && data.length > 1) {
-        await collection.insertMany(data, options);
+        result = await collection.insertMany(data, options);
       } else {
         await collection.insertOne(data);
       }
-      return true;
+
+      return result;
     } catch (e) {
       console.error("Error connecting to MongoDB:", e);
       return false;
@@ -87,14 +103,40 @@ async function connectToReplicaSet() {
       throw e; // Rethrow the error to handle it in the route
     }
   }
+  async function findDocument(collectionName, docs) {
+    try {
+      const collection = db.collection(collectionName);
 
+      const result = await collection.findOne(docs);
+
+      return result;
+    } catch (e) {
+      console.error("Error finding documents from MongoDB:", e);
+      throw e; // Rethrow the error to handle it in the route
+    }
+  }
+  async function updateDocument(collectionName, filter, docs) {
+    try {
+      const collection = db.collection(collectionName);
+
+      const result = await collection.updateOne(filter, { $set: docs });
+
+      return result;
+    } catch (e) {
+      console.error("Error finding documents from MongoDB:", e);
+      throw e; // Rethrow the error to handle it in the route
+    }
+  }
   return {
     insertData,
     loadCollection,
     getDocument,
     insertDocument,
     deleteDocument,
+    findDocument,
+    updateDocument,
   };
 }
 
 module.exports = connectToReplicaSet; // Export the connection function
+//{name: "Annu"}, {$set:{age:25}}

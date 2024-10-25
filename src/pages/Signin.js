@@ -11,7 +11,7 @@ const Signin = ({ handleUserData }) => {
     const localIps = localStorage.getItem("localIps");
 
     if (localIps) {
-      setHosts(JSON.parse(localIps));
+      setHosts(localIps.split(","));
     }
   }, []);
   const handleLogin = () => {
