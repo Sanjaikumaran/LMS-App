@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../styles/Admin.css";
+import Navbar from "./components";
 import { CgProfile } from "react-icons/cg";
 
 const Admin = () => {
@@ -46,33 +47,7 @@ const Admin = () => {
 
   return (
     <>
-      {/* Top Navigation Bar */}
-      <div>
-        <nav className="navbar">
-          <div className="logo">
-            <h1 style={{ margin: 0 }}>Quizzards</h1>
-          </div>
-          <div className="nav-links">
-            <a href="#home">Home</a>
-            <a href="#about">About</a>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://sanjaikumaran.online/contact/"
-            >
-              Contact
-            </a>{" "}
-            <li
-              onClick={() => {
-                showProfile(userData);
-              }}
-              className="profile"
-            >
-              {<CgProfile style={{ fontSize: "1.5rem" }} />}
-            </li>
-          </div>
-        </nav>
-      </div>
+      <Navbar />
       <div className="cards">
         <div className="card-container">
           <h1 className="card-header">Students Module</h1>

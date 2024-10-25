@@ -1,58 +1,42 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
-import axios from "axios";
+import components from "./components";
+const { HandleApiCall, Modal, Navbar, Response } = components;
 
-const Signin = ({ handleUserData }) => {
-  const [hosts, setHosts] = useState([]);
+const Signin = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [apiData, setApiData] = useState(null);
+  const [credentials, setCredentials] = useState(null);
+
   const navigate = useNavigate();
-  useEffect(() => {
-    const localIps = localStorage.getItem("localIps");
 
-    if (localIps) {
-      setHosts(localIps.split(","));
-    }
-  }, []);
   const handleLogin = () => {
     const userID = document.getElementsByName("user-id")[0].value;
     const userPassword = document.getElementsByName("password")[0].value;
+    setCredentials({
+      API: "login",
+      data: { Id: userID, userPass: userPassword },
+    });
+  };
 
-    //08148802594
-    axios
-      .post(`http://${hosts[0]}:5000/login`, {
-        Id: userID,
-        password: userPassword,
-      })
-      .then((result) => {
-        window.alert("User Authentication Successful!");
-        //handleUserData(result.data);
-        localStorage.setItem("userData", JSON.stringify(result.data));
-        navigate("/instructions");
-      });
+  useEffect(() => {
+    if (apiData) {
+      localStorage.setItem("userData", JSON.stringify(apiData));
+      setIsModalOpen(true);
+    }
+  }, [apiData]);
+
+  const closeModal = (button) => {
+    if (Response(["Ok"], button)) {
+      navigate("/instructions");
+      setIsModalOpen(false);
+    }
   };
 
   return (
     <>
-      {/*Top Navigation Bar*/}
-      <div>
-        <nav className="navbar">
-          <div className="logo">
-            <h1 style={{ margin: 0 }}>Quizzards</h1>
-          </div>
-          <div className="nav-links">
-            <a href="#home">Home</a>
-            <a href="#about">About</a>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://sanjaikumaran.online/contact/"
-            >
-              Contact
-            </a>
-          </div>
-        </nav>
-      </div>
+      <Navbar page={true} />
 
       <div className="login-container">
         <h1 className="login-header">Login</h1>
@@ -73,6 +57,21 @@ const Signin = ({ handleUserData }) => {
           </button>
         </div>
       </div>
+      {credentials && (
+        <HandleApiCall
+          API={credentials.API}
+          data={credentials.data}
+          response={setApiData}
+        />
+      )}
+      {isModalOpen && (
+        <Modal
+          modalType="Info"
+          modalMessage="Login Successful!"
+          buttons={["Ok"]}
+          response={closeModal}
+        />
+      )}
     </>
   );
 };

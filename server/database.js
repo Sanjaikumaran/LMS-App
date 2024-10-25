@@ -51,7 +51,7 @@ async function connectToReplicaSet() {
       delete result._id;
       return result;
     } catch (e) {
-      console.error("Error fetching document from MongoDB:", e);
+      console.log("Error fetching document from MongoDB:", e);
     }
     // Don't close the client here to allow reuse
   }

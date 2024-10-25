@@ -15,8 +15,6 @@ const App = () => {
     localStorage.setItem("localIps", localIPs);
   }, []);
 
-  const initialTime = 300;
-
   const instructions = [
     "Instruction 1: Please read carefully.",
     "Instruction 2: Choose the correct answers.",
@@ -49,7 +47,7 @@ const App = () => {
           element={
             <>
               <ChangeTitle title="Quiz" />
-              <Quiz initialTime={initialTime} />
+              <Quiz />
             </>
           }
         />
@@ -58,7 +56,7 @@ const App = () => {
           element={
             <>
               <ChangeTitle title="Admin" />
-              <Admin initialTime={initialTime} />
+              <Admin />
             </>
           }
         />

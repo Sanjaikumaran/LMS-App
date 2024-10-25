@@ -3,6 +3,7 @@ import axios from "axios";
 import "../styles/Students.css";
 import DataTable from "react-data-table-component";
 import { CgProfile } from "react-icons/cg";
+import Navbar from "./components";
 
 const Students = () => {
   const [hosts, setHosts] = useState([]);
@@ -251,30 +252,7 @@ const Students = () => {
 
   return (
     <>
-      <nav className="navbar">
-        <div className="logo">
-          <h1 style={{ margin: 0 }}>Quizzards</h1>
-        </div>
-        <div className="nav-links">
-          <a href="#home">Home</a>
-          <a href="#about">About</a>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://sanjaikumaran.online/contact/"
-          >
-            Contact
-          </a>
-          <li
-            onClick={() => {
-              showProfile(userData);
-            }}
-            className="profile"
-          >
-            <CgProfile style={{ fontSize: "1.5rem" }} />
-          </li>
-        </div>
-      </nav>
+      <Navbar />
       <div className="students-action-div">
         <div
           style={{

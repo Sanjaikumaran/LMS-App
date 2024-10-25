@@ -206,7 +206,7 @@ app.post("/update-data", async (req, res) => {
 
 // Login route
 app.post("/login", async (req, res) => {
-  const { Id, password: userPass } = req.body;
+  const { Id, userPass } = req.body.data;
 
   const dbConnection = await connectToReplicaSet();
   const result = await dbConnection.getDocument("Users", "Contact", Id);
@@ -215,10 +215,16 @@ app.post("/login", async (req, res) => {
     if (userPass === result.Gender) {
       res.status(200).json(result);
     } else {
-      res.status(401).json({ message: "Incorrect password" });
+      if (userPass.trim() === "") {
+        res.status(401).json({ message: "Your password is empty" });
+      } else {
+        res.status(401).json({ message: "Incorrect UserID or Password" });
+      }
     }
   } else {
-    res.status(500).json({ message: "Error getting data" });
+    if (Id.trim() === "") {
+      res.status(403).json({ message: "UserID is empty" });
+    }
   }
 });
 

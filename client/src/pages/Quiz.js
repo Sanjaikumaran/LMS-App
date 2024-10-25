@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-import { CgProfile } from "react-icons/cg";
-
-import "../styles/Quiz.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
+import "../styles/Quiz.css";
+import components from "./components";
+const { Navbar, Modal, Response } = components;
 
 const Quiz = (props) => {
   const navigate = useNavigate();
@@ -308,38 +309,7 @@ const Quiz = (props) => {
 
   return (
     <>
-      {/* Top Navigation Bar */}
-      <div>
-        <nav className="navbar">
-          <div className="logo">Quizzards</div>
-          <div className="nav-links">
-            {/*{console.log(questions)}*/}
-            <span
-              onClick={() => {
-                navigate("/admin");
-              }}
-            >
-              Home
-            </span>
-            <a href="#about">About</a>
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://sanjaikumaran.online/contact/"
-            >
-              Contact
-            </a>{" "}
-            <li
-              onClick={() => {
-                showProfile(userData);
-              }}
-              className="profile"
-            >
-              {<CgProfile style={{ fontSize: "1.5rem" }} />}
-            </li>
-          </div>
-        </nav>
-      </div>
+      <Navbar />
 
       <div className="quiz-body">
         <div className="quiz-app">

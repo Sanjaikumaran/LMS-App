@@ -1,0 +1,87 @@
+.navbar {
+  background-color: #007bff;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar .logo {
+  font-size: 1.5em;
+}
+
+.navbar .nav-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+.profile-container {
+  position: absolute;
+  background-color: rgb(255, 255, 255);
+  z-index: 10;
+  padding: 56px;
+  border-radius: 10px;
+  top: 70px;
+  right: 6px;
+  max-width: 290px !important;
+  box-shadow: 0 4px 15px #00000029 !important;
+  border: 1px solid #d1d1d1 !important;
+  border-radius: 8px !important;
+  overflow: inherit !important;
+}
+
+.profile-info {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: start;
+  width: 100%;
+  border-top: 1px solid rgb(205, 207, 211);
+  flex-wrap: wrap;
+  padding-top: 10px;
+}
+
+.detail p span:nth-child(2) {
+  font-weight: bolder;
+}
+
+.detail p {
+  display: flex;
+  margin: 8px;
+}
+.modal-background{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); 
+    z-index: 999; 
+
+}
+.modal-container{
+    padding: 20px;
+    margin: auto;
+    display: block;
+    z-index: 10;
+}
+
+.modal-container h1{
+    margin: 0 ;
+  
+}
+.modal-container .modal-body{
+    color: darkslategray;
+}
+.modal-container .modal-buttons{
+
+display: flex;
+justify-content: end;
+}
+
+.modal-container .modal-buttons button{
+min-width: 60px;
+}
