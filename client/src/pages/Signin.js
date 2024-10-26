@@ -1,31 +1,49 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
 import components from "./components";
-const { HandleApiCall, Modal, Navbar, Response } = components;
+const { Navbar, Modal, Response, MessageBox, handleApiCall } = components;
 
 const Signin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [apiData, setApiData] = useState(null);
-  const [credentials, setCredentials] = useState(null);
+  const [responseMessage, setResponseMessage] = useState(null);
+  const [userID, setUserID] = useState("");
+  const [userPassword, setUserPassword] = useState("");
 
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    const userID = document.getElementsByName("user-id")[0].value;
-    const userPassword = document.getElementsByName("password")[0].value;
-    setCredentials({
-      API: "login",
-      data: { Id: userID, userPass: userPassword },
-    });
-  };
+  const handleLogin = async () => {
+    const trimmedUserID = userID.trim();
+    const trimmedPassword = userPassword.trim();
 
-  useEffect(() => {
-    if (apiData) {
-      localStorage.setItem("userData", JSON.stringify(apiData));
-      setIsModalOpen(true);
+    if (!trimmedUserID || !trimmedPassword) {
+      if (!trimmedUserID && !trimmedPassword) {
+        setResponseMessage("Please Enter UserId & Password");
+      } else if (!trimmedUserID) {
+        setResponseMessage("Please Enter UserId");
+      } else {
+        setResponseMessage("Please Enter Password");
+      }
+    } else {
+      try {
+        const response = await handleApiCall({
+          API: "login",
+          data: { Id: trimmedUserID, userPass: trimmedPassword },
+        });
+
+        if (response && response.flag) {
+          localStorage.setItem("userData", JSON.stringify(response.data));
+          setResponseMessage("");
+          setIsModalOpen(true);
+        } else {
+          setResponseMessage(response.error);
+        }
+      } catch (error) {
+        setResponseMessage("An error occurred. Please try again.");
+        console.error("Login error:", error);
+      }
     }
-  }, [apiData]);
+  };
 
   const closeModal = (button) => {
     if (Response(["Ok"], button)) {
@@ -44,26 +62,36 @@ const Signin = () => {
           <div className="institution-name">
             <h1>Jeppiaar University</h1>
           </div>
+
           <div className="input-group">
             <label htmlFor="user-id">User ID</label>
-            <input name="user-id" type="text" required />
+            <input
+              id="user-id"
+              name="user-id"
+              type="text"
+              value={userID}
+              required
+              onChange={(e) => setUserID(e.target.value)}
+            />
           </div>
           <div className="input-group">
             <label htmlFor="password">Password</label>
-            <input name="password" type="password" required />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={userPassword}
+              required
+              onChange={(e) => setUserPassword(e.target.value)}
+            />
           </div>
-          <button onClick={handleLogin} type="button">
+          {responseMessage && <MessageBox message={responseMessage} />}
+          <button type="button" onClick={handleLogin}>
             Login
           </button>
         </div>
       </div>
-      {credentials && (
-        <HandleApiCall
-          API={credentials.API}
-          data={credentials.data}
-          response={setApiData}
-        />
-      )}
+
       {isModalOpen && (
         <Modal
           modalType="Info"

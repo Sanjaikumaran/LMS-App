@@ -302,7 +302,7 @@ body {
 }
 
 
-.footer {
+.quiz-footer {
     text-align: center;
    
     margin-top: 20px;
@@ -311,7 +311,7 @@ body {
    
 }
 
-.footer button {
+.quiz-footer button {
     margin: 0 10px;
    
 }

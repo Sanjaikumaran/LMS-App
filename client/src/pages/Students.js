@@ -1,122 +1,148 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createElement } from "react";
 import axios from "axios";
 import "../styles/Students.css";
 import DataTable from "react-data-table-component";
-import { CgProfile } from "react-icons/cg";
-import Navbar from "./components";
+
+import components from "./components";
+const { Navbar, handleApiCall, Modal } = components;
 
 const Students = () => {
-  const [hosts, setHosts] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalOptions, setModalOptions] = useState();
+
+  const [hosts, sd] = useState(false);
   const [tableColumns, setTableColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
-  const [userData, setUserData] = useState();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+
   const [isSelectable, setIsSelectable] = useState(false);
 
   const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    setUserData(userData);
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    const localIps = localStorage.getItem("localIps");
-
-    if (localIps) {
-      setHosts(localIps.split(","));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (hosts.length > 0) {
-      loadData();
-    }
-  }, [hosts]);
-
-  const loadData = () => {
-    if (!hosts[0]) return;
-
-    axios
-      .post(`http://${hosts[0]}:5000/load-data`, { collection: "Users" })
-      .then((result) => {
-        setTableColumns(Object.keys(result.data[0]).slice(1));
-        setTableData(result.data);
-        console.log();
-      })
-      .catch((error) => {
-        console.error("Error uploading to primary server:", error);
+  async function fetchData() {
+    try {
+      const response = await handleApiCall({
+        API: "load-data",
+        data: { collection: "Users" },
       });
-  };
 
-  const showProfile = (profileDetails) => {
-    const isExist = document.querySelector(".profile-container");
-    if (isExist) {
-      return;
+      if (response.flag) {
+        response.data.forEach((value) => {
+          delete value["_id"];
+        });
+
+        if (response.data.length > 0) {
+          setTableColumns(Object.keys(response.data[0]));
+          setTableData(response.data);
+        } else {
+          setTableColumns([]);
+          setTableData([]);
+          setModalOptions({
+            type: "Info",
+            message: "No data available.",
+            buttons: ["Ok"],
+            responseFunc: () => setIsModalOpen(false),
+          });
+          setIsModalOpen(true);
+        }
+      } else {
+        setModalOptions({
+          type: "Error",
+          message: response.error,
+          buttons: ["Retry", "Ok"],
+          responseFunc: (button) => {
+            if (button === "Retry") {
+              fetchData();
+            }
+            setIsModalOpen(false);
+          },
+        });
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      setModalOptions({
+        type: "Error",
+        message: `Uncaught error: ${error.message}`,
+        buttons: ["Retry", "Ok"],
+        responseFunc: (button) => {
+          if (button === "Retry") {
+            fetchData();
+          }
+          setIsModalOpen(false);
+        },
+      });
+      setIsModalOpen(true);
     }
-    const profileContainer = document.createElement("div");
-    profileContainer.className = "profile-container";
-    const profileInfo = document.createElement("div");
-    profileInfo.className = "profile-info";
-    Object.keys(profileDetails).map(async (detail) => {
-      const detailList = document.createElement("li");
-      detailList.classList = "detail";
-      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span> ${profileDetails[detail]}</span></p>`;
-      profileInfo.appendChild(detailList);
-    });
-    profileContainer.appendChild(profileInfo);
-    document.body.appendChild(profileContainer);
-  };
+  }
 
-  document.body.addEventListener("click", (event) => {
-    if (event.target.closest("li.profile")) {
-      return;
-    } else if (event.target.closest("div.profile-container")) {
-      return;
-    }
-
-    const profileExist = document.querySelector(".profile-container");
-
-    if (profileExist) {
-      profileExist.remove();
-    }
-  });
-
-  const fileUpload = (loadData) => {
-    let file = document.querySelector("#students-list");
+  const fileUpload = (fetchData) => {
+    const file = document.querySelector("#students-list");
     if (!file.files[0]) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
-      axios
-        .post(`http://${hosts[0]}:5000/Upload-data`, { data: reader.result })
-        .then(() => {
-          window.alert("Uploaded to primary server");
-          file.value = null;
-          loadData();
-        })
-        .catch(() => {
-          if (hosts[1]) {
-            axios
-              .post(`http://${hosts[1]}:5000/Upload-file`, {
-                data: reader.result,
-              })
-              .then(() => {
-                console.log("Uploaded to secondary server");
-                loadData();
-              })
-              .catch((error) => {
-                console.error("Error uploading to secondary server:", error);
-              });
-          }
-        });
-    };
-
     reader.readAsText(file.files[0]);
+
+    reader.onload = async () => {
+      try {
+        const response = await handleApiCall({
+          API: "Upload-data",
+          data: reader.result,
+        });
+
+        if (response.flag) {
+          fetchData();
+          setModalOptions({
+            type: "Info",
+            message: "Data Uploaded Successfully!",
+            buttons: ["Ok"],
+            responseFunc: (button) => {
+              if (button === "Ok") {
+                file.value = "";
+                setIsModalOpen(false);
+              }
+            },
+          });
+        } else {
+          setModalOptions({
+            type: "Error",
+            message: response.error,
+            buttons: ["Retry", "Ok"],
+            responseFunc: (button) => {
+              if (button === "Retry") {
+                fileUpload(fetchData); // Retry with the same callback
+              } else {
+                file.value = "";
+                setIsModalOpen(false);
+              }
+            },
+          });
+        }
+      } catch (error) {
+        setModalOptions({
+          type: "Error",
+          message: `Uncaught error: ${error.message}`,
+          buttons: ["Retry", "Ok"],
+          responseFunc: (button) => {
+            if (button === "Retry") {
+              fileUpload(fetchData);
+            } else {
+              file.value = "";
+              setIsModalOpen(false);
+            }
+          },
+        });
+      } finally {
+        setIsModalOpen(true);
+      }
+    };
   };
 
   const addNew = () => {
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
 
     const overlay = document.createElement("div");
     overlay.className = "overlay";
@@ -124,6 +150,10 @@ const Students = () => {
 
     const modalContainer = document.createElement("div");
     modalContainer.className = "modal-container";
+
+    const heading = document.createElement("h1");
+    heading.innerText = "Add New User";
+    modalContainer.appendChild(heading);
 
     tableColumns.forEach((column) => {
       const inputField = document.createElement("input");
@@ -134,35 +164,69 @@ const Students = () => {
 
     const saveButton = document.createElement("button");
     saveButton.innerText = "Save";
-    saveButton.onclick = () => {
+    saveButton.onclick = async () => {
       let data = {};
       tableColumns.forEach((column) => {
         const val = document.getElementsByClassName(column)[0].value;
         data[column] = val;
       });
-
-      axios
-        .post(`http://${hosts[0]}:5000/insert-data`, {
-          data,
-          collection: "Users",
-        })
-        .then(() => {
-          setTableData([...tableData, data]);
-          window.alert("New user added successfully!");
-        })
-        .catch((error) => {
-          console.error(error);
+      try {
+        const response = await handleApiCall({
+          API: "insert-data",
+          data: { data: data, collection: "Users" },
         });
+
+        if (response.flag) {
+          setTableData([...tableData, data]);
+          setModalOptions({
+            type: "Info",
+            message: "Data Inserted successfully!",
+            buttons: ["Ok"],
+            responseFunc: (button) => {
+              if (button === "Ok") {
+                setIsModalOpen(false);
+              }
+            },
+          });
+        } else {
+          setModalOptions({
+            type: "Error",
+            message: response.error,
+            buttons: ["Retry", "Ok"],
+            responseFunc: (button) => {
+              if (button === "Retry") {
+                saveButton.click();
+              }
+              setIsModalOpen(false);
+            },
+          });
+        }
+      } catch (error) {
+        setModalOptions({
+          type: "Uncaught Error",
+          message: error.message,
+          buttons: ["Retry", "Ok"],
+          responseFunc: (button) => {
+            if (button === "Retry") {
+              saveButton.click();
+            }
+            setIsModalOpen(false);
+          },
+        });
+      } finally {
+        setIsModalOpen(true);
+      }
 
       modalContainer.remove();
       document.body.removeChild(overlay);
-      closeModal();
+      setIsFormModalOpen(false);
     };
 
     const closeButton = document.createElement("button");
     closeButton.innerText = "Close";
     closeButton.onclick = () => {
-      closeModal();
+      setIsFormModalOpen(false);
+
       modalContainer.remove();
       document.body.removeChild(overlay);
     };
@@ -170,10 +234,6 @@ const Students = () => {
     modalContainer.appendChild(saveButton);
     modalContainer.appendChild(closeButton);
     document.body.appendChild(modalContainer);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
   };
 
   const remove = () => {
@@ -188,7 +248,7 @@ const Students = () => {
         setTableData(filteredData);
 
         axios
-          .post(`http://${hosts[0]}:5000/delete-data`, {
+          .post(`http://192.168.1.152:5000/delete-data`, {
             collection: "Users",
             data: selectedRows.map((row) => row.Contact), // Sending the _id values
           })
@@ -206,7 +266,6 @@ const Students = () => {
   };
 
   const handleRowSelected = (state) => {
-    //console.log(selectedRows);
     setSelectedRows(state.selectedRows);
   };
 
@@ -269,7 +328,7 @@ const Students = () => {
         <div>
           <button
             type="button"
-            onClick={() => fileUpload(loadData)}
+            onClick={() => fileUpload(fetchData)}
             className="upload-button"
           >
             Upload
@@ -297,6 +356,14 @@ const Students = () => {
           onSelectedRowsChange={handleRowSelected}
         />
       </div>
+      {isModalOpen && (
+        <Modal
+          modalType={modalOptions.type || "Info"}
+          modalMessage={modalOptions.message || "An unexpected issue occurred."}
+          buttons={modalOptions.buttons || ["Ok"]}
+          response={modalOptions.responseFunc || (() => setIsModalOpen(false))}
+        />
+      )}
     </>
   );
 };

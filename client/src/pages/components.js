@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/components.css";
 import axios from "axios";
 import { CgProfile } from "react-icons/cg";
 
 const Navbar = (props) => {
   const [userData, setUserData] = useState();
+  const navigate = useNavigate();
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     userData && setUserData(userData);
@@ -56,7 +58,14 @@ const Navbar = (props) => {
             <h1 style={{ margin: 0 }}>Quizzards</h1>
           </div>
           <div className="nav-links">
-            <a href="#home">Home</a>
+            <a
+              href="#home"
+              onClick={() => {
+                navigate("/admin");
+              }}
+            >
+              Home
+            </a>
             <a href="#about">About</a>
             <a
               target="_blank"
@@ -107,38 +116,60 @@ const Modal = (props) => {
     </>
   );
 };
-
-const HandleApiCall = (props) => {
-  const [hosts, setHosts] = useState([]);
-
-  useEffect(() => {
-    const localIps = localStorage.getItem("localIps");
-    if (localIps) {
-      setHosts(localIps.split(","));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (hosts.length === 0) return;
-
-    try {
-      axios
-        .post(`http://${hosts[0]}:5000/${props.API}`, {
-          data: props.data,
-        })
-        .then((result) => {
-          if (result.status === 200) {
-            props.response(result.data);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } catch (error) {
-      console.error("API call failed:", error);
-    }
-  }, [hosts, props]);
-
-  return null; // Adjust if you want to render something in this component
+const MessageBox = (props) => {
+  return (
+    <>
+      <div className="error-message" style={{ color: "red" }}>
+        {props.message}
+      </div>
+    </>
+  );
 };
-export default { Navbar, Modal, Response, HandleApiCall };
+const handleApiCall = async (props) => {
+  const localIps = localStorage.getItem("localIps").split(",");
+
+  try {
+    return await axios
+      .post(`http://${localIps[0]}:5000/${props.API}`, {
+        data: props.data,
+      })
+      .then((result) => {
+        if (result.status === 200) {
+          return { data: result.data, flag: true };
+        }
+      })
+      .catch((error) => {
+        return { error: error.response.data.message, flag: false };
+      });
+  } catch (error) {
+    return { error: error.message, flag: false };
+  }
+};
+
+const ModuleCard = (props) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="card-container">
+      <h1 className="card-header">{props.header}</h1>
+      <div className="card-body">
+        <div>
+          <img src={props.imageSrc} alt={props.altText} />
+        </div>
+        <button onClick={() => navigate(props.navigateTo)} type="button">
+          Open
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// eslint-disable-next-line import/no-anonymous-default-export
+export default {
+  Navbar,
+  Modal,
+  Response,
+  MessageBox,
+  handleApiCall,
+  ModuleCard,
+};

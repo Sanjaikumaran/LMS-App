@@ -8,6 +8,7 @@ require("dotenv").config();
 const fs = require("node:fs");
 
 const path = require("path");
+const { log } = require("console");
 const app = express();
 
 app.use(express.static(path.join(__dirname, "../client/build")));
@@ -71,6 +72,7 @@ fs.readFile(path.join(__dirname, "../client/.env"), "utf8", (err, data) => {
 app.post("/Upload-data", async (req, res) => {
   let docs = [];
   const data = req.body.data.split("\n");
+
   const keys = data[0].split(",");
   const records = data.slice(1);
 
@@ -111,7 +113,7 @@ app.post("/Upload-question", async (req, res) => {
 
 // Route to load all data from the "Users" collection
 app.post("/load-data", async (req, res) => {
-  const collection = req.body.collection;
+  const { collection } = req.body.data;
 
   const dbConnection = await connectToReplicaSet();
 
@@ -124,10 +126,10 @@ app.post("/load-data", async (req, res) => {
   }
 });
 app.post("/insert-data", async (req, res) => {
-  const data = req.body;
+  const { data, collection } = req.body.data;
 
   const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.insertDocument(data.collection, data.data);
+  const result = await dbConnection.insertDocument(collection, data);
 
   if (result) {
     res.status(200).send(result);
@@ -179,14 +181,14 @@ app.post("/find-data", async (req, res) => {
   }
 });
 app.post("/update-data", async (req, res) => {
-  const data = req.body;
+  const { collection, condition, data } = req.body.data;
 
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.updateDocument(
-      data.collection,
-      data.condition,
-      data.data
+      collection,
+      condition,
+      data
     );
 
     if (result.matchedCount > 0) {

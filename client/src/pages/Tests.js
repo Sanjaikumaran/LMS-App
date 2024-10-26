@@ -3,7 +3,8 @@ import axios from "axios";
 import "../styles/Tests.css";
 import DataTable from "react-data-table-component";
 import { CgProfile } from "react-icons/cg";
-import Navbar from "./components";
+import components from "./components";
+const { Navbar } = components;
 
 const Tests = () => {
   const [hosts, setHosts] = useState([]);
@@ -55,7 +56,9 @@ const Tests = () => {
     if (!hosts[0]) return;
 
     axios
-      .post(`http://${hosts[0]}:5000/load-data`, { collection: "Tests" })
+      .post(`http://${hosts[0]}:5000/load-data`, {
+        data: { collection: "Tests" },
+      })
       .then((result) => {
         setTableData(result.data);
       })

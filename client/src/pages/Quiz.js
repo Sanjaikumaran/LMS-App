@@ -1,73 +1,59 @@
 import React, { useState, useEffect } from "react";
-
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-
 import "../styles/Quiz.css";
 import components from "./components";
-const { Navbar, Modal, Response } = components;
-
-const Quiz = (props) => {
-  const navigate = useNavigate();
-  const [userData, setUserData] = useState();
-
+const { Navbar, Modal, handleApiCall } = components;
+const radius = 50;
+const circumference = 2 * Math.PI * radius;
+const Quiz = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalOptions, setModalOptions] = useState();
   const [isAutoSubmit, setIsAutoSubmit] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(1);
   const [totalTime, setTotalTime] = useState(1);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(1);
   const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [highlightedOptions, setHighlightedOptions] = useState([]);
-
-  const [hosts, setHosts] = useState([]);
-
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}"),
-      localIps = localStorage.getItem("localIps");
-    userData && setUserData(userData);
-
-    if (localIps) {
-      setHosts(localIps.split(","));
-    }
-  }, [props]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
 
   useEffect(() => {
-    hosts.length &&
-      axios
-        .post(`http://${hosts[0]}:5000/load-data`, { collection: "Tests" })
-        .then((result) => {
-          result.data.forEach((qn) => {
-            delete qn["_id"];
-          });
-          const questionsObj = result.data.map((question) => {
-            if (question.title) {
-              const minutes = question.Hours * 60 + question.Minutes;
-              const seconds = minutes * 60 + question.Seconds;
-
-              // Set total time and time left only once, using the last question's time values
-              setTotalTime((prev) => seconds);
-              setTimeLeft((prev) => seconds);
-
-              // Do not include this question in the final array
-              return null;
-            } else {
-              // Return the question with a modified 'type'
-              return {
-                ...question,
-                type: question.Answer.length > 1 ? "checkbox" : "radio", // Multiple answers => checkbox, single answer => radio
-              };
-            }
-          });
-
-          setQuestions(questionsObj.filter((question) => question !== null));
+    async function fetchData() {
+      try {
+        const response = await handleApiCall({
+          API: "load-data",
+          data: { collection: "Tests" },
         });
-  }, [hosts]);
+
+        const questionsObj = response.data.map((question) => {
+          delete question["_id"];
+          if (question.title) {
+            const minutes = question.Hours * 60 + question.Minutes;
+            const seconds = minutes * 60 + question.Seconds;
+
+            setTotalTime(seconds);
+            setTimeLeft(seconds);
+
+            return null;
+          } else {
+            return {
+              ...question,
+              type: question.Answer.length > 1 ? "checkbox" : "radio",
+            };
+          }
+        });
+
+        setQuestions(questionsObj.filter((question) => question !== null));
+      } catch (error) {
+        console.error("Login error:", error);
+      }
+    }
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (questions.length) {
       const intTimer = setInterval(() => {
         setTimeLeft((prevTimeLeft) => {
-          if (prevTimeLeft <= -1) {
+          if (prevTimeLeft === 0) {
             clearInterval(intTimer);
             return 0;
           }
@@ -77,37 +63,113 @@ const Quiz = (props) => {
 
       return () => clearInterval(intTimer);
     }
-  }, [questions]);
+  }, [questions, totalTime]);
 
   useEffect(() => {
     if (timeLeft === 0 && !isAutoSubmit) {
-      window.alert("Time Out!\nYour test will be submitted in 10 secs");
-      setTimeLeft(11); // Prevents countdown from going negative (optional).
-      setIsAutoSubmit(true);
+      setIsModalOpen(true);
+      setModalOptions({
+        type: "Alert",
+        message: "Time Out! \nYour test will be submitted in 10 secs",
+        buttons: ["Ok"],
+        responseFunc: () => {
+          setTimeLeft(10);
+          setTotalTime(10);
+          autoSubmit();
+          setIsAutoSubmit(true);
+          setIsModalOpen(false);
+        },
+      });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isAutoSubmit]);
 
-  useEffect(() => {
-    if (isAutoSubmit) {
-      const timer = setTimeout(() => {
-        console.log("Quiz Submitted:", selectedOptions);
-        alert("Quiz Submitted!");
-        navigate("/"); // Redirect to home or another page after submission.
-      }, 10000);
+  const autoSubmit = () => {
+    const timer = setTimeout(() => {
+      handleTestSubmit();
+    }, 11000);
 
-      return () => clearTimeout(timer); // Clean up the timer when the component unmounts.
+    return () => clearTimeout(timer);
+  };
+  const handleTestSubmit = async () => {
+    if (selectedOptions) {
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}"),
+        contact = userData.Contact;
+      let correctAnswers = [],
+        score = 0;
+
+      questions.forEach((question) => {
+        if (!question["title"]) {
+          correctAnswers.push(
+            question["Answer"].length === 1
+              ? question["Answer"][0]
+              : question["Answer"]
+          );
+        }
+      });
+
+      await correctAnswers.forEach((correctAnswer, index) => {
+        const userAnswer = selectedOptions[index];
+
+        if (Array.isArray(correctAnswer)) {
+          if (
+            Array.isArray(userAnswer) &&
+            correctAnswer.length === userAnswer.length &&
+            correctAnswer.every((ans) => userAnswer.includes(ans))
+          ) {
+            score++;
+          }
+        } else {
+          if (correctAnswer === userAnswer) {
+            score++;
+          }
+        }
+      });
+
+      const response = await handleApiCall({
+        API: "update-data",
+        data: {
+          condition: { Contact: contact },
+          collection: "Users",
+          data: { Answer: JSON.stringify(selectedOptions), Score: score },
+        },
+      });
+      if (response.flag) {
+        setModalOptions({
+          type: "Info",
+          message: "Your test has been submitted!",
+          buttons: ["Ok"],
+          responseFunc: (button) => {
+            if (button === "Ok") {
+              console.log("navigate");
+              setIsModalOpen(false);
+            }
+          },
+        });
+      } else {
+        setModalOptions({
+          type: "Error",
+          message: "Error submitting test! \n Please contact admin",
+          buttons: ["Ok"],
+          responseFunc: (button) => {
+            if (button === "Ok") {
+              console.log("navigate");
+              setIsModalOpen(false);
+            }
+          },
+        });
+      }
+
+      setIsModalOpen(true);
     }
-  }, [isAutoSubmit, selectedOptions, navigate]);
-
-  const totalQuestions = questions.length;
+  };
 
   const handleOptionSelect = (option, type) => {
     const updatedSelections = [...highlightedOptions];
 
     if (type === "radio") {
-      // Toggle selection for radio buttons
       if (updatedSelections[currentQuestionIndex] === option) {
-        updatedSelections[currentQuestionIndex] = "not-answered"; // Deselect if clicked again
+        updatedSelections[currentQuestionIndex] = "not-answered";
       } else {
         updatedSelections[currentQuestionIndex] =
           option !== undefined ? option : "not-answered";
@@ -115,7 +177,6 @@ const Quiz = (props) => {
     } else if (type === "checkbox") {
       const currentSelections = updatedSelections[currentQuestionIndex] || [];
 
-      // Toggle checkbox selection
       if (currentSelections.includes(option)) {
         updatedSelections[currentQuestionIndex] = currentSelections.filter(
           (o) => o !== option
@@ -127,39 +188,21 @@ const Quiz = (props) => {
         ];
       }
 
-      // Check if any selections are made
       if (updatedSelections[currentQuestionIndex].length === 0) {
-        updatedSelections[currentQuestionIndex] = "not-answered"; // Mark as not-answered
+        updatedSelections[currentQuestionIndex] = "not-answered";
       } else if (
         updatedSelections[currentQuestionIndex] === "not-answered" ||
         updatedSelections[currentQuestionIndex] === "skipped"
       ) {
-        updatedSelections[currentQuestionIndex] = []; // Clear "not-answered" status
+        updatedSelections[currentQuestionIndex] = [];
       }
     }
 
-    // Update states
     setHighlightedOptions(updatedSelections);
     setSelectedOptions(updatedSelections);
   };
 
-  const handleNextQuestion = () => {
-    const updatedSelections = [...highlightedOptions];
-
-    // If no option is selected, mark as 'not-answered'
-    if (updatedSelections[currentQuestionIndex] === undefined) {
-      updatedSelections[currentQuestionIndex] = "not-answered";
-    }
-
-    setHighlightedOptions(updatedSelections);
-    setSelectedOptions(updatedSelections);
-
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  const handlePreviousQuestion = () => {
+  const handleQuestionNavigate = (direction) => {
     const updatedSelections = [...highlightedOptions];
 
     if (updatedSelections[currentQuestionIndex] === undefined) {
@@ -168,8 +211,13 @@ const Quiz = (props) => {
 
     setHighlightedOptions(updatedSelections);
     setSelectedOptions(updatedSelections);
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+
+    if (currentQuestionIndex <= totalQuestions - 1) {
+      setCurrentQuestionIndex(
+        direction === "Next"
+          ? currentQuestionIndex + 1
+          : currentQuestionIndex - 1
+      );
     }
   };
 
@@ -184,10 +232,9 @@ const Quiz = (props) => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
-  const handleQuestionClick = (index) => {
+  const handleQuestionNumberClick = (index) => {
     const updatedSelections = [...highlightedOptions];
 
-    // If the question is neither answered nor skipped, mark it as not-answered
     if (updatedSelections[index] === undefined) {
       updatedSelections[index] = "not-answered";
     }
@@ -195,117 +242,9 @@ const Quiz = (props) => {
     setHighlightedOptions(updatedSelections);
     setCurrentQuestionIndex(index);
   };
-
-  const handleSubmit = () => {
-    if (window.confirm("Are you sure you want to start the test?")) {
-      let correctAnswers = [];
-
-      questions.forEach((question) => {
-        if (!question["title"]) {
-          correctAnswers.push(
-            question["Answer"].length === 1
-              ? question["Answer"][0]
-              : question["Answer"]
-          );
-        }
-      });
-
-      let score = 0;
-
-      correctAnswers.forEach((correctAnswer, index) => {
-        const userAnswer = selectedOptions[index];
-
-        if (Array.isArray(correctAnswer)) {
-          if (
-            Array.isArray(userAnswer) &&
-            correctAnswer.length === userAnswer.length &&
-            correctAnswer.every((ans) => userAnswer.includes(ans))
-          ) {
-            score++;
-            console.log(
-              "Correct (multiple choice):",
-              correctAnswer,
-              userAnswer
-            );
-          } else {
-            console.log(
-              "Incorrect (multiple choice):",
-              correctAnswer,
-              userAnswer
-            );
-          }
-        } else {
-          // Check single answer correctness
-          if (correctAnswer === userAnswer) {
-            score++;
-            console.log("Correct (single choice):", correctAnswer, userAnswer);
-          } else {
-            console.log(
-              "Incorrect (single choice):",
-              correctAnswer,
-              userAnswer
-            );
-          }
-        }
-      });
-      axios.post(`http://${hosts[0]}:5000/update-data`, {
-        condition: { Contact: userData.Contact },
-        collection: "Users",
-        data: { Answer: selectedOptions, Score: score },
-      });
-      alert(
-        `Quiz Submitted! Your score is ${score} out of ${correctAnswers.length}`
-      );
-
-      // Navigate to another page or show final results
-      // navigate("/");
-    }
-  };
-
-  const showProfile = (profileDetails) => {
-    const isExist = document.querySelector(".profile-container");
-    if (isExist) {
-      return;
-    }
-    const profileContainer = document.createElement("div");
-    profileContainer.className = "profile-container";
-    const profileInfo = document.createElement("div");
-    profileInfo.className = "profile-info";
-    Object.keys(profileDetails).map(async (detail) => {
-      const detailList = document.createElement("li");
-      detailList.classList = "detail";
-      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span> ${profileDetails[detail]}</span></p>`;
-      profileInfo.appendChild(detailList);
-    });
-    profileContainer.appendChild(profileInfo);
-    document.body.appendChild(profileContainer);
-  };
-
-  useEffect(() => {
-    const bodyClick = (event) => {
-      if (event.target.closest("li.profile")) {
-        return;
-      } else if (event.target.closest("div.profile-container")) {
-        return;
-      }
-
-      const profileExist = document.querySelector(".profile-container");
-
-      if (profileExist) {
-        profileExist.remove();
-      }
-    };
-    document.body.addEventListener("click", bodyClick);
-    return () => {
-      document.body.removeEventListener("click", bodyClick);
-    };
-  }, []);
-
+  const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = highlightedOptions[currentQuestionIndex] || [];
-
-  const radius = 50;
-  const circumference = 2 * Math.PI * radius;
 
   return (
     <>
@@ -344,7 +283,7 @@ const Quiz = (props) => {
                           type="radio"
                           name={`question-${currentQuestionIndex}`}
                           value={option}
-                          checked={selectedOption === option} // Will reflect deselection
+                          checked={selectedOption === option}
                           onChange={() => handleOptionSelect(option, "radio")}
                         />
                         {option}
@@ -369,23 +308,20 @@ const Quiz = (props) => {
             </div>
           </div>
 
-          <div className="footer">
+          <div className="quiz-footer">
             {currentQuestionIndex !== 0 ? (
-              <button
-                onClick={handlePreviousQuestion}
-                disabled={currentQuestionIndex === 0}
-              >
+              <button onClick={() => handleQuestionNavigate("Prev")}>
                 Previous
               </button>
             ) : (
               ""
             )}
             <button
-              onClick={
-                currentQuestionIndex !== totalQuestions - 1
-                  ? handleNextQuestion
-                  : handleSubmit
-              }
+              onClick={() => {
+                return currentQuestionIndex !== totalQuestions - 1
+                  ? handleQuestionNavigate("Next")
+                  : handleTestSubmit();
+              }}
               className={
                 currentQuestionIndex !== totalQuestions - 1
                   ? ""
@@ -460,7 +396,7 @@ const Quiz = (props) => {
                       : ""
                   }`}
                   key={i + 1}
-                  onClick={() => handleQuestionClick(i)} // Handle question click
+                  onClick={() => handleQuestionNumberClick(i)}
                 >
                   {i + 1}
                 </div>
@@ -469,6 +405,14 @@ const Quiz = (props) => {
           </div>
         </div>
       </div>
+      {isModalOpen && (
+        <Modal
+          modalType={modalOptions.type}
+          modalMessage={modalOptions.message}
+          buttons={modalOptions.buttons}
+          response={modalOptions.responseFunc}
+        />
+      )}
     </>
   );
 };
