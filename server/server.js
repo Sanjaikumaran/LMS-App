@@ -138,14 +138,11 @@ app.post("/insert-data", async (req, res) => {
   }
 });
 app.post("/delete-data", async (req, res) => {
-  const data = req.body;
+  const { data, collection } = req.body.data;
 
   try {
     const dbConnection = await connectToReplicaSet();
-    const result = await dbConnection.deleteDocument(
-      data.collection,
-      data.data
-    );
+    const result = await dbConnection.deleteDocument(collection, data);
 
     if (result) {
       res.status(200).json({

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DataTable from "react-data-table-component";
+
 import "../styles/components.css";
 import axios from "axios";
 import { CgProfile } from "react-icons/cg";
@@ -163,7 +165,363 @@ const ModuleCard = (props) => {
     </div>
   );
 };
+const DataTableManagement = (props) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalOptions, setModalOptions] = useState();
 
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+
+  const [tableColumns, setTableColumns] = useState([]);
+  const [tableData, setTableData] = useState([]);
+  const [isSelectable, setIsSelectable] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function fetchData(collectionName = props.collectionName) {
+    try {
+      const response = await handleApiCall({
+        API: "load-data",
+        data: { collection: collectionName },
+      });
+
+      if (response.flag) {
+        response.data.forEach((value) => delete value["_id"]);
+        response.data = response.data.filter(
+          (data) => !data.hasOwnProperty("title")
+        );
+        if (response.data.length > 0) {
+          setTableColumns(Object.keys(response.data[0]));
+          setTableData(response.data);
+        } else {
+          showModal("Info", "No data available.", ["Ok"], () =>
+            setIsModalOpen(false)
+          );
+          setIsModalOpen(true);
+        }
+      } else {
+        showModal("Error", response.error, ["Retry", "Ok"], (button) => {
+          if (button === "Retry") fetchData(collectionName);
+          setIsModalOpen(false);
+        });
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      showModal(
+        "Error",
+        `Uncaught error: ${error.message}`,
+        ["Retry", "Ok"],
+        (button) => {
+          if (button === "Retry") fetchData(collectionName);
+          setIsModalOpen(false);
+        }
+      );
+      setIsModalOpen(true);
+    }
+  }
+
+  const fileUpload = (
+    fetchCallback = fetchData,
+    apiEndpoint = "Upload-data"
+  ) => {
+    const file = document.querySelector("#students-list");
+    if (!file.files[0]) {
+      showModal(
+        "Error",
+        "No file is selected.",
+        ["Select File", "Ok"],
+        (button) => {
+          if (button === "Select File") file.click();
+          setIsModalOpen(false);
+        }
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsText(file.files[0]);
+
+    reader.onload = async () => {
+      try {
+        const response = await handleApiCall({
+          API: apiEndpoint,
+          data: reader.result,
+        });
+
+        if (response.flag) {
+          fetchCallback();
+          showModal("Info", "Data Uploaded Successfully!", ["Ok"], () => {
+            file.value = "";
+            setIsModalOpen(false);
+          });
+        } else {
+          showModal("Error", response.error, ["Retry", "Ok"], (button) => {
+            if (button === "Retry") fileUpload(fetchCallback, apiEndpoint);
+            file.value = "";
+            setIsModalOpen(false);
+          });
+        }
+      } catch (error) {
+        showModal(
+          "Error",
+          `Uncaught error: ${error.message}`,
+          ["Retry", "Ok"],
+          (button) => {
+            if (button === "Retry") fileUpload(fetchCallback, apiEndpoint);
+            file.value = "";
+            setIsModalOpen(false);
+          }
+        );
+      } finally {
+        setIsModalOpen(true);
+      }
+    };
+  };
+
+  const addNew = () => {
+    if (isFormModalOpen) return;
+    setIsFormModalOpen(true);
+
+    const inputs = {};
+    const contentElements = tableColumns.map((column) => {
+      const inputField = document.createElement("input");
+      inputField.className = column;
+      inputField.placeholder = column;
+      inputs[column] = inputField;
+      return inputField;
+    });
+
+    const saveCallback = (closeModal) => async () => {
+      const data = tableColumns.reduce((acc, column) => {
+        acc[column] = inputs[column].value;
+        return acc;
+      }, {});
+
+      try {
+        const response = await handleApiCall({
+          API: "insert-data",
+          data: { data, collection: props.collectionName },
+        });
+
+        if (response.flag) {
+          setTableData([...tableData, data]);
+          showModal("Info", "Data Inserted successfully!", ["Ok"], () => {
+            setIsModalOpen(false);
+          });
+        } else {
+          handleRetry("Error", response.error, saveCallback(closeModal));
+        }
+      } catch (error) {
+        handleRetry("Uncaught Error", error.message, saveCallback(closeModal));
+      } finally {
+        setIsModalOpen(true);
+      }
+
+      closeModal();
+    };
+
+    createFormModal("Add New User", contentElements, saveCallback);
+  };
+  const remove = async () => {
+    if (!isSelectable) {
+      setIsSelectable(true);
+      return;
+    }
+
+    if (selectedRows.length === 0) return;
+
+    const filteredData = tableData.filter((row) => !selectedRows.includes(row));
+    setTableData(filteredData);
+
+    try {
+      const response = await handleApiCall({
+        API: "delete-data",
+        data: {
+          collection: props.collectionName,
+          data: selectedRows.map((row) => row.Contact),
+        },
+      });
+
+      if (response.flag) {
+        showModal(
+          "Info",
+          `${response.data.deletedCount} ${response.data.message}`,
+          ["Ok"],
+          () => {
+            setIsModalOpen(false);
+            setSelectedRows([]);
+            setIsSelectable(false);
+          }
+        );
+      } else {
+        handleRetry("Error", response.error, remove);
+      }
+    } catch (error) {
+      handleRetry("Uncaught Error", error.message, remove);
+    } finally {
+      setIsModalOpen(true);
+    }
+  };
+  const handleRetry = (type, message, retryFunction) => {
+    setModalOptions({
+      type,
+      message,
+      buttons: ["Retry", "Ok"],
+      responseFunc: (button) => {
+        if (button === "Retry") {
+          retryFunction();
+        } else {
+          setIsModalOpen(false);
+          setSelectedRows([]);
+          setIsSelectable(false);
+        }
+      },
+    });
+  };
+
+  const showModal = (type, message, buttons, responseFunc) => {
+    setModalOptions({ type, message, buttons, responseFunc });
+    setIsModalOpen(true);
+  };
+
+  const createFormModal = (headingText, contentElements = [], saveCallback) => {
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    document.body.appendChild(overlay);
+
+    const modalContainer = document.createElement("div");
+    modalContainer.className = "modal-container";
+
+    const heading = document.createElement("h1");
+    heading.innerText = headingText;
+    modalContainer.appendChild(heading);
+
+    contentElements.forEach((element) => modalContainer.appendChild(element));
+
+    const closeModal = () => {
+      document.body.removeChild(overlay);
+      document.body.removeChild(modalContainer);
+      setIsFormModalOpen(false);
+    };
+
+    const closeButton = document.createElement("button");
+    closeButton.innerText = "Close";
+    closeButton.onclick = closeModal;
+
+    const saveButton = document.createElement("button");
+    saveButton.innerText = "Save";
+    saveButton.onclick = saveCallback(closeModal);
+
+    modalContainer.appendChild(saveButton);
+    modalContainer.appendChild(closeButton);
+    document.body.appendChild(modalContainer);
+  };
+  const handleRowSelected = (state) => {
+    setSelectedRows(state.selectedRows);
+  };
+
+  const columns = [
+    {
+      name: "S.No",
+      selector: (row, index) => index + 1,
+      sortable: true,
+      width: "70px",
+    },
+    ...tableColumns.map((column) => ({
+      name: column,
+      selector: (row) => row[column],
+      sortable: true,
+    })),
+  ];
+
+  const data = tableData;
+
+  const customStyles = {
+    rows: {
+      style: {
+        maxHeight: "72px",
+      },
+    },
+    headCells: {
+      style: {
+        color: "white",
+        fontSize: "larger",
+        fontWeight: "bold",
+        backgroundColor: "#007bff",
+        paddingLeft: "8px",
+        paddingRight: "8px",
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: "8px",
+        paddingRight: "8px",
+      },
+    },
+  };
+
+  return (
+    <>
+      <Navbar />
+      <div className="students-action-div">
+        <div
+          style={{
+            display: "inline-flex",
+            textAlign: "start",
+            flexDirection: "column",
+          }}
+        >
+          <label style={{ marginLeft: "5px", marginBottom: "5px" }}>
+            Upload {props.tablePageName} List
+          </label>
+          <input name="student-list" id="students-list" type="file" required />
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => fileUpload(fetchData)}
+            className="upload-button"
+          >
+            Upload
+          </button>
+          <button type="button" onClick={addNew} className="upload-button">
+            Add New
+          </button>
+          <button type="button" onClick={remove} className="upload-button">
+            Remove
+          </button>
+          {props.actionButtons && props.actionButtons}
+        </div>
+      </div>
+      <div className="datatable">
+        <DataTable
+          columns={columns}
+          data={data}
+          highlightOnHover
+          striped
+          fixedHeaderScrollHeight="80vh"
+          defaultSortFieldId={1}
+          customStyles={customStyles}
+          responsive
+          fixedHeader
+          selectableRows={isSelectable}
+          onSelectedRowsChange={handleRowSelected}
+        />
+      </div>
+      {isModalOpen && (
+        <Modal
+          modalType={modalOptions.type || "Info"}
+          modalMessage={modalOptions.message || "An unexpected issue occurred."}
+          buttons={modalOptions.buttons || ["Ok"]}
+          response={modalOptions.responseFunc || (() => setIsModalOpen(false))}
+        />
+      )}
+    </>
+  );
+};
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   Navbar,
@@ -172,4 +530,5 @@ export default {
   MessageBox,
   handleApiCall,
   ModuleCard,
+  DataTableManagement,
 };
