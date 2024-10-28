@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useNavigate } from "react";
 import "../styles/Quiz.css";
 import components from "./components";
 const { Navbar, Modal, handleApiCall } = components;
@@ -93,10 +93,13 @@ const Quiz = () => {
   };
   const handleTestSubmit = async () => {
     if (selectedOptions) {
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}"),
-        contact = userData.Contact;
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      const contact = userData.Contact;
       let correctAnswers = [],
-        score = 0;
+        score = 0,
+        answered = 0,
+        notAnswered = 0,
+        skipped = 0;
 
       questions.forEach((question) => {
         if (!question["title"]) {
@@ -108,23 +111,39 @@ const Quiz = () => {
         }
       });
 
-      await correctAnswers.forEach((correctAnswer, index) => {
+      correctAnswers.forEach((correctAnswer, index) => {
         const userAnswer = selectedOptions[index];
 
-        if (Array.isArray(correctAnswer)) {
-          if (
-            Array.isArray(userAnswer) &&
-            correctAnswer.length === userAnswer.length &&
-            correctAnswer.every((ans) => userAnswer.includes(ans))
-          ) {
-            score++;
-          }
+        if (userAnswer === "skipped") {
+          skipped++;
+        } else if (userAnswer === "not-answered") {
+          notAnswered++;
         } else {
-          if (correctAnswer === userAnswer) {
+          answered++;
+          if (Array.isArray(correctAnswer)) {
+            if (
+              Array.isArray(userAnswer) &&
+              correctAnswer.length === userAnswer.length &&
+              correctAnswer.every((ans) => userAnswer.includes(ans))
+            ) {
+              score++;
+            }
+          } else if (correctAnswer === userAnswer) {
             score++;
           }
         }
       });
+
+      localStorage.setItem(
+        "summary",
+        JSON.stringify({
+          score,
+          totalQuestions,
+          answered,
+          notAnswered,
+          skipped,
+        })
+      );
 
       const response = await handleApiCall({
         API: "update-data",
@@ -134,31 +153,20 @@ const Quiz = () => {
           data: { Answer: JSON.stringify(selectedOptions), Score: score },
         },
       });
-      if (response.flag) {
-        setModalOptions({
-          type: "Info",
-          message: "Your test has been submitted!",
-          buttons: ["Ok"],
-          responseFunc: (button) => {
-            if (button === "Ok") {
-              console.log("navigate");
-              setIsModalOpen(false);
-            }
-          },
-        });
-      } else {
-        setModalOptions({
-          type: "Error",
-          message: "Error submitting test! \n Please contact admin",
-          buttons: ["Ok"],
-          responseFunc: (button) => {
-            if (button === "Ok") {
-              console.log("navigate");
-              setIsModalOpen(false);
-            }
-          },
-        });
-      }
+
+      setModalOptions({
+        type: response.flag ? "Info" : "Error",
+        message: response.flag
+          ? "Your test has been submitted!"
+          : "Error submitting test! \n Please contact admin",
+        buttons: ["Ok"],
+        responseFunc: (button) => {
+          if (button === "Ok") {
+            window.location.href = "/summary";
+            setIsModalOpen(false);
+          }
+        },
+      });
 
       setIsModalOpen(true);
     }
@@ -262,20 +270,17 @@ const Quiz = () => {
                     onClick={() =>
                       handleOptionSelect(option, currentQuestion.type)
                     }
-                    className={`
-                option 
-                ${
-                  currentQuestion.type === "radio" && selectedOption === option
-                    ? "selected"
-                    : ""
-                }
-                ${
-                  currentQuestion.type === "checkbox" &&
-                  selectedOption.includes(option)
-                    ? "selected"
-                    : ""
-                }
-            `}
+                    className={`option ${
+                      currentQuestion.type === "radio" &&
+                      selectedOption === option
+                        ? "selected"
+                        : ""
+                    }${
+                      currentQuestion.type === "checkbox" &&
+                      selectedOption.includes(option)
+                        ? "selected"
+                        : ""
+                    }`}
                   >
                     {currentQuestion?.type === "radio" ? (
                       <label>
@@ -331,7 +336,9 @@ const Quiz = () => {
               {currentQuestionIndex !== totalQuestions - 1 ? "Next" : "Submit"}
             </button>
             {currentQuestionIndex !== totalQuestions - 1 && (
-              <button onClick={handleSkip}>Skip</button>
+              <button className="skip-button" onClick={handleSkip}>
+                Skip
+              </button>
             )}
 
             <p>
@@ -342,8 +349,8 @@ const Quiz = () => {
         <div>
           {/* Timer Section */}
           <div className="timer-section">
-            <h1 className="header">Timer</h1>
-            <div className="timer-container">
+            <h1 className="card-header">Timer</h1>
+            <div className="card-body">
               <div className="timer-circle">
                 <svg width="120" height="120">
                   <circle
@@ -379,8 +386,8 @@ const Quiz = () => {
           </div>
 
           {/* Question Number Section */}
-          <div className="question-number-container">
-            <h1 className="header">Questions List</h1>
+          <div className="question-number-section">
+            <h1 className="card-header">Questions List</h1>
             <div className="grid-layout">
               {Array.from({ length: totalQuestions }, (_, i) => (
                 <div

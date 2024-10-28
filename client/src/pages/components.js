@@ -18,6 +18,7 @@ const Navbar = (props) => {
     if (isExist) {
       return;
     }
+
     const profileContainer = document.createElement("div");
     profileContainer.className = "profile-container";
     const profileInfo = document.createElement("div");
@@ -34,13 +35,13 @@ const Navbar = (props) => {
 
   useEffect(() => {
     const bodyClick = (event) => {
-      if (event.target.closest("li.profile")) {
+      const profileExist = document.querySelector(".profile-container");
+
+      if (event.target.closest("li.show-profile")) {
         return;
       } else if (event.target.closest("div.profile-container")) {
         return;
       }
-
-      const profileExist = document.querySelector(".profile-container");
 
       if (profileExist) {
         profileExist.remove();
@@ -67,7 +68,7 @@ const Navbar = (props) => {
             >
               Home
             </span>
-            <a href="#about">About</a>
+            <span>About</span>
             <a
               target="_blank"
               rel="noopener noreferrer"
@@ -80,7 +81,7 @@ const Navbar = (props) => {
                 onClick={() => {
                   showProfile(userData);
                 }}
-                className="profile"
+                className="show-profile"
               >
                 <CgProfile style={{ fontSize: "1.5rem" }} />
               </li>
@@ -99,18 +100,18 @@ const Modal = (props) => {
     <>
       <div className="modal-background">
         <div className="modal-container">
-          <h1>{props.modalType}</h1>
-          <div className="modal-body">
-            <h3>{props.modalMessage}</h3>
-          </div>
-          <div className="modal-buttons">
-            {props.buttons.map((button, index) => {
-              return (
-                <button key={index} onClick={() => props.response(button)}>
-                  {button}
-                </button>
-              );
-            })}
+          <h1 className="card-header">{props.modalType}</h1>
+          <div className="card-body">
+            <h3>{props.modalMessage}</h3>{" "}
+            <div className="modal-buttons">
+              {props.buttons.map((button, index) => {
+                return (
+                  <button key={index} onClick={() => props.response(button)}>
+                    {button}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -119,41 +120,45 @@ const Modal = (props) => {
 };
 const createFormModal = (props) => {
   const overlay = document.createElement("div");
-  overlay.className = "overlay";
+  overlay.className = "modal-background";
   document.body.appendChild(overlay);
 
   const modalContainer = document.createElement("div");
   modalContainer.className = "modal-container";
 
   const heading = document.createElement("h1");
+  heading.className = "card-header";
   heading.innerText = props.headingText;
   modalContainer.appendChild(heading);
-
-  props.elements.forEach((element) => modalContainer.appendChild(element));
+  const modalBody = document.createElement("div");
+  modalBody.className = "card-body";
+  props.elements.forEach((element) => modalBody.appendChild(element));
 
   const closeModal = () => {
     overlay.remove();
     modalContainer.remove();
   };
-
+  const buttonsDiv = document.createElement("div");
+  buttonsDiv.className = "modal-buttons";
   const saveButton = document.createElement("button");
   saveButton.innerText = "Save";
   saveButton.onclick = props.saveCallback(closeModal);
 
   const closeButton = document.createElement("button");
   closeButton.innerText = "Close";
+  closeButton.className = "red-bg";
   closeButton.onclick = closeModal;
 
-  modalContainer.appendChild(saveButton);
-  modalContainer.appendChild(closeButton);
+  buttonsDiv.appendChild(closeButton);
+  buttonsDiv.appendChild(saveButton);
+  modalBody.appendChild(buttonsDiv);
+  modalContainer.appendChild(modalBody);
   document.body.appendChild(modalContainer);
 };
 const MessageBox = (props) => {
   return (
     <>
-      <div className="error-message" style={{ color: "red" }}>
-        {props.message}
-      </div>
+      <div className="error-message">{props.message}</div>
     </>
   );
 };
@@ -185,12 +190,14 @@ const ModuleCard = (props) => {
     <div className="card-container">
       <h1 className="card-header">{props.header}</h1>
       <div className="card-body">
-        <div>
+        <div className="image-container">
           <img src={props.imageSrc} alt={props.altText} />
         </div>
-        <button onClick={() => navigate(props.navigateTo)} type="button">
-          Open
-        </button>
+        <div className="button-container">
+          <button onClick={() => navigate(props.navigateTo)} type="button">
+            Open
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -259,7 +266,7 @@ const DataTableManagement = (props) => {
     apiEndpoint = props.API,
     collectionName = props.collectionName
   ) => {
-    const file = document.querySelector("#students-list");
+    const file = document.querySelector("#data-file");
     if (!file.files[0]) {
       showModal(
         "Error",
@@ -505,31 +512,19 @@ const DataTableManagement = (props) => {
   return (
     <>
       <Navbar />
-      <div className="students-action-div">
-        <div
-          style={{
-            display: "inline-flex",
-            textAlign: "start",
-            flexDirection: "column",
-          }}
-        >
-          <label style={{ marginLeft: "5px", marginBottom: "5px" }}>
-            Upload {props.tablePageName}
-          </label>
-          <input name="student-list" id="students-list" type="file" required />
+      <div className="action-div">
+        <div className="upload-file">
+          <label>Upload {props.tablePageName}</label>
+          <input name="list" id="data-file" type="file" required />
         </div>
         <div>
-          <button
-            type="button"
-            onClick={() => fileUpload(fetchData)}
-            className="upload-button"
-          >
+          <button type="button" onClick={() => fileUpload(fetchData)}>
             Upload
           </button>
-          <button type="button" onClick={addNew} className="upload-button">
+          <button type="button" onClick={addNew}>
             Add New
           </button>
-          <button type="button" onClick={remove} className="upload-button">
+          <button type="button" onClick={remove}>
             Remove
           </button>
           {props.actionButtons && props.actionButtons}

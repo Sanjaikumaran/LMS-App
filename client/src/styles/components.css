@@ -1,3 +1,4 @@
+/* Navbar */
 .navbar {
   background-color: #007bff;
   color: white;
@@ -10,13 +11,23 @@
 .navbar .logo {
   font-size: 1.5em;
 }
+.nav-links {
+  display: flex;
+  align-items: center;
+}
 
-.navbar .nav-links a {
+.navbar .nav-links a,
+.nav-links span {
   color: white;
+  cursor: pointer;
   text-decoration: none;
   margin-left: 20px;
 }
-
+.nav-links .show-profile {
+  list-style: none;
+  margin: 0 0 0 15px;
+  cursor: pointer;
+}
 .profile-container {
   position: absolute;
   background-color: rgb(255, 255, 255);
@@ -52,36 +63,186 @@
   display: flex;
   margin: 8px;
 }
-.modal-background{
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); 
-    z-index: 999; 
 
+/* Modal */
+.modal-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
-.modal-container{
-    padding: 20px;
-    margin: auto;
-    display: block;
-    z-index: 10;
-}
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
 
-.modal-container h1{
-    margin: 0 ;
-  
-}
-.modal-container .modal-body{
-    color: darkslategray;
-}
-.modal-container .modal-buttons{
-
-display: flex;
-justify-content: end;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
 }
 
-.modal-container .modal-buttons button{
-min-width: 60px;
+.modal-container h1 {
+  margin: 0;
+}
+.modal-container .card-body {
+  color: darkslategray;
+}
+
+.modal-container input {
+  width: 100%;
+  margin: 6px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.modal-container .modal-buttons {
+  display: flex;
+  justify-content: end;
+}
+
+.modal-container .modal-buttons button {
+  min-width: 60px;
+  margin: 10px 0 0 10px;
+}
+.red-bg {
+  background-color: #eb2a2a;
+}
+.red-bg:hover {
+  background-color: hsl(0, 66%, 40%);
+}
+
+/*Message Box*/
+.error-message {
+  color: red;
+  text-align: center;
+}
+
+/* Module Card */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+.card-container {
+  margin-top: 20px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  min-width: 300px;
+  min-height: 480px;
+  max-width: 480px;
+  box-shadow: 0 4px 15px #00000029;
+  border: 1px solid #d1d1d1;
+  overflow: inherit;
+  flex: 1 1 350px;
+}
+
+.card-header {
+  background-color: #007bff;
+  color: white;
+  margin: 0;
+  border-radius: 8px 8px 0 0 !important;
+  min-height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.card-body {
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  padding: 20px 30px;
+  border-radius: 8px !important;
+  max-height: 23 rem;
+  overflow-y: auto;
+}
+.card-body .image-container {
+  justify-content: center;
+  display: flex;
+}
+.card-body .image-container img {
+  width: 70%;
+}
+.card-body .button-container {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+/* Universal */
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: medium;
+  transition: background-color 0.3s ease;
+}
+/* Data Table */
+.action-div {
+  margin: 20px;
+  padding: 10px;
+  display: flex;
+}
+.action-div:nth-child(2) {
+  align-items: end;
+}
+.action-div .upload-file {
+  display: inline-flex;
+  text-align: start;
+  flex-direction: column;
+}
+.action-div .upload-file label {
+  margin-left: 5px;
+  margin-bottom: 5px;
+}
+.action-div input[type="file"] {
+  outline: 2px solid #007bff;
+  font-weight: 550;
+
+  border-radius: 15px;
+}
+.action-div input[type="file"]::file-selector-button {
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
+}
+.action-div button {
+  margin: 0 0 0 10px;
+}
+/* Scroll Bar */
+body ::-webkit-scrollbar {
+  width: 5px;
+}
+
+body ::-webkit-scrollbar-thumb {
+  background-color: #007bff;
+
+  border-radius: 5px;
+}
+
+body ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+
+  border-radius: 5px;
+}
+
+body ::-webkit-scrollbar-corner {
+  background: #f1f1f1;
 }

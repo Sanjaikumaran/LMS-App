@@ -1,4 +1,3 @@
-import "../styles/Students.css";
 import { useState } from "react";
 import components from "./components";
 const {
@@ -102,7 +101,7 @@ const Tests = () => {
         collectionName={"Tests"}
         API={"Upload-question"}
         actionButtons={
-          <button type="button" className="upload-button" onClick={setTime}>
+          <button type="button" onClick={setTime}>
             Set Time
           </button>
         }

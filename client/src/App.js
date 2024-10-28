@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-import Quiz from "./pages/Quiz";
-import Instructions from "./pages/Instructions";
 import Signin from "./pages/Signin";
+import Instructions from "./pages/Instructions";
+import Quiz from "./pages/Quiz";
+import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/Admin";
 import Students from "./pages/Students";
 import Tests from "./pages/Tests";
@@ -48,6 +49,15 @@ const App = () => {
             <>
               <ChangeTitle title="Quiz" />
               <Quiz />
+            </>
+          }
+        />{" "}
+        <Route
+          path="/summary"
+          element={
+            <>
+              <ChangeTitle title="Summary" />
+              <TestSummary />
             </>
           }
         />

@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/Admin.css";
+
 import components from "./components";
 const { Navbar, ModuleCard } = components;
 
@@ -18,7 +18,7 @@ const Admin = () => {
         />
         <ModuleCard
           header="Test Module"
-          imageSrc="./education.png"
+          imageSrc={require("./list.png")}
           altText="Test Icon"
           navigateTo="/test-module"
         />

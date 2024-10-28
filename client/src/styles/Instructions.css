@@ -1,35 +1,18 @@
-*{
-    user-select: none;
+.instructions-div h1 {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  color: #6f2f72;
+  display: flex;
+  justify-content: center;
 }
 
-.nav-links{
-    display: flex;
-    align-items: center;
-}
-.nav-links a:hover {
-    text-decoration: none; /* Optional: underline on hover */
-}
-
-.instructionsDiv h1{
-font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-color: #6f2f72;
-display: flex;
-justify-content: center;
-
+.instructions li {
+  list-style: disc;
+  text-align: justify;
+  font-size: large;
+  margin: 10px 0;
 }
 
-.instructions li{
-    list-style: disc;
-    text-align: justify;
-    font-size: large;
-    margin: 10px 0;
-}
-.profile{
-    list-style: none;
-margin: 0 0 0 15px;
-cursor: pointer;
-}
-.start-test{
-    display: flex;
-    justify-content: center;
+.start-test-div {
+  display: flex;
+  justify-content: center;
 }

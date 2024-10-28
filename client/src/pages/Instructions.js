@@ -21,7 +21,7 @@ const Instructions = ({ instructions }) => {
   return (
     <>
       <Navbar />
-      <div className="instructionsDiv">
+      <div className="instructions-div">
         <h1>INSTRUCTIONS</h1>
         <ul className="instructions">
           {instructions.map((instruction, index) => (
@@ -29,7 +29,7 @@ const Instructions = ({ instructions }) => {
           ))}
         </ul>
       </div>
-      <div className="start-test">
+      <div className="start-test-div">
         <button onClick={handleButtonClick}>Start Test</button>
         {isModalOpen && (
           <Modal
