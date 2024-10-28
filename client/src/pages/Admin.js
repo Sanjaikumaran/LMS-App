@@ -20,7 +20,7 @@ const Admin = () => {
           header="Test Module"
           imageSrc="./education.png"
           altText="Test Icon"
-          navigateTo="/tests-module"
+          navigateTo="/test-module"
         />
       </div>
     </>

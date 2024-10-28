@@ -60,14 +60,13 @@ const Navbar = (props) => {
             <h1 style={{ margin: 0 }}>Quizzards</h1>
           </div>
           <div className="nav-links">
-            <a
-              href="#home"
+            <span
               onClick={() => {
                 navigate("/admin");
               }}
             >
               Home
-            </a>
+            </span>
             <a href="#about">About</a>
             <a
               target="_blank"
@@ -92,7 +91,7 @@ const Navbar = (props) => {
     </>
   );
 };
-const Response = (buttons, response) => {
+const response = (buttons, response) => {
   return response === buttons[0] ? true : false;
 };
 const Modal = (props) => {
@@ -117,6 +116,37 @@ const Modal = (props) => {
       </div>
     </>
   );
+};
+const createFormModal = (props) => {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  document.body.appendChild(overlay);
+
+  const modalContainer = document.createElement("div");
+  modalContainer.className = "modal-container";
+
+  const heading = document.createElement("h1");
+  heading.innerText = props.headingText;
+  modalContainer.appendChild(heading);
+
+  props.elements.forEach((element) => modalContainer.appendChild(element));
+
+  const closeModal = () => {
+    overlay.remove();
+    modalContainer.remove();
+  };
+
+  const saveButton = document.createElement("button");
+  saveButton.innerText = "Save";
+  saveButton.onclick = props.saveCallback(closeModal);
+
+  const closeButton = document.createElement("button");
+  closeButton.innerText = "Close";
+  closeButton.onclick = closeModal;
+
+  modalContainer.appendChild(saveButton);
+  modalContainer.appendChild(closeButton);
+  document.body.appendChild(modalContainer);
 };
 const MessageBox = (props) => {
   return (
@@ -169,8 +199,6 @@ const DataTableManagement = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
 
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-
   const [tableColumns, setTableColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [isSelectable, setIsSelectable] = useState(false);
@@ -193,7 +221,8 @@ const DataTableManagement = (props) => {
         response.data = response.data.filter(
           (data) => !data.hasOwnProperty("title")
         );
-        if (response.data.length > 0) {
+
+        if (response.data) {
           setTableColumns(Object.keys(response.data[0]));
           setTableData(response.data);
         } else {
@@ -210,6 +239,8 @@ const DataTableManagement = (props) => {
         setIsModalOpen(true);
       }
     } catch (error) {
+      console.log(error);
+
       showModal(
         "Error",
         `Uncaught error: ${error.message}`,
@@ -225,7 +256,8 @@ const DataTableManagement = (props) => {
 
   const fileUpload = (
     fetchCallback = fetchData,
-    apiEndpoint = "Upload-data"
+    apiEndpoint = props.API,
+    collectionName = props.collectionName
   ) => {
     const file = document.querySelector("#students-list");
     if (!file.files[0]) {
@@ -243,12 +275,48 @@ const DataTableManagement = (props) => {
 
     const reader = new FileReader();
     reader.readAsText(file.files[0]);
+    let insertData;
+    const GIFTParser = (text) => {
+      const questions = [];
+      const regex = /::Question \d+:: (.*?)\n\{([\s\S]*?)\}/g;
+      let match;
+
+      while ((match = regex.exec(text)) !== null) {
+        const questionText = match[1].trim();
+        const optionsBlock = match[2].trim().split("\n");
+
+        const options = [];
+        const correctAnswers = [];
+
+        optionsBlock.forEach((option) => {
+          const optionText = option.replace(/[=~]/g, "").trim();
+
+          if (option.trim().startsWith("=")) {
+            correctAnswers.push(optionText);
+          }
+          options.push(optionText);
+        });
+
+        questions.push({
+          Question: questionText,
+          Option: options,
+          Answer: correctAnswers,
+        });
+      }
+
+      return questions;
+    };
 
     reader.onload = async () => {
+      if (collectionName === "Tests") {
+        insertData = GIFTParser(reader.result);
+      } else {
+        insertData = reader.result;
+      }
       try {
         const response = await handleApiCall({
           API: apiEndpoint,
-          data: reader.result,
+          data: { data: insertData, collection: collectionName },
         });
 
         if (response.flag) {
@@ -282,9 +350,6 @@ const DataTableManagement = (props) => {
   };
 
   const addNew = () => {
-    if (isFormModalOpen) return;
-    setIsFormModalOpen(true);
-
     const inputs = {};
     const contentElements = tableColumns.map((column) => {
       const inputField = document.createElement("input");
@@ -323,7 +388,11 @@ const DataTableManagement = (props) => {
       closeModal();
     };
 
-    createFormModal("Add New User", contentElements, saveCallback);
+    createFormModal({
+      headingText: "Add New User",
+      elements: contentElements,
+      saveCallback: saveCallback,
+    });
   };
   const remove = async () => {
     if (!isSelectable) {
@@ -341,7 +410,9 @@ const DataTableManagement = (props) => {
         API: "delete-data",
         data: {
           collection: props.collectionName,
-          data: selectedRows.map((row) => row.Contact),
+          data: selectedRows.map((row) =>
+            row.Contact ? row.Contact : row.Answer
+          ),
         },
       });
 
@@ -387,38 +458,6 @@ const DataTableManagement = (props) => {
     setIsModalOpen(true);
   };
 
-  const createFormModal = (headingText, contentElements = [], saveCallback) => {
-    const overlay = document.createElement("div");
-    overlay.className = "overlay";
-    document.body.appendChild(overlay);
-
-    const modalContainer = document.createElement("div");
-    modalContainer.className = "modal-container";
-
-    const heading = document.createElement("h1");
-    heading.innerText = headingText;
-    modalContainer.appendChild(heading);
-
-    contentElements.forEach((element) => modalContainer.appendChild(element));
-
-    const closeModal = () => {
-      document.body.removeChild(overlay);
-      document.body.removeChild(modalContainer);
-      setIsFormModalOpen(false);
-    };
-
-    const closeButton = document.createElement("button");
-    closeButton.innerText = "Close";
-    closeButton.onclick = closeModal;
-
-    const saveButton = document.createElement("button");
-    saveButton.innerText = "Save";
-    saveButton.onclick = saveCallback(closeModal);
-
-    modalContainer.appendChild(saveButton);
-    modalContainer.appendChild(closeButton);
-    document.body.appendChild(modalContainer);
-  };
   const handleRowSelected = (state) => {
     setSelectedRows(state.selectedRows);
   };
@@ -475,7 +514,7 @@ const DataTableManagement = (props) => {
           }}
         >
           <label style={{ marginLeft: "5px", marginBottom: "5px" }}>
-            Upload {props.tablePageName} List
+            Upload {props.tablePageName}
           </label>
           <input name="student-list" id="students-list" type="file" required />
         </div>
@@ -496,7 +535,7 @@ const DataTableManagement = (props) => {
           {props.actionButtons && props.actionButtons}
         </div>
       </div>
-      <div className="datatable">
+      <div className="data-table">
         <DataTable
           columns={columns}
           data={data}
@@ -526,7 +565,8 @@ const DataTableManagement = (props) => {
 export default {
   Navbar,
   Modal,
-  Response,
+  createFormModal,
+  response,
   MessageBox,
   handleApiCall,
   ModuleCard,

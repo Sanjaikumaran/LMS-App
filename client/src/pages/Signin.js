@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
 import components from "./components";
-const { Navbar, Modal, Response, MessageBox, handleApiCall } = components;
+const { Navbar, Modal, response, MessageBox, handleApiCall } = components;
 
 const Signin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,7 +46,7 @@ const Signin = () => {
   };
 
   const closeModal = (button) => {
-    if (Response(["Ok"], button)) {
+    if (response(["Ok"], button)) {
       navigate("/instructions");
       setIsModalOpen(false);
     }

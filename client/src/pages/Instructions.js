@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Instructions.css";
 import components from "./components";
-const { Navbar, Modal, Response } = components;
+const { Navbar, Modal, response } = components;
 
 const Instructions = ({ instructions }) => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const Instructions = ({ instructions }) => {
     setIsModalOpen(true);
   };
   const closeModal = (button) => {
-    if (Response(["Yes", "No"], button)) {
+    if (response(["Yes", "No"], button)) {
       navigate("/quiz");
     } else {
       setIsModalOpen(false);

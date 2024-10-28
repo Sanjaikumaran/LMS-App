@@ -3,64 +3,48 @@ const cors = require("cors");
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
-const connectToReplicaSet = require("./database"); // Import the DB connection
+const connectToReplicaSet = require("./database");
 require("dotenv").config();
 const fs = require("node:fs");
-
 const path = require("path");
-const { log } = require("console");
 const app = express();
-
 app.use(express.static(path.join(__dirname, "../client/build")));
-
-// Serve React app for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 });
-
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   session({
-    secret: "jeppiaarUniversity", // Replace with a secure secret key
+    secret: "jeppiaarUniversity",
     resave: true,
     saveUninitialized: true,
-    cookie: { secure: false }, // For production, set secure: true and use HTTPS
+    cookie: { secure: false },
   })
 );
-
 function getLocalIPs() {
   const interfaces = os.networkInterfaces();
   const ips = [];
-
   for (const iface of Object.values(interfaces)) {
     for (const alias of iface) {
       if (alias.family === "IPv4" && !alias.internal) {
-        ips.push(alias.address); // Collect only external IPv4 addresses
+        ips.push(alias.address);
       }
     }
   }
-
   return ips;
 }
-
-// Read the existing .env file
 fs.readFile(path.join(__dirname, "../client/.env"), "utf8", (err, data) => {
   if (err) {
     console.error(err);
     return;
   }
-
-  const localIPs = getLocalIPs(); // Get array of local IP addresses
-  let address = ""; // Initialize a string to hold the IP entries
-
-  // Loop through local IPs and assign LOCAL_IP1, LOCAL_IP2, etc.
+  const localIPs = getLocalIPs();
+  let address = "";
   localIPs.forEach((ip, index) => {
-    address += `REACT_APP_LOCAL_IP${index + 1}=${ip}\n`; // Create numbered IP entries
+    address += `REACT_APP_LOCAL_IP${index + 1}=${ip}\n`;
   });
-
-  // Append the IP addresses to the .env file/home/sk/Documents/quiz-app/client/.env
   fs.writeFile(path.join(__dirname, "../client/.env"), address, (err) => {
     if (err) {
       console.error(err);
@@ -68,42 +52,34 @@ fs.readFile(path.join(__dirname, "../client/.env"), "utf8", (err, data) => {
     }
   });
 });
-// Route to upload and insert data
+
 app.post("/Upload-data", async (req, res) => {
   let docs = [];
-  const data = req.body.data.split("\n");
-
+  const data = req.body.data.data.split("\n");
+  const collection = req.body.data.collection;
   const keys = data[0].split(",");
   const records = data.slice(1);
-
   records.forEach((record) => {
     const values = record.split(",");
     let doc = {};
-
     values.forEach((value, index) => {
       doc[keys[index].trim()] = value.trim();
     });
-
     docs.push(doc);
   });
-
   const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.insertData("Users", docs);
-
+  const result = await dbConnection.insertData(collection, docs);
   if (result) {
     res.status(200).json({ message: "Data inserted successfully" });
   } else {
     res.status(500).json({ message: "Error inserting data" });
   }
 });
+
 app.post("/Upload-question", async (req, res) => {
-  const collection = req.body.collection;
-  const questions = req.body.questions;
-
+  const { collection, data } = req.body.data;
   const dbConnection = await connectToReplicaSet();
-
-  const result = await dbConnection.insertData(collection, questions);
-
+  const result = await dbConnection.insertData(collection, data);
   if (result) {
     res.status(200).json({ message: "Questions uploaded successfully" });
   } else {
@@ -111,39 +87,33 @@ app.post("/Upload-question", async (req, res) => {
   }
 });
 
-// Route to load all data from the "Users" collection
 app.post("/load-data", async (req, res) => {
   const { collection } = req.body.data;
-
   const dbConnection = await connectToReplicaSet();
-
   const result = await dbConnection.loadCollection(collection);
-
   if (result) {
     res.status(200).send(result);
   } else {
     res.status(500).json({ message: "Error loading data" });
   }
 });
+
 app.post("/insert-data", async (req, res) => {
   const { data, collection } = req.body.data;
-
   const dbConnection = await connectToReplicaSet();
   const result = await dbConnection.insertDocument(collection, data);
-
   if (result) {
     res.status(200).send(result);
   } else {
     res.status(500).json({ message: "Error loading data" });
   }
 });
+
 app.post("/delete-data", async (req, res) => {
   const { data, collection } = req.body.data;
-
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.deleteDocument(collection, data);
-
     if (result) {
       res.status(200).json({
         message: "Documents deleted successfully.",
@@ -157,16 +127,12 @@ app.post("/delete-data", async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
-app.post("/find-data", async (req, res) => {
-  const data = req.body;
 
+app.post("/find-data", async (req, res) => {
+  const { collection, condition } = req.body.data;
   try {
     const dbConnection = await connectToReplicaSet();
-    const result = await dbConnection.findDocument(
-      data.collection,
-      data.condition
-    );
-
+    const result = await dbConnection.findDocument(collection, condition);
     if (result) {
       res.status(200).json({ result });
     } else {
@@ -177,9 +143,9 @@ app.post("/find-data", async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 });
+
 app.post("/update-data", async (req, res) => {
   const { collection, condition, data } = req.body.data;
-
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.updateDocument(
@@ -187,7 +153,6 @@ app.post("/update-data", async (req, res) => {
       condition,
       data
     );
-
     if (result.matchedCount > 0) {
       res.status(200).json({
         matchedCount: result.matchedCount,
@@ -203,13 +168,10 @@ app.post("/update-data", async (req, res) => {
   }
 });
 
-// Login route
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
-
   const dbConnection = await connectToReplicaSet();
   const result = await dbConnection.getDocument("Users", "Contact", Id);
-
   if (result) {
     if (userPass === result.Gender) {
       res.status(200).json(result);

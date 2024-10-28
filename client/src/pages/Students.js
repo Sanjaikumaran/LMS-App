@@ -9,6 +9,7 @@ const Students = () => {
       <DataTableManagement
         tablePageName={"Students"}
         collectionName={"Users"}
+        API={"Upload-data"}
       />
     </>
   );

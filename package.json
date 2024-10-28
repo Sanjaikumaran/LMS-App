@@ -5,22 +5,16 @@
   "bin": "server/server.js",
   "pkg": {
     "targets": [
-      "node14-linux-x64",
-      "node14-macos-x64",
-      "node14-win-x64"
+      "node16-win-x64",
+      "node16-macos-x64",
+      "node16-linux-x64"
     ],
     "assets": [
-      "client/build/**/*"
+      "client/build/**/*",
+      "server/**/*"
     ]
   },
-  "devDependencies": {
-    "concurrently": "^9.0.1"
-  },
   "scripts": {
-    "start": "node server/server.js",
-    "client": "npm start --prefix client",
-    "server": "node server/server.js",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "postinstall": "npm install --prefix client && npm run build --prefix client"
+    "start": "node server/server.js"
   }
 }
