@@ -23,34 +23,55 @@ app.use(
     cookie: { secure: false },
   })
 );
-function getLocalIPs() {
-  const interfaces = os.networkInterfaces();
-  const ips = [];
-  for (const iface of Object.values(interfaces)) {
-    for (const alias of iface) {
-      if (alias.family === "IPv4" && !alias.internal) {
-        ips.push(alias.address);
-      }
-    }
-  }
-  return ips;
-}
-fs.readFile(path.join(__dirname, "../client/.env"), "utf8", (err, data) => {
-  if (err) {
-    console.error(err);
+//function getLocalIPs() {
+//  const interfaces = os.networkInterfaces();
+//  const ips = [];
+//  for (const iface of Object.values(interfaces)) {
+//    for (const alias of iface) {
+//      if (alias.family === "IPv4" && !alias.internal) {
+//        ips.push(alias.address);
+//      }
+//    }
+//  }
+//  return ips;
+//}
+//fs.readFile(path.join(__dirname, "../client/.env"), "utf8", (err, data) => {
+//  if (err) {
+//    console.error(err);
+//    return;
+//  }
+//  const localIPs = getLocalIPs();
+//  let address = "";
+//  localIPs.forEach((ip, index) => {
+//    address += `REACT_APP_LOCAL_IP${index + 1}=${ip}\n`;
+//  });
+//  try {
+//    fs.writeFile(path.join(__dirname, "../client/.env"), address, (err) => {
+//      if (err) {
+//        console.log(err);
+//      }
+//    });
+//  } catch (error) {
+//    console.log(error.message);
+//  }
+//});
+const { exec } = require("child_process");
+
+// Path to the client directory relative to this script
+const clientPath = "client";
+
+exec(`npm start --prefix ${clientPath}`, (error, stdout, stderr) => {
+  if (error) {
+    console.error(`Error starting client: ${error.message}`);
     return;
   }
-  const localIPs = getLocalIPs();
-  let address = "";
-  localIPs.forEach((ip, index) => {
-    address += `REACT_APP_LOCAL_IP${index + 1}=${ip}\n`;
-  });
-  fs.writeFile(path.join(__dirname, "../client/.env"), address, (err) => {
-    if (err) {
-      console.error(err);
-    } else {
-    }
-  });
+
+  if (stderr) {
+    console.error(`stderr: ${stderr}`);
+    return;
+  }
+
+  console.log(`stdout: ${stdout}`);
 });
 
 app.post("/Upload-data", async (req, res) => {

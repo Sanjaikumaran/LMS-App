@@ -5,9 +5,9 @@
   "bin": "server/server.js",
   "pkg": {
     "targets": [
-      "node14-linux-x64",
-      "node14-macos-x64",
-      "node14-win-x64"
+      "node16-win-x64",
+      "node16-macos-x64",
+      "node16-linux-x64"
     ],
     "assets": [
       "client/build/**/*",
@@ -25,5 +25,8 @@
     "postinstall": "npm install --prefix client && npm run build --prefix client",
     "build": "npm run build --prefix client",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.7.7"
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useNavigate } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/Quiz.css";
 import components from "./components";
 const { Navbar, Modal, handleApiCall } = components;

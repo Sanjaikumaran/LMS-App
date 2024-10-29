@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-
 import Signin from "./pages/Signin";
 import Instructions from "./pages/Instructions";
 import Quiz from "./pages/Quiz";
@@ -11,9 +10,11 @@ import Tests from "./pages/Tests";
 
 const App = () => {
   useEffect(() => {
-    const localIPs = process.env.REACT_APP_LOCAL_IP1;
+    const url = new URL(window.location.href);
+    const hostname = url.hostname;
 
-    localStorage.setItem("localIps", localIPs);
+    //const localIPs = process.env.REACT_APP_LOCAL_IP1;
+    localStorage.setItem("localIps", hostname);
   }, []);
 
   const instructions = [

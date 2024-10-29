@@ -164,6 +164,7 @@ const MessageBox = (props) => {
 };
 const handleApiCall = async (props) => {
   const localIps = localStorage.getItem("localIps").split(",");
+  console.log(`http://${localIps[0]}:5000/${props.API}`);
 
   try {
     return await axios
