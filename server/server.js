@@ -55,24 +55,24 @@ app.use(
 //    console.log(error.message);
 //  }
 //});
-const { exec } = require("child_process");
+//const { exec } = require("child_process");
 
-// Path to the client directory relative to this script
-const clientPath = "client";
+//// Path to the client directory relative to this script
+//const clientPath = "client";
 
-exec(`npm start --prefix ${clientPath}`, (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Error starting client: ${error.message}`);
-    return;
-  }
+//exec(`npm start --prefix ${clientPath}`, (error, stdout, stderr) => {
+//  if (error) {
+//    console.error(`Error starting client: ${error.message}`);
+//    return;
+//  }
 
-  if (stderr) {
-    console.error(`stderr: ${stderr}`);
-    return;
-  }
+//  if (stderr) {
+//    console.error(`stderr: ${stderr}`);
+//    return;
+//  }
 
-  console.log(`stdout: ${stdout}`);
-});
+//  console.log(`stdout: ${stdout}`);
+//});
 
 app.post("/Upload-data", async (req, res) => {
   let docs = [];

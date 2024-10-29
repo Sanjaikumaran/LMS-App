@@ -3,7 +3,26 @@ async function connectToReplicaSet() {
   const uri =
     "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
   const client = new MongoClient(uri);
-  const db = client.db("Quizzards");
+  let db;
+  try {
+    await client.connect();
+    db = client.db("Quizzards");
+
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map((col) => col.name);
+
+    const hasTests = collectionNames.includes("Tests");
+    const hasUsers = collectionNames.includes("Users");
+
+    if (!hasTests) {
+      await db.createCollection("Tests");
+    }
+    if (!hasUsers) {
+      await db.createCollection("Users");
+    }
+  } catch (err) {
+    console.error("Error checking collections:", err);
+  }
 
   async function insertData(collectionName, data) {
     try {

@@ -27,6 +27,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route
+          path="/"
           index
           element={
             <>
