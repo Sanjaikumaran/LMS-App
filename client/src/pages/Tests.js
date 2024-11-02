@@ -8,6 +8,12 @@ const {
 } = components;
 
 const Tests = () => {
+  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  if (userLogged.flag) {
+    if (userLogged.userType !== "Admin") {
+      window.location.href = "/";
+    }
+  }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
 
@@ -25,13 +31,16 @@ const Tests = () => {
     try {
       const response = await handleApiCall({
         API: "find-data",
-        data: { collection: "Tests", condition: { title: "Time" } },
+        data: {
+          collection: "Tests",
+          condition: { key: "title", value: "Time" },
+        },
       });
 
       contentElements = columns.map((column) =>
         createInputField(
           column,
-          response.flag ? response.data.result[column] : ""
+          response.flag ? response.data.data[column] : ""
         )
       );
     } catch (error) {

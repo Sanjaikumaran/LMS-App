@@ -229,6 +229,7 @@ button {
 /* Scroll Bar */
 body ::-webkit-scrollbar {
   width: 5px;
+  height: 5px;
 }
 
 body ::-webkit-scrollbar-thumb {

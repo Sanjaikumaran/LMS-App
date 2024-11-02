@@ -9,6 +9,7 @@
       "node16-macos-x64",
       "node16-linux-x64"
     ],
+    "gui": true,
     "assets": [
       "client/build/**/*",
       "server/**/*"

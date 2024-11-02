@@ -2,9 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Instructions.css";
 import components from "./components";
-const { Navbar, Modal, response } = components;
+const { Modal, response } = components;
 
 const Instructions = ({ instructions }) => {
+  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  if (userLogged.flag) {
+    if (userLogged.userType !== "Student") {
+      window.location.href = "/";
+    }
+  }
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -20,7 +26,6 @@ const Instructions = ({ instructions }) => {
   };
   return (
     <>
-      <Navbar />
       <div className="instructions-div">
         <h1>INSTRUCTIONS</h1>
         <ul className="instructions">

@@ -1,9 +1,11 @@
 const { MongoClient } = require("mongodb");
+
 async function connectToReplicaSet() {
   const uri =
     "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
   const client = new MongoClient(uri);
   let db;
+
   try {
     await client.connect();
     db = client.db("Quizzards");
@@ -11,72 +13,64 @@ async function connectToReplicaSet() {
     const collections = await db.listCollections().toArray();
     const collectionNames = collections.map((col) => col.name);
 
-    const hasTests = collectionNames.includes("Tests");
-    const hasUsers = collectionNames.includes("Users");
-
-    if (!hasTests) {
+    if (!collectionNames.includes("Tests")) {
       await db.createCollection("Tests");
     }
-    if (!hasUsers) {
+    if (!collectionNames.includes("Users")) {
       await db.createCollection("Users");
     }
   } catch (err) {
-    console.error("Error checking collections:", err);
+    return handleError(err, "Couldn't connect to MongoDB");
   }
 
-  async function insertData(collectionName, data) {
-    try {
-      await client.connect();
-      const options = { ordered: true };
-      const collection = db.collection(collectionName);
-      let result;
-      if (Array.isArray(data) && data.length > 1) {
-        result = await collection.insertMany(data, options);
-      } else {
-        await collection.insertOne(data);
-      }
-      return result;
-    } catch (e) {
-      console.error("Error connecting to MongoDB:", e);
-      return false;
-    } finally {
-      await client.close();
-    }
+  function handleError(err, customMessage) {
+    return { error: customMessage };
   }
 
   async function loadCollection(collectionName) {
     try {
       const collection = db.collection(collectionName);
       const result = await collection.find({}).toArray();
-      return result;
+
+      if (result.length > 0) {
+        delete result._id;
+        return {
+          flag: true,
+          message: "Data loaded successfully",
+          data: result,
+        };
+      } else {
+        return { flag: false, message: "No data found" };
+      }
     } catch (e) {
-      console.error("Error connecting to MongoDB:", e);
-    } finally {
-      await client.close();
+      return { flag: false, message: e.message };
     }
   }
 
-  async function getDocument(collectionName, uniqueKey, value) {
+  async function insertData(collectionName, data) {
     try {
       const collection = db.collection(collectionName);
-      const result = await collection.findOne({ [uniqueKey]: value });
-      delete result._id;
-      return result;
+      const options = { ordered: true };
+      let result;
+      if (Array.isArray(data) && data.length > 1) {
+        result = await collection.insertMany(data, options);
+      } else {
+        result = await collection.insertOne(data);
+      }
+
+      if (result.acknowledged) {
+        return {
+          flag: true,
+          message: "Data inserted successfully",
+          insertedCount: result.insertedCount,
+        };
+      } else {
+        return { flag: false, message: "Couldn't insert data" };
+      }
     } catch (e) {
-      console.log("Error fetching document from MongoDB:", e);
+      return { flag: false, message: e.message };
     }
   }
-
-  async function insertDocument(collectionName, doc) {
-    try {
-      const collection = db.collection(collectionName);
-      const result = await collection.insertOne(doc);
-      return result;
-    } catch (e) {
-      console.error("Error fetching document from MongoDB:", e);
-    }
-  }
-
   async function deleteDocument(collectionName, docs) {
     try {
       const collection = db.collection(collectionName);
@@ -89,21 +83,52 @@ async function connectToReplicaSet() {
         );
         result = await collection.deleteMany({ Answer: { $in: docs.flat() } });
       }
-      return result;
+
+      if (result.acknowledged) {
+        return {
+          flag: true,
+          message: "Documents deleted successfully",
+          deletedCount: result.deletedCount,
+        };
+      } else {
+        return { flag: false, message: "No documents found to delete." };
+      }
     } catch (e) {
-      console.error("Error deleting documents from MongoDB:", e);
-      throw e;
+      return { flag: false, message: e.message };
     }
   }
 
-  async function findDocument(collectionName, docs) {
+  async function getDocument(collectionName, uniqueKey, value) {
     try {
       const collection = db.collection(collectionName);
-      const result = await collection.findOne(docs);
-      return result;
+      const result = await collection.findOne({ [uniqueKey]: value });
+
+      if (result._id) {
+        delete result._id;
+        return { flag: true, message: "Data found successfully", data: result };
+      } else {
+        return { flag: false, message: "No data found" };
+      }
     } catch (e) {
-      console.error("Error finding documents from MongoDB:", e);
-      throw e;
+      return { flag: false, message: e.message };
+    }
+  }
+
+  async function insertDocument(collectionName, doc) {
+    try {
+      const collection = db.collection(collectionName);
+      const result = await collection.insertOne(doc);
+
+      if (result.acknowledged) {
+        return {
+          flag: true,
+          message: "Document inserted successfully",
+        };
+      } else {
+        return { flag: false, message: "Couldn't insert document" };
+      }
+    } catch (e) {
+      return { flag: false, message: e.message };
     }
   }
 
@@ -111,10 +136,18 @@ async function connectToReplicaSet() {
     try {
       const collection = db.collection(collectionName);
       const result = await collection.updateOne(filter, { $set: docs });
-      return result;
+
+      if (result.acknowledged) {
+        return {
+          flag: true,
+          message: "Document updated successfully",
+          data: result,
+        };
+      } else {
+        return { flag: false, message: "Couldn't update document" };
+      }
     } catch (e) {
-      console.error("Error finding documents from MongoDB:", e);
-      throw e;
+      return { flag: false, message: e.message };
     }
   }
 
@@ -124,8 +157,9 @@ async function connectToReplicaSet() {
     getDocument,
     insertDocument,
     deleteDocument,
-    findDocument,
+
     updateDocument,
   };
 }
+
 module.exports = connectToReplicaSet;

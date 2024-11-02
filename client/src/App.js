@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Signin from "./pages/Signin";
 import Instructions from "./pages/Instructions";
@@ -7,8 +7,17 @@ import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/Admin";
 import Students from "./pages/Students";
 import Tests from "./pages/Tests";
+import components from "./pages/components";
+const { Navbar } = components;
 
 const App = () => {
+  const [showProfile, setShowProfile] = useState(false);
+  const [userData, setUserData] = useState();
+
+  useEffect(() => {
+    const userDetails = JSON.parse(localStorage.getItem("userData") || "{}");
+    userDetails && setUserData(userDetails);
+  }, [showProfile]);
   useEffect(() => {
     const url = new URL(window.location.href);
     const hostname = url.hostname;
@@ -22,84 +31,91 @@ const App = () => {
     "Instruction 2: Choose the correct answers.",
     "Instruction 3: Time limit is 10 minutes.",
   ];
-
+  const ChangeTitle = ({ title }) => {
+    useEffect(() => {
+      document.title = title;
+      if (title === "Home") {
+        setShowProfile(true);
+      } else {
+        setShowProfile(false);
+      }
+    }, [title]);
+    return null;
+  };
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/"
-          index
-          element={
-            <>
-              <ChangeTitle title="Home" />
-              <Signin />
-            </>
-          }
-        />
-        <Route
-          path="/instructions"
-          element={
-            <>
-              <ChangeTitle title="Instructions" />
-              <Instructions instructions={instructions} />
-            </>
-          }
-        />
-        <Route
-          path="/quiz"
-          element={
-            <>
-              <ChangeTitle title="Quiz" />
-              <Quiz />
-            </>
-          }
-        />{" "}
-        <Route
-          path="/summary"
-          element={
-            <>
-              <ChangeTitle title="Summary" />
-              <TestSummary />
-            </>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <>
-              <ChangeTitle title="Admin" />
-              <Admin />
-            </>
-          }
-        />
-        <Route
-          path="/students-module"
-          element={
-            <>
-              <ChangeTitle title="Students Module" />
-              <Students />
-            </>
-          }
-        />{" "}
-        <Route
-          path="/test-module"
-          element={
-            <>
-              <ChangeTitle title="Test Module" />
-              <Tests />
-            </>
-          }
-        />
-      </Routes>
-    </Router>
-  );
-};
+    <>
+      <Navbar showProfile={showProfile} userData={userData} />
 
-const ChangeTitle = ({ title }) => {
-  useEffect(() => {
-    document.title = title;
-  }, [title]);
-  return null;
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            index
+            element={
+              <>
+                <ChangeTitle title="Home" />
+                <Signin setShowProfile={setShowProfile} />
+              </>
+            }
+          />
+          <Route
+            path="/instructions"
+            element={
+              <>
+                <ChangeTitle title="Instructions" />
+                <Instructions instructions={instructions} />
+              </>
+            }
+          />
+          <Route
+            path="/quiz"
+            element={
+              <>
+                <ChangeTitle title="Quiz" />
+                <Quiz />
+              </>
+            }
+          />{" "}
+          <Route
+            path="/summary"
+            element={
+              <>
+                <ChangeTitle title="Summary" />
+                <TestSummary />
+              </>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <>
+                <ChangeTitle title="Admin" />
+                <Admin />
+              </>
+            }
+          />
+          <Route
+            path="/students-module"
+            element={
+              <>
+                <ChangeTitle title="Students Module" />
+                <Students />
+              </>
+            }
+          />{" "}
+          <Route
+            path="/test-module"
+            element={
+              <>
+                <ChangeTitle title="Test Module" />
+                <Tests />
+              </>
+            }
+          />
+        </Routes>
+      </Router>
+    </>
+  );
 };
 
 export default App;

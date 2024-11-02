@@ -1,14 +1,18 @@
 import React from "react";
 
 import components from "./components";
-const { Navbar, ModuleCard } = components;
+
+const { ModuleCard } = components;
 
 const Admin = () => {
+  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  if (userLogged.flag) {
+    if (userLogged.userType !== "Admin") {
+      window.location.href = "/";
+    }
+  }
   return (
     <>
-      <>
-        <Navbar />
-      </>
       <div className="cards">
         <ModuleCard
           header="Students Module"

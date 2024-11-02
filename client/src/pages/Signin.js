@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
 import components from "./components";
-const { Navbar, Modal, response, MessageBox, handleApiCall } = components;
+const { Modal, response, MessageBox, handleApiCall } = components;
 
 const Signin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,7 +32,14 @@ const Signin = () => {
         });
 
         if (response && response.flag) {
-          localStorage.setItem("userData", JSON.stringify(response.data));
+          sessionStorage.setItem(
+            "userLogged",
+            JSON.stringify({
+              flag: true,
+              userType: response.data.data.userType,
+            })
+          );
+          localStorage.setItem("userData", JSON.stringify(response.data.data));
           setResponseMessage("");
           setIsModalOpen(true);
         } else {
@@ -54,8 +61,6 @@ const Signin = () => {
 
   return (
     <>
-      <Navbar page={true} />
-
       <div className="login-container">
         <h1 className="login-header">Login</h1>
         <div className="login-form">
@@ -71,7 +76,10 @@ const Signin = () => {
               type="text"
               value={userID}
               required
-              onChange={(e) => setUserID(e.target.value)}
+              onChange={(e) => {
+                setResponseMessage(false);
+                setUserID(e.target.value);
+              }}
             />
           </div>
           <div className="input-group">
@@ -82,7 +90,10 @@ const Signin = () => {
               type="password"
               value={userPassword}
               required
-              onChange={(e) => setUserPassword(e.target.value)}
+              onChange={(e) => {
+                setResponseMessage(false);
+                setUserPassword(e.target.value);
+              }}
             />
           </div>
           {responseMessage && <MessageBox message={responseMessage} />}

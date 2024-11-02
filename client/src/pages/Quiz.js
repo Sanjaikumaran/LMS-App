@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
 import "../styles/Quiz.css";
 import components from "./components";
-const { Navbar, Modal, handleApiCall } = components;
+const { Modal, handleApiCall } = components;
 const radius = 50;
 const circumference = 2 * Math.PI * radius;
 const Quiz = () => {
+  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  if (userLogged.flag) {
+    if (userLogged.userType !== "Student") {
+      window.location.href = "/";
+    }
+  }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
   const [isAutoSubmit, setIsAutoSubmit] = useState(false);
@@ -23,7 +29,7 @@ const Quiz = () => {
           data: { collection: "Tests" },
         });
 
-        const questionsObj = response.data.map((question) => {
+        const questionsObj = response.data.data.map((question) => {
           delete question["_id"];
           if (question.title) {
             const minutes = question.Hours * 60 + question.Minutes;
@@ -256,8 +262,6 @@ const Quiz = () => {
 
   return (
     <>
-      <Navbar />
-
       <div className="quiz-body">
         <div className="quiz-app">
           <div className="quiz-content">

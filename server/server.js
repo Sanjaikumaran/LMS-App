@@ -1,132 +1,114 @@
 const os = require("os");
 const cors = require("cors");
 const express = require("express");
-const session = require("express-session");
-const cookieParser = require("cookie-parser");
 const connectToReplicaSet = require("./database");
 require("dotenv").config();
+const { exec } = require("child_process");
 const fs = require("node:fs");
 const path = require("path");
+
 const app = express();
-app.use(express.static(path.join(__dirname, "../client/build")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
-});
 app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
-app.use(
-  session({
-    secret: "jeppiaarUniversity",
-    resave: true,
-    saveUninitialized: true,
-    cookie: { secure: false },
-  })
-);
-//function getLocalIPs() {
-//  const interfaces = os.networkInterfaces();
-//  const ips = [];
-//  for (const iface of Object.values(interfaces)) {
-//    for (const alias of iface) {
-//      if (alias.family === "IPv4" && !alias.internal) {
-//        ips.push(alias.address);
-//      }
-//    }
-//  }
-//  return ips;
-//}
-//fs.readFile(path.join(__dirname, "../client/.env"), "utf8", (err, data) => {
-//  if (err) {
-//    console.error(err);
-//    return;
-//  }
-//  const localIPs = getLocalIPs();
-//  let address = "";
-//  localIPs.forEach((ip, index) => {
-//    address += `REACT_APP_LOCAL_IP${index + 1}=${ip}\n`;
-//  });
-//  try {
-//    fs.writeFile(path.join(__dirname, "../client/.env"), address, (err) => {
-//      if (err) {
-//        console.log(err);
-//      }
-//    });
-//  } catch (error) {
-//    console.log(error.message);
-//  }
-//});
-//const { exec } = require("child_process");
 
-//// Path to the client directory relative to this script
-//const clientPath = "client";
+// Uncomment the following lines to serve static files from the client build folder
+// app.use(express.static(path.join(__dirname, "../client/build")));
+// app.get("/*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "../client/build", "index.html"));
+// });
 
-//exec(`npm start --prefix ${clientPath}`, (error, stdout, stderr) => {
-//  if (error) {
-//    console.error(`Error starting client: ${error.message}`);
-//    return;
-//  }
+// Uncomment to start the server on port 3000
+// app.listen(3000);
 
-//  if (stderr) {
-//    console.error(`stderr: ${stderr}`);
-//    return;
-//  }
+// Uncomment to automatically open the app in the default browser
+// const platform = os.platform();
+// const url = `http://localhost:3000/`;
+// if (platform === "win32") {
+//   exec(`powershell -NoProfile -Command "Start-Process '${url}'"`);
+// } else if (platform === "darwin") {
+//   exec(`open ${url}`);
+// } else {
+//   exec(`xdg-open ${url}`);
+// }
 
-//  console.log(`stdout: ${stdout}`);
-//});
+app.post("/login", async (req, res, next) => {
+  const { Id, userPass } = req.body.data;
 
-app.post("/Upload-data", async (req, res) => {
-  let docs = [];
-  const data = req.body.data.data.split("\n");
-  const collection = req.body.data.collection;
-  const keys = data[0].split(",");
-  const records = data.slice(1);
-  records.forEach((record) => {
-    const values = record.split(",");
-    let doc = {};
-    values.forEach((value, index) => {
-      doc[keys[index].trim()] = value.trim();
-    });
-    docs.push(doc);
-  });
-  const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.insertData(collection, docs);
-  if (result) {
-    res.status(200).json({ message: "Data inserted successfully" });
-  } else {
-    res.status(500).json({ message: "Error inserting data" });
-  }
-});
+  try {
+    const dbConnection = await connectToReplicaSet();
+    const result = await dbConnection.getDocument("Users", "Roll No", Id);
 
-app.post("/Upload-question", async (req, res) => {
-  const { collection, data } = req.body.data;
-  const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.insertData(collection, data);
-  if (result) {
-    res.status(200).json({ message: "Questions uploaded successfully" });
-  } else {
-    res.status(500).json({ message: "Error inserting data" });
+    if (result.flag && userPass === result.data.Password) {
+      res
+        .status(200)
+        .json({ flag: true, message: "Login successful", data: result.data });
+    } else {
+      const errorMessage = !result.flag
+        ? "User not found"
+        : "Incorrect password";
+      res.status(401).json({ flag: false, message: errorMessage });
+    }
+  } catch (error) {
+    res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
 
 app.post("/load-data", async (req, res) => {
   const { collection } = req.body.data;
-  const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.loadCollection(collection);
-  if (result) {
-    res.status(200).send(result);
-  } else {
-    res.status(500).json({ message: "Error loading data" });
+  try {
+    const dbConnection = await connectToReplicaSet();
+    const result = await dbConnection.loadCollection(collection);
+    if (result.flag) {
+      res
+        .status(200)
+        .send({ flag: true, message: result.message, data: result.data });
+    } else {
+      res.status(401).json({ flag: false, message: "No data found!" });
+    }
+  } catch (error) {
+    res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
 
-app.post("/insert-data", async (req, res) => {
+app.post("/Upload-data", async (req, res) => {
   const { data, collection } = req.body.data;
-  const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.insertDocument(collection, data);
-  if (result) {
-    res.status(200).send(result);
-  } else {
-    res.status(500).json({ message: "Error loading data" });
+  try {
+    let docs = [];
+    const keys = data[0].map((key) =>
+      key
+        .replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
+        )
+        .trim()
+    );
+    const records = data.slice(1);
+    records.forEach((record) => {
+      const values = record.map((value) => value.trim());
+      let doc = {};
+      values.forEach((value, index) => {
+        doc[keys[index].trim()] = value.trim();
+      });
+      doc["userType"] = "Student";
+      docs.push(doc);
+    });
+
+    const dbConnection = await connectToReplicaSet();
+    const result = await dbConnection.insertData(collection, docs);
+    if (result.flag) {
+      res.status(200).json({
+        flag: true,
+        insertedCount: result.insertedCount,
+        message: result.message,
+      });
+    } else {
+      res.status(401).json({
+        flag: false,
+        message: result.message,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
 
@@ -135,17 +117,32 @@ app.post("/delete-data", async (req, res) => {
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.deleteDocument(collection, data);
-    if (result) {
+    if (result.flag) {
       res.status(200).json({
-        message: "Documents deleted successfully.",
+        flag: true,
+        message: result.message,
         deletedCount: result.deletedCount,
       });
     } else {
-      res.status(405).json({ message: "No documents found to delete." });
+      res.status(401).json({ flag: false, message: result.message });
     }
   } catch (error) {
-    console.error("Error in deletion route:", error);
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ flag: false, message: "Database connection error" });
+  }
+});
+
+app.post("/insert-data", async (req, res) => {
+  const { data, collection } = req.body.data;
+  try {
+    const dbConnection = await connectToReplicaSet();
+    const result = await dbConnection.insertDocument(collection, data);
+    if (result.flag) {
+      res.status(200).json({ flag: true, message: result.message });
+    } else {
+      res.status(500).json({ flag: false, message: result.message });
+    }
+  } catch (error) {
+    res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
 
@@ -153,15 +150,20 @@ app.post("/find-data", async (req, res) => {
   const { collection, condition } = req.body.data;
   try {
     const dbConnection = await connectToReplicaSet();
-    const result = await dbConnection.findDocument(collection, condition);
-    if (result) {
-      res.status(200).json({ result });
+    const result = await dbConnection.getDocument(
+      collection,
+      condition.key,
+      condition.value
+    );
+    if (result.flag) {
+      res
+        .status(200)
+        .json({ flag: true, message: result.message, data: result.data });
     } else {
-      res.status(405).json({ message: "No documents found to delete." });
+      res.status(401).json({ flag: false, message: result.message });
     }
   } catch (error) {
-    console.error("Error in deletion route:", error);
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
 
@@ -174,39 +176,31 @@ app.post("/update-data", async (req, res) => {
       condition,
       data
     );
-    if (result.matchedCount > 0) {
+    if (result.data.matchedCount > 0) {
       res.status(200).json({
-        matchedCount: result.matchedCount,
-        modifiedCount: result.modifiedCount,
-        upsertedCount: result.upsertedCount || 0,
+        flag: true,
+        matchedCount: result.data.matchedCount,
+        modifiedCount: result.data.modifiedCount,
+        upsertedCount: result.data.upsertedCount || 0,
       });
     } else {
-      res.status(404).json({ message: "No documents found to update." });
+      res
+        .status(401)
+        .json({ flag: false, message: "No documents found to update." });
     }
   } catch (error) {
-    console.error("Error in update route:", error);
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
 
-app.post("/login", async (req, res) => {
-  const { Id, userPass } = req.body.data;
+app.post("/Upload-question", async (req, res) => {
+  const { collection, data } = req.body.data;
   const dbConnection = await connectToReplicaSet();
-  const result = await dbConnection.getDocument("Users", "Contact", Id);
+  const result = await dbConnection.insertData(collection, data);
   if (result) {
-    if (userPass === result.Gender) {
-      res.status(200).json(result);
-    } else {
-      if (userPass.trim() === "") {
-        res.status(401).json({ message: "Your password is empty" });
-      } else {
-        res.status(401).json({ message: "Incorrect UserID or Password" });
-      }
-    }
+    res.status(200).json({ message: "Questions uploaded successfully" });
   } else {
-    if (Id.trim() === "") {
-      res.status(403).json({ message: "UserID is empty" });
-    }
+    res.status(500).json({ message: "Error inserting data" });
   }
 });
 

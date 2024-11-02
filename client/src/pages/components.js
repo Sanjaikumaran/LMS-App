@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
+import Papa from "papaparse";
 
 import "../styles/components.css";
 import axios from "axios";
 import { CgProfile } from "react-icons/cg";
+const XLSX = require("xlsx");
 
 const Navbar = (props) => {
-  const [userData, setUserData] = useState();
-  const navigate = useNavigate();
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    userData && setUserData(userData);
-  }, []);
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
@@ -61,14 +57,8 @@ const Navbar = (props) => {
             <h1 style={{ margin: 0 }}>Quizzards</h1>
           </div>
           <div className="nav-links">
-            <span
-              onClick={() => {
-                navigate("/admin");
-              }}
-            >
-              Home
-            </span>
-            <span>About</span>
+            {/* <span>Home</span>
+            <span>About</span>*/}
             <a
               target="_blank"
               rel="noopener noreferrer"
@@ -76,10 +66,10 @@ const Navbar = (props) => {
             >
               Contact
             </a>
-            {!props.page && (
+            {!props.showProfile && (
               <li
                 onClick={() => {
-                  showProfile(userData);
+                  showProfile(props.userData);
                 }}
                 className="show-profile"
               >
@@ -164,7 +154,6 @@ const MessageBox = (props) => {
 };
 const handleApiCall = async (props) => {
   const localIps = localStorage.getItem("localIps").split(",");
-  console.log(`http://${localIps[0]}:5000/${props.API}`);
 
   try {
     return await axios
@@ -174,6 +163,8 @@ const handleApiCall = async (props) => {
       .then((result) => {
         if (result.status === 200) {
           return { data: result.data, flag: true };
+        } else {
+          return { error: result.data.message, flag: false };
         }
       })
       .catch((error) => {
@@ -225,14 +216,15 @@ const DataTableManagement = (props) => {
       });
 
       if (response.flag) {
-        response.data.forEach((value) => delete value["_id"]);
-        response.data = response.data.filter(
-          (data) => !data.hasOwnProperty("title")
-        );
+        let data = response.data.data;
+        if (data) {
+          data.forEach((value) => delete value["_id"]);
+          data = data.filter((data) => !data.hasOwnProperty("title"));
+        }
 
-        if (response.data) {
-          setTableColumns(Object.keys(response.data[0]));
-          setTableData(response.data);
+        if (data.length > 0) {
+          setTableColumns(Object.keys(data[0]));
+          setTableData(data);
         } else {
           showModal("Info", "No data available.", ["Ok"], () =>
             setIsModalOpen(false)
@@ -247,8 +239,6 @@ const DataTableManagement = (props) => {
         setIsModalOpen(true);
       }
     } catch (error) {
-      console.log(error);
-
       showModal(
         "Error",
         `Uncaught error: ${error.message}`,
@@ -262,7 +252,7 @@ const DataTableManagement = (props) => {
     }
   }
 
-  const fileUpload = (
+  const fileUpload = async (
     fetchCallback = fetchData,
     apiEndpoint = props.API,
     collectionName = props.collectionName
@@ -282,8 +272,8 @@ const DataTableManagement = (props) => {
     }
 
     const reader = new FileReader();
-    reader.readAsText(file.files[0]);
-    let insertData;
+    const fileType = file.files[0].name.split(".").pop().toLowerCase();
+
     const GIFTParser = (text) => {
       const questions = [];
       const regex = /::Question \d+:: (.*?)\n\{([\s\S]*?)\}/g;
@@ -298,7 +288,6 @@ const DataTableManagement = (props) => {
 
         optionsBlock.forEach((option) => {
           const optionText = option.replace(/[=~]/g, "").trim();
-
           if (option.trim().startsWith("=")) {
             correctAnswers.push(optionText);
           }
@@ -316,11 +305,23 @@ const DataTableManagement = (props) => {
     };
 
     reader.onload = async () => {
-      if (collectionName === "Tests") {
+      let insertData;
+
+      if (fileType === "csv") {
+        insertData = Papa.parse(reader.result).data;
+      } else if (fileType === "gift") {
         insertData = GIFTParser(reader.result);
+      } else if (fileType === "xlsx") {
+        const workbook = XLSX.read(reader.result, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        insertData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
       } else {
-        insertData = reader.result;
+        showModal("Error", "Unsupported file type.", ["Ok"], () =>
+          setIsModalOpen(false)
+        );
+        return;
       }
+
       try {
         const response = await handleApiCall({
           API: apiEndpoint,
@@ -355,6 +356,12 @@ const DataTableManagement = (props) => {
         setIsModalOpen(true);
       }
     };
+
+    if (fileType === "xlsx") {
+      reader.readAsBinaryString(file.files[0]);
+    } else {
+      reader.readAsText(file.files[0]);
+    }
   };
 
   const addNew = () => {
@@ -475,12 +482,15 @@ const DataTableManagement = (props) => {
       name: "S.No",
       selector: (row, index) => index + 1,
       sortable: true,
+
       width: "70px",
     },
     ...tableColumns.map((column) => ({
       name: column,
       selector: (row) => row[column],
       sortable: true,
+      wrap: true,
+      padding: "10px",
     })),
   ];
 
@@ -489,6 +499,7 @@ const DataTableManagement = (props) => {
   const customStyles = {
     rows: {
       style: {
+        padding: "10px",
         maxHeight: "72px",
       },
     },
@@ -512,7 +523,6 @@ const DataTableManagement = (props) => {
 
   return (
     <>
-      <Navbar />
       <div className="action-div">
         <div className="upload-file">
           <label>Upload {props.tablePageName}</label>

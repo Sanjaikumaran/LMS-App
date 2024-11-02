@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import components from "./components";
-const { Navbar } = components;
 
-const TestSummary = ({ instructions }) => {
+const TestSummary = () => {
+  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  if (userLogged.flag) {
+    if (userLogged.userType !== "Student") {
+      window.location.href = "/";
+    }
+  }
   const navigate = useNavigate();
   const [summaryData, setSummaryData] = useState({
     totalQuestions: 0,
@@ -15,7 +19,7 @@ const TestSummary = ({ instructions }) => {
 
   useEffect(() => {
     const summary = JSON.parse(localStorage.getItem("summary") || "{}");
-    // Assuming totalQuestions is calculated as answered + notAnswered + skipped
+
     const totalQuestions =
       summary.answered + summary.notAnswered + summary.skipped;
     setSummaryData({
@@ -26,7 +30,6 @@ const TestSummary = ({ instructions }) => {
 
   return (
     <>
-      <Navbar />
       <div className="instructions-div">
         <h1>Your test has been submitted!</h1>
         <div
@@ -60,7 +63,15 @@ const TestSummary = ({ instructions }) => {
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <button onClick={() => navigate("/")}>Exit</button>
+        <button
+          onClick={() => {
+            sessionStorage.clear();
+            localStorage.clear();
+            navigate("/");
+          }}
+        >
+          Exit
+        </button>
       </div>
     </>
   );
