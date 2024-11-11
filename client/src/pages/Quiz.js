@@ -100,7 +100,7 @@ const Quiz = () => {
   const handleTestSubmit = async () => {
     if (selectedOptions) {
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const contact = userData.Contact;
+      const _id = userData._id;
       let correctAnswers = [],
         score = 0,
         answered = 0,
@@ -154,7 +154,7 @@ const Quiz = () => {
       const response = await handleApiCall({
         API: "update-data",
         data: {
-          condition: { Contact: contact },
+          condition: { _id: _id },
           collection: "Users",
           data: { Answer: JSON.stringify(selectedOptions), Score: score },
         },

@@ -8,12 +8,12 @@ const {
 } = components;
 
 const Tests = () => {
-  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  if (userLogged.flag) {
-    if (userLogged.userType !== "Admin") {
-      window.location.href = "/";
-    }
-  }
+  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  //if (userLogged.flag) {
+  //  if (userLogged.userType !== "Admin") {
+  //    window.location.href = "/";
+  //  }
+  //}
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
 

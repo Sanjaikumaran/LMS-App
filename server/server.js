@@ -11,27 +11,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Uncomment the following lines to serve static files from the client build folder
-// app.use(express.static(path.join(__dirname, "../client/build")));
-// app.get("/*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../client/build", "index.html"));
-// });
+app.use(express.static(path.join(__dirname, "../client/build")));
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
+});
 
-// Uncomment to start the server on port 3000
-// app.listen(3000);
+app.listen(5001);
 
 // Uncomment to automatically open the app in the default browser
-// const platform = os.platform();
-// const url = `http://localhost:3000/`;
-// if (platform === "win32") {
-//   exec(`powershell -NoProfile -Command "Start-Process '${url}'"`);
-// } else if (platform === "darwin") {
-//   exec(`open ${url}`);
-// } else {
-//   exec(`xdg-open ${url}`);
-// }
+const platform = os.platform();
+const url = `http://localhost:5001/`;
+if (platform === "win32") {
+  exec(`powershell -NoProfile -Command "Start-Process '${url}'"`);
+} else if (platform === "darwin") {
+  exec(`open ${url}`);
+} else {
+  exec(`xdg-open ${url}`);
+}
 
-app.post("/login", async (req, res, next) => {
+app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
 
   try {
@@ -69,9 +67,22 @@ app.post("/load-data", async (req, res) => {
     res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
-
+app.post("/create-collection", async (req, res) => {
+  const { collection } = req.body.data;
+  try {
+    const dbConnection = await connectToReplicaSet();
+    const result = await dbConnection.createCollection(collection);
+    if (result.flag) {
+      res.status(200).json({ flag: true, message: result.message });
+    } else {
+      res.status(401).json({ flag: false, message: result.message });
+    }
+  } catch (error) {
+    res.status(500).json({ flag: false, message: "Database connection error" });
+  }
+});
 app.post("/Upload-data", async (req, res) => {
-  const { data, collection } = req.body.data;
+  const { data, group, collection } = req.body.data;
   try {
     let docs = [];
     const keys = data[0].map((key) =>
@@ -90,6 +101,7 @@ app.post("/Upload-data", async (req, res) => {
         doc[keys[index].trim()] = value.trim();
       });
       doc["userType"] = "Student";
+      doc["Group"] = group;
       docs.push(doc);
     });
 
@@ -114,6 +126,7 @@ app.post("/Upload-data", async (req, res) => {
 
 app.post("/delete-data", async (req, res) => {
   const { data, collection } = req.body.data;
+
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.deleteDocument(collection, data);

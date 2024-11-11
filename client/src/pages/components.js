@@ -218,12 +218,20 @@ const DataTableManagement = (props) => {
       if (response.flag) {
         let data = response.data.data;
         if (data) {
-          data.forEach((value) => delete value["_id"]);
-          data = data.filter((data) => !data.hasOwnProperty("title"));
+          data = data.filter((value) => !("title" in value));
         }
 
         if (data.length > 0) {
-          setTableColumns(Object.keys(data[0]));
+          const studentData = data.find(
+            (value) => value.userType === "Student"
+          );
+
+          if (studentData) {
+            setTableColumns(Object.keys(studentData));
+          } else {
+            setTableColumns(Object.keys(data[0]));
+          }
+
           setTableData(data);
         } else {
           showModal("Info", "No data available.", ["Ok"], () =>
@@ -232,7 +240,7 @@ const DataTableManagement = (props) => {
           setIsModalOpen(true);
         }
       } else {
-        showModal("Error", response.error, ["Retry", "Ok"], (button) => {
+        showModal("Info", response.error, ["Retry", "Ok"], (button) => {
           if (button === "Retry") fetchData(collectionName);
           setIsModalOpen(false);
         });
@@ -366,11 +374,23 @@ const DataTableManagement = (props) => {
 
   const addNew = () => {
     const inputs = {};
-    const contentElements = tableColumns.map((column) => {
+
+    const contentElements = columns.map((column) => {
+      console.log(column.name);
+      if (column.name === "Password") {
+        return (
+          <input
+            type="password"
+            name={column.name}
+            className={column.name}
+            placeholder={column.name}
+          />
+        );
+      }
       const inputField = document.createElement("input");
-      inputField.className = column;
-      inputField.placeholder = column;
-      inputs[column] = inputField;
+      inputField.className = column.name;
+      inputField.placeholder = column.name;
+      inputs[column.name] = inputField;
       return inputField;
     });
 
@@ -425,9 +445,7 @@ const DataTableManagement = (props) => {
         API: "delete-data",
         data: {
           collection: props.collectionName,
-          data: selectedRows.map((row) =>
-            row.Contact ? row.Contact : row.Answer
-          ),
+          data: selectedRows.map((row) => row._id),
         },
       });
 
@@ -482,16 +500,20 @@ const DataTableManagement = (props) => {
       name: "S.No",
       selector: (row, index) => index + 1,
       sortable: true,
-
       width: "70px",
     },
-    ...tableColumns.map((column) => ({
-      name: column,
-      selector: (row) => row[column],
-      sortable: true,
-      wrap: true,
-      padding: "10px",
-    })),
+    ...tableColumns
+      .filter(
+        (column) =>
+          column !== "Password" && column !== "userType" && column !== "_id"
+      )
+      .map((column) => ({
+        name: column,
+        selector: (row) => row[column],
+        sortable: true,
+        wrap: true,
+        padding: "10px",
+      })),
   ];
 
   const data = tableData;

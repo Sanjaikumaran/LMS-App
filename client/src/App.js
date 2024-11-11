@@ -7,6 +7,7 @@ import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/Admin";
 import Students from "./pages/Students";
 import Tests from "./pages/Tests";
+import CreateTest from "./pages/CreateTest";
 import components from "./pages/components";
 const { Navbar } = components;
 
@@ -16,7 +17,14 @@ const App = () => {
 
   useEffect(() => {
     const userDetails = JSON.parse(localStorage.getItem("userData") || "{}");
-    userDetails && setUserData(userDetails);
+    if (userDetails._id) {
+      delete userDetails["_id"];
+      delete userDetails["Group"];
+      delete userDetails["userType"];
+      delete userDetails["Password"];
+
+      setUserData(userDetails);
+    }
   }, [showProfile]);
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -100,6 +108,15 @@ const App = () => {
               <>
                 <ChangeTitle title="Students Module" />
                 <Students />
+              </>
+            }
+          />{" "}
+          <Route
+            path="/create-test"
+            element={
+              <>
+                <ChangeTitle title="Create Test" />
+                <CreateTest />
               </>
             }
           />{" "}

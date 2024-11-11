@@ -1,0 +1,119 @@
+.test-form h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.test-form {
+  display: grid;
+  gap: 15px;
+  margin: auto;
+
+  border: 1px solid #d1d1d1;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  max-width: 600px;
+  background: #f9f9f9;
+}
+.form-group {
+  margin: 0 20px;
+}
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="time"],
+.form-group input[type="datetime-local"],
+.form-group input[type="file"] {
+  width: 97%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.test-form button[type="submit"] {
+  width: 20%;
+  background-color: #007bff;
+  color: white;
+  margin: auto;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.group-selector {
+  position: relative;
+}
+
+.group-selector-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  width: 100%;
+}
+
+.group-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+  border: 1px solid #ccc;
+  background-color: white;
+  z-index: 1;
+}
+
+.group-item {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.group-item:hover {
+  background-color: #f0f0f0;
+}
+
+.selected-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.selected-group {
+  background-color: #007bff;
+  color: white;
+  padding: 5px 5px;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.selected-group button {
+  background: none;
+  color: white;
+  border: none;
+  border-radius: 0%;
+  padding: 5px 5px;
+
+  font-weight: bold;
+  margin-left: 5px;
+  cursor: pointer;
+}
+input[type="file"]::file-selector-button {
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
+}
+input[type="file"] {
+  padding: 0% !important    ;
+  width: 100% !important;
+}

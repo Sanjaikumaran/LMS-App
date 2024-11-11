@@ -1,0 +1,35 @@
+/* Create New Test Container */
+.create-new-test {
+  display: flex;
+  margin-top: 20px;
+
+  align-items: center;
+  justify-content: space-between;
+  background-color: #007bff;
+  color: white;
+  padding: 15px 20px;
+  font-size: 1.5em;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid #d1d1d1;
+  margin-bottom: 20px;
+}
+
+/* Create New Test Button */
+.create-new-test button {
+  background-color: #ffffff;
+  border: none;
+  color: #007bff;
+
+  font-weight: bold;
+  cursor: pointer;
+  padding: 8px 14px;
+  /*border-radius: 50%;*/
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.create-new-test button:hover {
+  background-color: #e6e2e2;
+}

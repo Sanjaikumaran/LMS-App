@@ -39,6 +39,7 @@ const Signin = () => {
               userType: response.data.data.userType,
             })
           );
+
           localStorage.setItem("userData", JSON.stringify(response.data.data));
           setResponseMessage("");
           setIsModalOpen(true);
@@ -53,9 +54,15 @@ const Signin = () => {
   };
 
   const closeModal = (button) => {
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     if (response(["Ok"], button)) {
-      navigate("/instructions");
-      setIsModalOpen(false);
+      if (userData.userType === "Admin") {
+        navigate("/admin");
+        setIsModalOpen(false);
+      } else {
+        navigate("/instructions");
+        setIsModalOpen(false);
+      }
     }
   };
 

@@ -132,6 +132,7 @@
 .cards {
   display: flex;
   flex-wrap: wrap;
+  padding: 20px;
   gap: 20px;
   justify-content: flex-start;
 }
@@ -140,8 +141,8 @@
   margin-top: 20px;
   background-color: rgb(255, 255, 255);
   border-radius: 10px;
-  min-width: 300px;
-  min-height: 480px;
+  min-width: 200px;
+  min-height: 380px;
   max-width: 480px;
   box-shadow: 0 4px 15px #00000029;
   border: 1px solid #d1d1d1;
@@ -174,7 +175,7 @@
   display: flex;
 }
 .card-body .image-container img {
-  width: 70%;
+  width: 50%;
 }
 .card-body .button-container {
   padding: 10px;

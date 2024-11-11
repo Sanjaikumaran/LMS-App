@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 
 async function connectToReplicaSet() {
   const uri =
@@ -25,6 +25,35 @@ async function connectToReplicaSet() {
 
   function handleError(err, customMessage) {
     return { error: customMessage };
+  }
+  async function createCollection(collectionName) {
+    try {
+      const collections = await db.listCollections().toArray();
+      const collectionExists = collections.some(
+        (collection) => collection.name === collectionName
+      );
+
+      if (collectionExists) {
+        return { flag: false, message: "Collection already exists" };
+      }
+
+      const collection = db.collection(collectionName);
+      const result = await collection.createIndexes([
+        { key: { Title: 1 }, unique: true },
+      ]);
+      console.log(result[0]);
+
+      if (result[0]) {
+        return {
+          flag: true,
+          message: "Collection created successfully",
+        };
+      } else {
+        return { flag: false, message: "Couldn't create collection" };
+      }
+    } catch (e) {
+      return { flag: false, message: e.message };
+    }
   }
 
   async function loadCollection(collectionName) {
@@ -71,18 +100,17 @@ async function connectToReplicaSet() {
       return { flag: false, message: e.message };
     }
   }
+
   async function deleteDocument(collectionName, docs) {
     try {
       const collection = db.collection(collectionName);
       let result;
-      if (collectionName === "Users") {
-        result = await collection.deleteMany({ Contact: { $in: docs } });
-      } else {
-        docs = docs.map((doc) =>
-          typeof doc === "string" ? doc.split(",") : doc
-        );
-        result = await collection.deleteMany({ Answer: { $in: docs.flat() } });
-      }
+
+      const objectIds = docs.map((doc) => new ObjectId(doc));
+
+      result = await collection.deleteMany({
+        _id: { $in: objectIds },
+      });
 
       if (result.acknowledged) {
         return {
@@ -104,7 +132,6 @@ async function connectToReplicaSet() {
       const result = await collection.findOne({ [uniqueKey]: value });
 
       if (result._id) {
-        delete result._id;
         return { flag: true, message: "Data found successfully", data: result };
       } else {
         return { flag: false, message: "No data found" };
@@ -135,7 +162,10 @@ async function connectToReplicaSet() {
   async function updateDocument(collectionName, filter, docs) {
     try {
       const collection = db.collection(collectionName);
-      const result = await collection.updateOne(filter, { $set: docs });
+      const result = await collection.updateOne(
+        { _id: new ObjectId(filter._id) },
+        { $set: docs }
+      );
 
       if (result.acknowledged) {
         return {
@@ -152,6 +182,7 @@ async function connectToReplicaSet() {
   }
 
   return {
+    createCollection,
     insertData,
     loadCollection,
     getDocument,
