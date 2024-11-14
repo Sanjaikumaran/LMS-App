@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import components from "./components";
 import "../styles/CreateTest.css";
-const { Modal, handleApiCall } = components;
+const { Modal, handleApiCall, fileUpload } = components;
 
 const CreateTest = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,37 +10,91 @@ const CreateTest = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState("");
-  const [selectedGroups, setSelectedGroups] = useState([]);
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
-  const [allGroups, setAllGroups] = useState([
-    "Group A",
-    "Group B",
-    "Group C",
-    "Group D",
-    "Group E",
-    "Group F",
-    "Group G",
-    "Group H",
-  ]);
+  const [selectedUsersGroups, setSelectedUsersGroups] = useState([]);
+  const [selectedQuestionsGroups, setSelectedQuestionsGroups] = useState([]);
+  const [isUsersDropdownVisible, setUsersIsDropdownVisible] = useState(false);
+  const [isQuestionsDropdownVisible, setIsQuestionsDropdownVisible] = useState(
+    false
+  );
+  const [allUsersGroups, setAllUsersGroups] = useState([]);
+  const [allQuestionsGroups, setAllQuestionsGroups] = useState([]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await handleApiCall({
+          API: "load-data",
+          data: { collection: "Users" },
+        });
+
+        if (response.flag) {
+          const uniqueGroups = Array.from(
+            new Set(response.data.data.map((user) => user.Group))
+          );
+
+          setAllUsersGroups(uniqueGroups);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await handleApiCall({
+          API: "load-data",
+          data: { collection: "Questions" },
+        });
+
+        if (response.flag) {
+          const uniqueGroups = Array.from(
+            new Set(response.data.data.map((question) => question.Group))
+          );
+
+          setAllQuestionsGroups(uniqueGroups);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  }, []);
   const showModal = (type, message, buttons, responseFunc) => {
     setModalOptions({ type, message, buttons, responseFunc });
     setIsModalOpen(true);
   };
 
-  const addGroup = (group) => {
+  const addGroup = (
+    group,
+    selectedGroups,
+    setSelectedGroups,
+    allGroups,
+    setAllGroups
+  ) => {
     if (group === "No Groups Available") {
-      setIsDropdownVisible(false);
+      setUsersIsDropdownVisible(false);
+      setIsQuestionsDropdownVisible(false);
       return;
     }
     if (!selectedGroups.includes(group)) {
       setSelectedGroups([...selectedGroups, group]);
       setAllGroups(allGroups.filter((g) => g !== group));
-      setIsDropdownVisible(false);
+      setIsQuestionsDropdownVisible(false);
+      setUsersIsDropdownVisible(false);
     }
   };
 
-  const removeGroup = (group) => {
+  const removeGroup = (
+    group,
+    selectedGroups,
+    setSelectedGroups,
+    allGroups,
+    setAllGroups
+  ) => {
     setSelectedGroups(selectedGroups.filter((selected) => selected !== group));
     setAllGroups([...allGroups, group]);
   };
@@ -48,7 +102,8 @@ const CreateTest = () => {
   const handleClickOutside = (e) => {
     const dropdown = document.querySelector(".group-dropdown");
     if (dropdown && !dropdown.contains(e.target)) {
-      setIsDropdownVisible(false);
+      setIsQuestionsDropdownVisible(false);
+      setUsersIsDropdownVisible(false);
     }
   };
 
@@ -61,31 +116,51 @@ const CreateTest = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     if (!testName) {
       showModal("Error", "Please fill in all required fields.", ["Ok"]);
       return;
     }
-    console.log(testName, startTime, endTime, duration, selectedGroups);
 
-    showModal("Success", "Test Created Successfully", ["Close"]);
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (end <= start) {
+      showModal("Error", "End time must be greater than start time.", ["Ok"]);
+      return;
+    }
+
+    const files = document.querySelectorAll("input[type=file]");
+
+    fileUpload(
+      () => {},
+      files[0],
+      "Upload-question",
+      "Questions",
+      showModal,
+      setIsModalOpen
+    );
+
     try {
       let configurations = {};
 
-      if (testName) {
-        configurations["Test Name"] = testName;
-      }
-      if (startTime) {
-        configurations["Start Time"] = startTime;
-      }
-      if (endTime) {
-        configurations["End Time"] = endTime;
-      }
-      if (duration) {
-        configurations["Duration"] = duration;
+      if (testName) configurations["Test Name"] = testName;
+      if (startTime) configurations["Start Time"] = startTime;
+      if (endTime) configurations["End Time"] = endTime;
+      if (duration) configurations["Duration"] = duration;
+
+      if (
+        Array.isArray(selectedUsersGroups) &&
+        selectedUsersGroups.length > 0
+      ) {
+        configurations["Participants Group"] = selectedUsersGroups;
       }
 
-      if (Array.isArray(selectedGroups) && selectedGroups.length > 0) {
-        configurations["Participants Group"] = selectedGroups;
+      if (
+        Array.isArray(selectedQuestionsGroups) &&
+        selectedQuestionsGroups.length > 0
+      ) {
+        configurations["Questions Group"] = selectedQuestionsGroups;
       }
 
       if (!testName) {
@@ -96,19 +171,21 @@ const CreateTest = () => {
         API: "insert-data",
         data: { data: configurations, collection: "Tests" },
       });
-
       if (response.flag) {
-        console.log("Data inserted successfully.");
+        showModal("Success", "Test Created Successfully", ["Close"]);
       } else {
-        console.log("Failed to insert data.");
+        showModal("Error", "Test not Created", ["Close"]);
       }
     } catch (error) {
-      console.error("Error occurred:", error.message);
+      showModal("Uncaught Error", error.message, ["Close"]);
     }
   };
-
-  const displayGroups =
-    allGroups.length === 0 ? ["No Groups Available"] : allGroups;
+  const displayUsersGroups =
+    allUsersGroups.length === 0 ? ["No Groups Available"] : allUsersGroups;
+  const displayQuestionsGroups =
+    allQuestionsGroups.length === 0
+      ? ["No Groups Available"]
+      : allQuestionsGroups;
 
   return (
     <>
@@ -172,18 +249,26 @@ const CreateTest = () => {
             <input
               type="text"
               className="group-selector-input"
-              value={selectedGroups.join(", ") || "Select Groups"}
-              onFocus={() => setIsDropdownVisible(true)}
+              value={selectedUsersGroups.join(", ") || "Select Groups"}
+              onFocus={() => setUsersIsDropdownVisible(true)}
               readOnly
             />
 
-            {isDropdownVisible && (
+            {isUsersDropdownVisible && (
               <div className="group-dropdown">
-                {displayGroups.map((group) => (
+                {displayUsersGroups.map((group) => (
                   <div
                     key={group}
                     className="group-item"
-                    onClick={() => addGroup(group)}
+                    onClick={() =>
+                      addGroup(
+                        group,
+                        selectedUsersGroups,
+                        setSelectedUsersGroups,
+                        allUsersGroups,
+                        setAllUsersGroups
+                      )
+                    }
                   >
                     <span>{group}</span>
                   </div>
@@ -193,17 +278,80 @@ const CreateTest = () => {
           </div>
 
           <div className="selected-groups">
-            {selectedGroups.map((group) => (
+            {selectedUsersGroups.map((group) => (
               <span key={group} className="selected-group">
-                {group} <button onClick={() => removeGroup(group)}>x</button>
+                {group}{" "}
+                <button
+                  onClick={() =>
+                    removeGroup(
+                      group,
+                      selectedUsersGroups,
+                      setSelectedUsersGroups,
+                      allUsersGroups,
+                      setAllUsersGroups
+                    )
+                  }
+                >
+                  x
+                </button>
               </span>
             ))}
           </div>
         </div>
-
         <div className="form-group">
-          <label>Upload New Group</label>
-          <input type="file" />
+          <label>Questions Group</label>
+          <div className="group-selector">
+            <input
+              type="text"
+              className="group-selector-input"
+              value={selectedQuestionsGroups.join(", ") || "Select Groups"}
+              onFocus={() => setIsQuestionsDropdownVisible(true)}
+              readOnly
+            />
+
+            {isQuestionsDropdownVisible && (
+              <div className="group-dropdown">
+                {displayQuestionsGroups.map((group) => (
+                  <div
+                    key={group}
+                    className="group-item"
+                    onClick={() =>
+                      addGroup(
+                        group,
+                        selectedQuestionsGroups,
+                        setSelectedQuestionsGroups,
+                        allQuestionsGroups,
+                        setAllQuestionsGroups
+                      )
+                    }
+                  >
+                    <span>{group}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="selected-groups">
+            {selectedQuestionsGroups.map((group) => (
+              <span key={group} className="selected-group">
+                {group}{" "}
+                <button
+                  onClick={() =>
+                    removeGroup(
+                      group,
+                      selectedQuestionsGroups,
+                      setSelectedQuestionsGroups,
+                      allQuestionsGroups,
+                      setAllQuestionsGroups
+                    )
+                  }
+                >
+                  x
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
 
         <div className="form-group">

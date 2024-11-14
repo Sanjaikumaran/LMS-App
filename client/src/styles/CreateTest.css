@@ -35,7 +35,6 @@
 }
 
 .test-form button[type="submit"] {
-  width: 20%;
   background-color: #007bff;
   color: white;
   margin: auto;
@@ -56,6 +55,7 @@
   border: 1px solid #ccc;
   cursor: pointer;
   width: 100%;
+  max-width: 600px;
 }
 
 .group-dropdown {
@@ -64,10 +64,11 @@
   left: 0;
   max-height: 200px;
   overflow-y: auto;
+  max-width: 600px;
   width: 100%;
   border: 1px solid #ccc;
   background-color: white;
-  z-index: 1;
+  z-index: 10;
 }
 
 .group-item {
@@ -89,7 +90,7 @@
 .selected-group {
   background-color: #007bff;
   color: white;
-  padding: 5px 5px;
+  padding: 0 6px;
   border-radius: 15px;
   display: inline-flex;
   align-items: center;
@@ -101,7 +102,7 @@
   border: none;
   border-radius: 0%;
   padding: 5px 5px;
-
+  border-left: 1px solid #ffffff;
   font-weight: bold;
   margin-left: 5px;
   cursor: pointer;

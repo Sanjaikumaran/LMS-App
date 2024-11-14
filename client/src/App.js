@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Signin from "./pages/Signin";
+import AssignedQuiz from "./pages/AssignedQuiz";
 import Instructions from "./pages/Instructions";
 import Quiz from "./pages/Quiz";
 import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/Admin";
-import Students from "./pages/Students";
-import Tests from "./pages/Tests";
 import CreateTest from "./pages/CreateTest";
+import Users from "./pages/Users";
+import Question from "./pages/Question";
+import Test from "./pages/Test";
 import components from "./pages/components";
 const { Navbar } = components;
 
@@ -61,11 +63,21 @@ const App = () => {
             index
             element={
               <>
-                <ChangeTitle title="Home" />
+                <ChangeTitle title="Login" />
                 <Signin setShowProfile={setShowProfile} />
               </>
             }
+          />{" "}
+          <Route
+            path="/home"
+            element={
+              <>
+                <ChangeTitle title="Home" />
+                <AssignedQuiz />
+              </>
+            }
           />
+          flex-start
           <Route
             path="/instructions"
             element={
@@ -101,15 +113,6 @@ const App = () => {
                 <Admin />
               </>
             }
-          />
-          <Route
-            path="/students-module"
-            element={
-              <>
-                <ChangeTitle title="Students Module" />
-                <Students />
-              </>
-            }
           />{" "}
           <Route
             path="/create-test"
@@ -121,11 +124,29 @@ const App = () => {
             }
           />{" "}
           <Route
-            path="/test-module"
+            path="/manage-test"
             element={
               <>
-                <ChangeTitle title="Test Module" />
-                <Tests />
+                <ChangeTitle title="Manage-Test" />
+                <Test />
+              </>
+            }
+          />
+          <Route
+            path="/users-module"
+            element={
+              <>
+                <ChangeTitle title="Users Module" />
+                <Users />
+              </>
+            }
+          />{" "}
+          <Route
+            path="/questions-module"
+            element={
+              <>
+                <ChangeTitle title="Questions Module" />
+                <Question />
               </>
             }
           />

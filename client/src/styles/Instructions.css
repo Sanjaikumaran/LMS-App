@@ -16,3 +16,22 @@
   display: flex;
   justify-content: center;
 }
+/* Assigned Quiz */
+.assigned-quiz-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+.disabled-button {
+  background-color: #8b9197;
+  color: black;
+}
+.disabled-button:hover {
+  background-color: #8b9197;
+  cursor: not-allowed;
+}
+.button {
+  background-color: #6f2f72 !important;
+}

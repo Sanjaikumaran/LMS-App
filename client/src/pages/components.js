@@ -194,14 +194,233 @@ const ModuleCard = (props) => {
     </div>
   );
 };
+const fileUpload = async (
+  fetchCallback,
+  fileName,
+  apiEndpoint,
+  collectionName,
+  showModal,
+  setIsModalOpen
+) => {
+  // Check if file is selected
+  if (!fileName.files[0]) {
+    showModal(
+      "Error",
+      "No file is selected.",
+      ["Select File", "Ok"],
+      (button) => {
+        if (button === "Select File") fileName.click();
+        setIsModalOpen(false);
+      }
+    );
+    return;
+  }
+
+  const reader = new FileReader();
+  const fileType = fileName.files[0].name.split(".").pop().toLowerCase();
+
+  const GIFTParser = (text) => {
+    const questions = [];
+    const regex = /::Question \d+:: (.*?)\n\{([\s\S]*?)\}/g;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      const questionText = match[1].trim();
+      const optionsBlock = match[2].trim().split("\n");
+
+      const options = [];
+      const correctAnswers = [];
+
+      optionsBlock.forEach((option) => {
+        const optionText = option.replace(/[=~]/g, "").trim();
+        if (option.trim().startsWith("=")) correctAnswers.push(optionText);
+        options.push(optionText);
+      });
+
+      questions.push({
+        Question: questionText,
+        Option: options,
+        Answer: correctAnswers,
+      });
+    }
+    return questions;
+  };
+
+  const handleUpload = async (data) => {
+    try {
+      const response = await handleApiCall({
+        API: apiEndpoint,
+        data: { data, collection: collectionName },
+      });
+
+      if (response.flag) {
+        fetchCallback();
+        showModal("Info", "Data Uploaded Successfully!", ["Ok"], () => {
+          fileName.value = "";
+          setIsModalOpen(false);
+        });
+      } else {
+        showModal("Error", response.error, ["Retry", "Ok"], (button) => {
+          if (button === "Retry") retryUpload();
+          fileName.value = "";
+          setIsModalOpen(false);
+        });
+      }
+    } catch (error) {
+      showModal(
+        "Error",
+        `Uncaught error: ${error.message || error}`,
+        ["Retry", "Ok"],
+        (button) => {
+          if (button === "Retry") retryUpload();
+          fileName.value = "";
+          setIsModalOpen(false);
+        }
+      );
+    }
+  };
+
+  const retryUpload = () => {
+    fileUpload(
+      fetchCallback,
+      fileName,
+      apiEndpoint,
+      collectionName,
+      showModal,
+      setIsModalOpen
+    );
+  };
+
+  reader.onload = async () => {
+    let insertData;
+
+    switch (fileType) {
+      case "csv":
+        insertData = Papa.parse(reader.result).data;
+        break;
+      case "gift":
+        insertData = GIFTParser(reader.result);
+        break;
+      case "xlsx":
+        const workbook = XLSX.read(reader.result, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        insertData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        break;
+      default:
+        showModal("Error", "Unsupported file type.", ["Ok"], () =>
+          setIsModalOpen(false)
+        );
+        return;
+    }
+
+    if (apiEndpoint === "Upload-question") {
+      showModal(
+        "Enter Question Group Name",
+        <input type="text" id="groupName" />,
+        ["Ok", "Cancel"],
+        (button) => {
+          if (button === "Ok") {
+            const groupName = document.getElementById("groupName").value;
+            insertData = insertData.map((data) => ({
+              ...data,
+              Group: groupName,
+            }));
+            handleUpload(insertData);
+          } else setIsModalOpen(false);
+        }
+      );
+    } else {
+      handleUpload(insertData);
+    }
+  };
+
+  // Read the file based on its type
+  if (fileType === "xlsx") {
+    reader.readAsArrayBuffer(fileName.files[0]);
+  } else {
+    reader.readAsText(fileName.files[0]);
+  }
+};
+
+const ActionDiv = ({
+  tablePageName,
+  onFileUpload,
+  onAddNew,
+  onRemove,
+  actionButtons,
+}) => {
+  return (
+    <div className="action-div">
+      <div className="upload-file">
+        <label>Upload {tablePageName}</label>
+        <input name="list" id="data-file" type="file" required />
+      </div>
+      <div>
+        <button
+          type="button"
+          onClick={() => onFileUpload(document.querySelector("#data-file"))}
+        >
+          Upload
+        </button>
+        <button type="button" onClick={onAddNew}>
+          Add New
+        </button>
+        <button type="button" onClick={onRemove}>
+          Remove
+        </button>
+        {actionButtons && actionButtons}
+      </div>
+    </div>
+  );
+};
+
+const DataTableSection = ({
+  columns,
+  data,
+  onRowSelected = () => {},
+  isSelectable = false,
+}) => {
+  const customStyles = {
+    rows: { style: { padding: "10px", maxHeight: "72px" } },
+    headCells: {
+      style: {
+        color: "white",
+        fontSize: "larger",
+        fontWeight: "bold",
+        backgroundColor: "#007bff",
+        paddingLeft: "8px",
+        paddingRight: "8px",
+      },
+    },
+    cells: { style: { paddingLeft: "8px", paddingRight: "8px" } },
+  };
+
+  return (
+    <div className="data-table">
+      <DataTable
+        columns={columns}
+        data={data}
+        highlightOnHover
+        striped
+        fixedHeaderScrollHeight="80vh"
+        defaultSortFieldId={1}
+        customStyles={customStyles}
+        responsive
+        fixedHeader
+        selectableRows={isSelectable}
+        onSelectedRowsChange={onRowSelected}
+      />
+    </div>
+  );
+};
+
 const DataTableManagement = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
-
-  const [tableColumns, setTableColumns] = useState([]);
-  const [tableData, setTableData] = useState([]);
   const [isSelectable, setIsSelectable] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [tableColumns, setTableColumns] = useState([]);
+  const [tableData, setTableData] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -214,37 +433,21 @@ const DataTableManagement = (props) => {
         API: "load-data",
         data: { collection: collectionName },
       });
-
       if (response.flag) {
-        let data = response.data.data;
-        if (data) {
-          data = data.filter((value) => !("title" in value));
-        }
-
-        if (data.length > 0) {
-          const studentData = data.find(
-            (value) => value.userType === "Student"
-          );
-
-          if (studentData) {
-            setTableColumns(Object.keys(studentData));
-          } else {
-            setTableColumns(Object.keys(data[0]));
-          }
-
-          setTableData(data);
-        } else {
-          showModal("Info", "No data available.", ["Ok"], () =>
-            setIsModalOpen(false)
-          );
-          setIsModalOpen(true);
-        }
+        const data =
+          response.data.data?.filter((value) => !("title" in value)) || [];
+        const studentData = data.find((value) => value.userType === "Student");
+        setTableColumns(Object.keys(studentData || data[0]));
+        setTableData(data);
       } else {
         showModal("Info", response.error, ["Retry", "Ok"], (button) => {
-          if (button === "Retry") fetchData(collectionName);
-          setIsModalOpen(false);
+          if (button === "Retry") {
+            fetchData(collectionName);
+            setIsModalOpen(false);
+          } else {
+            setIsModalOpen(false);
+          }
         });
-        setIsModalOpen(true);
       }
     } catch (error) {
       showModal(
@@ -252,194 +455,27 @@ const DataTableManagement = (props) => {
         `Uncaught error: ${error.message}`,
         ["Retry", "Ok"],
         (button) => {
-          if (button === "Retry") fetchData(collectionName);
-          setIsModalOpen(false);
+          if (button === "Retry") {
+            fetchData(collectionName);
+            setIsModalOpen(false);
+          } else {
+            setIsModalOpen(false);
+          }
         }
       );
-      setIsModalOpen(true);
     }
   }
 
-  const fileUpload = async (
-    fetchCallback = fetchData,
-    apiEndpoint = props.API,
-    collectionName = props.collectionName
-  ) => {
-    const file = document.querySelector("#data-file");
-    if (!file.files[0]) {
-      showModal(
-        "Error",
-        "No file is selected.",
-        ["Select File", "Ok"],
-        (button) => {
-          if (button === "Select File") file.click();
-          setIsModalOpen(false);
-        }
-      );
-      return;
-    }
+  const handleRowSelected = (state) => setSelectedRows(state.selectedRows);
 
-    const reader = new FileReader();
-    const fileType = file.files[0].name.split(".").pop().toLowerCase();
-
-    const GIFTParser = (text) => {
-      const questions = [];
-      const regex = /::Question \d+:: (.*?)\n\{([\s\S]*?)\}/g;
-      let match;
-
-      while ((match = regex.exec(text)) !== null) {
-        const questionText = match[1].trim();
-        const optionsBlock = match[2].trim().split("\n");
-
-        const options = [];
-        const correctAnswers = [];
-
-        optionsBlock.forEach((option) => {
-          const optionText = option.replace(/[=~]/g, "").trim();
-          if (option.trim().startsWith("=")) {
-            correctAnswers.push(optionText);
-          }
-          options.push(optionText);
-        });
-
-        questions.push({
-          Question: questionText,
-          Option: options,
-          Answer: correctAnswers,
-        });
-      }
-
-      return questions;
-    };
-
-    reader.onload = async () => {
-      let insertData;
-
-      if (fileType === "csv") {
-        insertData = Papa.parse(reader.result).data;
-      } else if (fileType === "gift") {
-        insertData = GIFTParser(reader.result);
-      } else if (fileType === "xlsx") {
-        const workbook = XLSX.read(reader.result, { type: "binary" });
-        const sheetName = workbook.SheetNames[0];
-        insertData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-      } else {
-        showModal("Error", "Unsupported file type.", ["Ok"], () =>
-          setIsModalOpen(false)
-        );
-        return;
-      }
-
-      try {
-        const response = await handleApiCall({
-          API: apiEndpoint,
-          data: { data: insertData, collection: collectionName },
-        });
-
-        if (response.flag) {
-          fetchCallback();
-          showModal("Info", "Data Uploaded Successfully!", ["Ok"], () => {
-            file.value = "";
-            setIsModalOpen(false);
-          });
-        } else {
-          showModal("Error", response.error, ["Retry", "Ok"], (button) => {
-            if (button === "Retry") fileUpload(fetchCallback, apiEndpoint);
-            file.value = "";
-            setIsModalOpen(false);
-          });
-        }
-      } catch (error) {
-        showModal(
-          "Error",
-          `Uncaught error: ${error.message}`,
-          ["Retry", "Ok"],
-          (button) => {
-            if (button === "Retry") fileUpload(fetchCallback, apiEndpoint);
-            file.value = "";
-            setIsModalOpen(false);
-          }
-        );
-      } finally {
-        setIsModalOpen(true);
-      }
-    };
-
-    if (fileType === "xlsx") {
-      reader.readAsBinaryString(file.files[0]);
-    } else {
-      reader.readAsText(file.files[0]);
-    }
-  };
-
-  const addNew = () => {
-    const inputs = {};
-
-    const contentElements = columns.map((column) => {
-      console.log(column.name);
-      if (column.name === "Password") {
-        return (
-          <input
-            type="password"
-            name={column.name}
-            className={column.name}
-            placeholder={column.name}
-          />
-        );
-      }
-      const inputField = document.createElement("input");
-      inputField.className = column.name;
-      inputField.placeholder = column.name;
-      inputs[column.name] = inputField;
-      return inputField;
-    });
-
-    const saveCallback = (closeModal) => async () => {
-      const data = tableColumns.reduce((acc, column) => {
-        acc[column] = inputs[column].value;
-        return acc;
-      }, {});
-
-      try {
-        const response = await handleApiCall({
-          API: "insert-data",
-          data: { data, collection: props.collectionName },
-        });
-
-        if (response.flag) {
-          setTableData([...tableData, data]);
-          showModal("Info", "Data Inserted successfully!", ["Ok"], () => {
-            setIsModalOpen(false);
-          });
-        } else {
-          handleRetry("Error", response.error, saveCallback(closeModal));
-        }
-      } catch (error) {
-        handleRetry("Uncaught Error", error.message, saveCallback(closeModal));
-      } finally {
-        setIsModalOpen(true);
-      }
-
-      closeModal();
-    };
-
-    createFormModal({
-      headingText: "Add New User",
-      elements: contentElements,
-      saveCallback: saveCallback,
-    });
-  };
   const remove = async () => {
     if (!isSelectable) {
       setIsSelectable(true);
       return;
     }
-
     if (selectedRows.length === 0) return;
-
     const filteredData = tableData.filter((row) => !selectedRows.includes(row));
     setTableData(filteredData);
-
     try {
       const response = await handleApiCall({
         API: "delete-data",
@@ -448,40 +484,69 @@ const DataTableManagement = (props) => {
           data: selectedRows.map((row) => row._id),
         },
       });
-
-      if (response.flag) {
-        showModal(
-          "Info",
-          `${response.data.deletedCount} ${response.data.message}`,
-          ["Ok"],
-          () => {
-            setIsModalOpen(false);
-            setSelectedRows([]);
-            setIsSelectable(false);
-          }
-        );
-      } else {
-        handleRetry("Error", response.error, remove);
-      }
+      response.flag
+        ? showModal(
+            "Info",
+            `${response.data.deletedCount} ${response.data.message}`,
+            ["Ok"],
+            () => {
+              setIsSelectable(false);
+              setIsModalOpen(false);
+            }
+          )
+        : handleRetry("Error", response.error, remove);
     } catch (error) {
       handleRetry("Uncaught Error", error.message, remove);
     } finally {
       setIsModalOpen(true);
     }
   };
+
+  const addNew = () => {
+    const inputs = {};
+    const contentElements = tableColumns.map((column) => {
+      const inputField = document.createElement("input");
+      inputField.className = column;
+      inputField.placeholder = column;
+      inputs[column] = inputField;
+      return inputField;
+    });
+
+    createFormModal({
+      headingText: "Add New User",
+      elements: contentElements,
+      saveCallback: (closeModal) => async () => {
+        const data = tableColumns.reduce(
+          (acc, column) => ({ ...acc, [column]: inputs[column].value }),
+          {}
+        );
+        try {
+          const response = await handleApiCall({
+            API: "insert-data",
+            data: { data, collection: props.collectionName },
+          });
+          response.flag
+            ? showModal("Info", "Data Inserted successfully!", ["Ok"], () =>
+                setTableData([...tableData, data])
+              )
+            : handleRetry("Error", response.error, addNew);
+        } catch (error) {
+          handleRetry("Uncaught Error", error.message, addNew);
+        } finally {
+          setIsModalOpen(true);
+        }
+        closeModal();
+      },
+    });
+  };
+
   const handleRetry = (type, message, retryFunction) => {
     setModalOptions({
       type,
       message,
       buttons: ["Retry", "Ok"],
       responseFunc: (button) => {
-        if (button === "Retry") {
-          retryFunction();
-        } else {
-          setIsModalOpen(false);
-          setSelectedRows([]);
-          setIsSelectable(false);
-        }
+        if (button === "Retry") retryFunction();
       },
     });
   };
@@ -489,10 +554,6 @@ const DataTableManagement = (props) => {
   const showModal = (type, message, buttons, responseFunc) => {
     setModalOptions({ type, message, buttons, responseFunc });
     setIsModalOpen(true);
-  };
-
-  const handleRowSelected = (state) => {
-    setSelectedRows(state.selectedRows);
   };
 
   const columns = [
@@ -503,10 +564,7 @@ const DataTableManagement = (props) => {
       width: "70px",
     },
     ...tableColumns
-      .filter(
-        (column) =>
-          column !== "Password" && column !== "userType" && column !== "_id"
-      )
+      .filter((column) => !["Password", "userType", "_id"].includes(column))
       .map((column) => ({
         name: column,
         selector: (row) => row[column],
@@ -516,68 +574,30 @@ const DataTableManagement = (props) => {
       })),
   ];
 
-  const data = tableData;
-
-  const customStyles = {
-    rows: {
-      style: {
-        padding: "10px",
-        maxHeight: "72px",
-      },
-    },
-    headCells: {
-      style: {
-        color: "white",
-        fontSize: "larger",
-        fontWeight: "bold",
-        backgroundColor: "#007bff",
-        paddingLeft: "8px",
-        paddingRight: "8px",
-      },
-    },
-    cells: {
-      style: {
-        paddingLeft: "8px",
-        paddingRight: "8px",
-      },
-    },
-  };
-
   return (
     <>
-      <div className="action-div">
-        <div className="upload-file">
-          <label>Upload {props.tablePageName}</label>
-          <input name="list" id="data-file" type="file" required />
-        </div>
-        <div>
-          <button type="button" onClick={() => fileUpload(fetchData)}>
-            Upload
-          </button>
-          <button type="button" onClick={addNew}>
-            Add New
-          </button>
-          <button type="button" onClick={remove}>
-            Remove
-          </button>
-          {props.actionButtons && props.actionButtons}
-        </div>
-      </div>
-      <div className="data-table">
-        <DataTable
-          columns={columns}
-          data={data}
-          highlightOnHover
-          striped
-          fixedHeaderScrollHeight="80vh"
-          defaultSortFieldId={1}
-          customStyles={customStyles}
-          responsive
-          fixedHeader
-          selectableRows={isSelectable}
-          onSelectedRowsChange={handleRowSelected}
-        />
-      </div>
+      <ActionDiv
+        tablePageName={props.tablePageName}
+        onFileUpload={(file) =>
+          fileUpload(
+            fetchData,
+            file,
+            props.API,
+            props.collectionName,
+            showModal,
+            setIsModalOpen
+          )
+        }
+        onAddNew={addNew}
+        onRemove={remove}
+        actionButtons={props.actionButtons}
+      />
+      <DataTableSection
+        columns={columns}
+        data={tableData}
+        onRowSelected={handleRowSelected}
+        isSelectable={isSelectable}
+      />
       {isModalOpen && (
         <Modal
           modalType={modalOptions.type || "Info"}
@@ -589,6 +609,7 @@ const DataTableManagement = (props) => {
     </>
   );
 };
+
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   Navbar,
@@ -598,5 +619,7 @@ export default {
   MessageBox,
   handleApiCall,
   ModuleCard,
+  fileUpload,
+  DataTableSection,
   DataTableManagement,
 };

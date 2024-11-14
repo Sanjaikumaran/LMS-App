@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Instructions.css";
 import components from "./components";
 const { Modal, response } = components;
@@ -14,12 +14,15 @@ const Instructions = ({ instructions }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const id = queryParams.get("id");
   const handleButtonClick = () => {
     setIsModalOpen(true);
   };
   const closeModal = (button) => {
     if (response(["Yes", "No"], button)) {
-      navigate("/quiz");
+      navigate(`/quiz?id=${id}`);
     } else {
       setIsModalOpen(false);
     }

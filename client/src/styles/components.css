@@ -199,7 +199,8 @@ button {
   padding: 10px;
   display: flex;
 }
-.action-div:nth-child(2) {
+.action-div div:nth-child(2) {
+  display: flex;
   align-items: end;
 }
 .action-div .upload-file {

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 import "../styles/Quiz.css";
 import components from "./components";
 const { Modal, handleApiCall } = components;
@@ -6,11 +8,14 @@ const radius = 50;
 const circumference = 2 * Math.PI * radius;
 const Quiz = () => {
   const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  if (userLogged.flag) {
-    if (userLogged.userType !== "Student") {
-      window.location.href = "/";
-    }
-  }
+  //if (userLogged.flag) {
+  //  if (userLogged.userType !== "Student") {
+  //    window.location.href = "/";
+  //  }
+  //}
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const id = queryParams.get("id");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
   const [isAutoSubmit, setIsAutoSubmit] = useState(false);
@@ -20,40 +25,76 @@ const Quiz = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [highlightedOptions, setHighlightedOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState([]);
-
+  const [testName, setTestName] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [duration, setDuration] = useState("");
+  const [questionsGroup, setQuestionsGroup] = useState([]);
   useEffect(() => {
     async function fetchData() {
       try {
         const response = await handleApiCall({
-          API: "load-data",
-          data: { collection: "Tests" },
+          API: "find-data",
+          data: {
+            collection: "Tests",
+            condition: { key: "_id", value: id },
+          },
         });
 
-        const questionsObj = response.data.data.map((question) => {
-          delete question["_id"];
-          if (question.title) {
-            const minutes = question.Hours * 60 + question.Minutes;
-            const seconds = minutes * 60 + question.Seconds;
+        if (response.flag) {
+          const testData = response.data.data;
+          setTestName(testData["Test Name"]);
+          setStartTime(testData["Start Time"]);
+          setEndTime(testData["End Time"]);
+          setDuration(testData.Duration);
+          setQuestionsGroup(testData["Questions Group"]);
+          const [hours, minutes, seconds] = testData.Duration.split(":").map(
+            Number
+          );
 
-            setTotalTime(seconds);
-            setTimeLeft(seconds);
-
-            return null;
-          } else {
-            return {
-              ...question,
-              type: question.Answer.length > 1 ? "checkbox" : "radio",
-            };
-          }
-        });
-
-        setQuestions(questionsObj.filter((question) => question !== null));
+          setTotalTime((hours * 60 + minutes) * 60 + seconds);
+          setTimeLeft((hours * 60 + minutes) * 60 + seconds);
+        }
       } catch (error) {
-        console.error("Login error:", error);
+        console.log(error);
       }
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    async function fetchQuestionsData() {
+      if (questionsGroup.length === 0) return; // Prevent fetching if questionsGroup is empty
+
+      try {
+        const response = await handleApiCall({
+          API: "load-data",
+          data: { collection: "Questions" },
+        });
+
+        if (response.flag) {
+          const questionsObj = response.data.data.map((question) => {
+            delete question["_id"];
+            return {
+              ...question,
+              type: question.Answer.length > 1 ? "checkbox" : "radio",
+            };
+          });
+
+          const filteredQuestions = questionsObj.filter(
+            (question) => question && questionsGroup.includes(question.Group)
+          );
+
+          setQuestions(filteredQuestions);
+        } else {
+          console.log("No questions data found.");
+        }
+      } catch (error) {
+        console.error("Error fetching questions data:", error);
+      }
+    }
+    fetchQuestionsData();
+  }, [questionsGroup]); // Run this effect only when questionsGroup is populated
 
   useEffect(() => {
     if (questions.length) {

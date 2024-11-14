@@ -82,7 +82,8 @@ app.post("/create-collection", async (req, res) => {
   }
 });
 app.post("/Upload-data", async (req, res) => {
-  const { data, group, collection } = req.body.data;
+  const { data, collection } = req.body.data;
+
   try {
     let docs = [];
     const keys = data[0].map((key) =>
@@ -96,12 +97,13 @@ app.post("/Upload-data", async (req, res) => {
     const records = data.slice(1);
     records.forEach((record) => {
       const values = record.map((value) => value.trim());
+
       let doc = {};
       values.forEach((value, index) => {
         doc[keys[index].trim()] = value.trim();
       });
       doc["userType"] = "Student";
-      doc["Group"] = group;
+      doc["Group"] = doc.Department && doc.Department.toUpperCase();
       docs.push(doc);
     });
 
@@ -120,7 +122,8 @@ app.post("/Upload-data", async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ flag: false, message: "Database connection error" });
+    console.log("Error occurred while inserting data:", error.message || error);
+    res.status(500).json({ flag: false, message: error });
   }
 });
 

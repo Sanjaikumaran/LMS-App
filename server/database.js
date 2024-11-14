@@ -16,9 +16,42 @@ async function connectToReplicaSet() {
     if (!collectionNames.includes("Tests")) {
       await db.createCollection("Tests");
     }
+    if (!collectionNames.includes("Questions")) {
+      await db.createCollection("Questions");
+    }
     if (!collectionNames.includes("Users")) {
       await db.createCollection("Users");
-    }
+      await db.Users.insertOne({
+        Name: "Admin",
+        Password: "admin",
+        "Roll No": "admin",
+
+        userType: "Admin",
+      });
+    } // else {
+    //  try {
+    //    const result = await db.Users.updateOne(
+    //      { Name: "Admin" },
+    //      { $set: { Password: "admin" } }
+    //    );
+
+    //    if (result.matchedCount === 0) {
+    //      await db.Users.insertOne({
+    //        Name: "Admin",
+    //        Password: "admin",
+    //        "Roll No": "admin",
+    //        userType: "Admin",
+    //      });
+    //    }
+    //  } catch (error) {
+    //    await db.Users.insertOne({
+    //      Name: "Admin",
+    //      Password: "admin",
+    //      "Roll No": "admin",
+    //      userType: "Admin",
+    //    });
+    //  }
+    //}
   } catch (err) {
     return handleError(err, "Couldn't connect to MongoDB");
   }
@@ -78,6 +111,8 @@ async function connectToReplicaSet() {
 
   async function insertData(collectionName, data) {
     try {
+      console.log(collectionName);
+
       const collection = db.collection(collectionName);
       const options = { ordered: true };
       let result;
@@ -129,7 +164,13 @@ async function connectToReplicaSet() {
   async function getDocument(collectionName, uniqueKey, value) {
     try {
       const collection = db.collection(collectionName);
-      const result = await collection.findOne({ [uniqueKey]: value });
+      if (uniqueKey === "_id") {
+        var result = await collection.findOne({
+          ["_id"]: new ObjectId(value),
+        });
+      } else {
+        var result = await collection.findOne({ [uniqueKey]: value });
+      }
 
       if (result._id) {
         return { flag: true, message: "Data found successfully", data: result };
