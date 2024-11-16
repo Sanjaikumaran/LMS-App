@@ -6,6 +6,7 @@ require("dotenv").config();
 const { exec } = require("child_process");
 const fs = require("node:fs");
 const path = require("path");
+const { error } = require("console");
 
 const app = express();
 app.use(cors());
@@ -206,6 +207,22 @@ app.post("/update-data", async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ flag: false, message: "Database connection error" });
+  }
+});
+app.post("/push-data", async (req, res) => {
+  const { collection, condition, updateData } = req.body.data; // Updated destructuring
+  const dbConnection = await connectToReplicaSet();
+
+  const result = await dbConnection.pushData(collection, condition, updateData);
+
+  if (result.flag) {
+    res.status(200).json({ flag: true, message: "Data pushed successfully" });
+  } else {
+    res.status(500).json({
+      flag: false,
+      message: result,
+      error: result,
+    });
   }
 });
 

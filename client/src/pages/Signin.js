@@ -60,7 +60,7 @@ const Signin = () => {
         navigate("/admin");
         setIsModalOpen(false);
       } else {
-        navigate("/instructions");
+        navigate("/home");
         setIsModalOpen(false);
       }
     }

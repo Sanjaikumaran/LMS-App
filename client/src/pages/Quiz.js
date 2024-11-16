@@ -6,8 +6,10 @@ import components from "./components";
 const { Modal, handleApiCall } = components;
 const radius = 50;
 const circumference = 2 * Math.PI * radius;
+const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+const UserID = userData._id;
 const Quiz = () => {
-  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
   //if (userLogged.flag) {
   //  if (userLogged.userType !== "Student") {
   //    window.location.href = "/";
@@ -25,10 +27,9 @@ const Quiz = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [highlightedOptions, setHighlightedOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const [testName, setTestName] = useState("");
-  const [startTime, setStartTime] = useState("");
+
   const [endTime, setEndTime] = useState("");
-  const [duration, setDuration] = useState("");
+
   const [questionsGroup, setQuestionsGroup] = useState([]);
   useEffect(() => {
     async function fetchData() {
@@ -43,10 +44,9 @@ const Quiz = () => {
 
         if (response.flag) {
           const testData = response.data.data;
-          setTestName(testData["Test Name"]);
-          setStartTime(testData["Start Time"]);
+
           setEndTime(testData["End Time"]);
-          setDuration(testData.Duration);
+
           setQuestionsGroup(testData["Questions Group"]);
           const [hours, minutes, seconds] = testData.Duration.split(":").map(
             Number
@@ -60,7 +60,7 @@ const Quiz = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     async function fetchQuestionsData() {
@@ -85,7 +85,19 @@ const Quiz = () => {
             (question) => question && questionsGroup.includes(question.Group)
           );
 
-          setQuestions(filteredQuestions);
+          const shuffleArray = (array) => {
+            return array
+              .map((item) => ({ item, sort: Math.random() }))
+              .sort((a, b) => a.sort - b.sort)
+              .map(({ item }) => item);
+          };
+
+          const shuffledQuestions = shuffleArray(filteredQuestions);
+          setQuestions(shuffledQuestions);
+
+          setSelectedOptions(
+            new Array(filteredQuestions.length).fill("not-answered")
+          );
         } else {
           console.log("No questions data found.");
         }
@@ -113,8 +125,12 @@ const Quiz = () => {
   }, [questions, totalTime]);
 
   useEffect(() => {
-    if (timeLeft === 0 && !isAutoSubmit) {
+    let endDateTime = new Date(endTime);
+    let currentTime = new Date();
+    if ((timeLeft === 0 && !isAutoSubmit) || currentTime > endDateTime) {
       setIsModalOpen(true);
+      setEndTime(currentTime.getTime() + 60000); // Set end time to 1 minute from now
+
       setModalOptions({
         type: "Alert",
         message: "Time Out! \nYour test will be submitted in 10 secs",
@@ -123,8 +139,8 @@ const Quiz = () => {
           setTimeLeft(10);
           setTotalTime(10);
           autoSubmit();
-          setIsAutoSubmit(true);
           setIsModalOpen(false);
+          setIsAutoSubmit(true);
         },
       });
     }
@@ -139,9 +155,10 @@ const Quiz = () => {
     return () => clearTimeout(timer);
   };
   const handleTestSubmit = async () => {
+    if (selectedOptions.length < questions.length) {
+      selectedOptions.push("not-answered");
+    }
     if (selectedOptions) {
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const _id = userData._id;
       let correctAnswers = [],
         score = 0,
         answered = 0,
@@ -193,11 +210,17 @@ const Quiz = () => {
       );
 
       const response = await handleApiCall({
-        API: "update-data",
+        API: "push-data",
         data: {
-          condition: { _id: _id },
-          collection: "Users",
-          data: { Answer: JSON.stringify(selectedOptions), Score: score },
+          condition: { _id: id },
+          collection: "Tests",
+          updateData: {
+            "Test Results": {
+              UserID: UserID,
+              Answer: JSON.stringify(selectedOptions),
+              Score: score,
+            },
+          },
         },
       });
 

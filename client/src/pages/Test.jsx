@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import components from "./components";
 import { useLocation } from "react-router-dom";
-
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 const { Modal, fileUpload, handleApiCall, DataTableSection } = components;
 
 const Test = () => {
@@ -12,9 +13,11 @@ const Test = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState("");
+  const [attempts, setAttempts] = useState("");
+
   const [selectedUsersGroups, setSelectedUsersGroups] = useState([]);
   const [selectedQuestionsGroups, setSelectedQuestionsGroups] = useState([]);
-
+  const [testResult, setTestResult] = useState([]);
   const [isUsersDropdownVisible, setUsersIsDropdownVisible] = useState(false);
   const [isQuestionsDropdownVisible, setIsQuestionsDropdownVisible] =
     useState(false);
@@ -49,17 +52,16 @@ const Test = () => {
         });
 
         if (response.flag) {
-          setTestId(response.data.data._id);
-          setSelectedUsersGroups(
-            response.data.data["Participants Group"] || []
-          );
-          setSelectedQuestionsGroups(
-            response.data.data["Questions Group"] || []
-          );
-          setTestName(response.data.data["Test Name"]);
-          setStartTime(response.data.data["Start Time"]);
-          setEndTime(response.data.data["End Time"]);
-          setDuration(response.data.data.Duration);
+          const responseData = response.data.data;
+          setTestId(responseData._id);
+          setSelectedUsersGroups(responseData["Participants Group"] || []);
+          setSelectedQuestionsGroups(responseData["Questions Group"] || []);
+          setTestName(responseData["Test Name"]);
+          setStartTime(responseData["Start Time"]);
+          setEndTime(responseData["End Time"]);
+          setDuration(responseData.Duration);
+          setAttempts(responseData["Attempts Limit"]);
+          setTestResult(responseData["Test Results"]);
         }
       } catch (error) {
         console.log(error);
@@ -67,7 +69,7 @@ const Test = () => {
     };
 
     fetchData();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const fetchUsersData = async () => {
@@ -90,6 +92,55 @@ const Test = () => {
           setUsersTableData(data);
 
           setAllUsersGroups(uniqueGroups);
+          const matchedItems = testResult.map((testItem) => {
+            return data.find((value) => value._id === testItem.UserID);
+          });
+
+          const uniqueItems = new Set(
+            matchedItems.map((item) => JSON.stringify(item))
+          );
+
+          const uniqueItemsArray = Array.from(uniqueItems).map((item) =>
+            JSON.parse(item)
+          );
+          const updatedTestResult = testResult.map((testItem, index) => {
+            const matchedItem = uniqueItemsArray.find(
+              (item) => item._id === testItem.UserID
+            );
+            delete testItem["UserID"];
+            if (matchedItem) {
+              testItem.Answer = JSON.parse(testItem.Answer);
+
+              const totalQuestions = testItem["Answer"].length;
+              try {
+                var answeredQuestions = testItem["Answer"].filter(
+                  (answer) => answer !== "not-answered" && answer !== "skipped"
+                ).length;
+                var skipped = testItem["Answer"].filter((answer) =>
+                  answer.includes("skipped")
+                ).length;
+                var notAnswered = testItem["Answer"].filter(
+                  (answer) => answer === "not-answered"
+                ).length;
+              } catch (error) {}
+
+              return {
+                SNo: index + 1,
+                Name: matchedItem.Name,
+                "Roll No": matchedItem["Roll No"],
+                Department: matchedItem.Department,
+                "Total Questions": totalQuestions,
+                "Answered Questions": answeredQuestions,
+                Skipped: skipped,
+                "Not Answered": notAnswered,
+                ...testItem, // Spread the remaining testItem properties
+              };
+            }
+
+            return testItem;
+          });
+
+          setTestResult(updatedTestResult);
         }
       } catch (error) {
         console.log(error);
@@ -99,7 +150,7 @@ const Test = () => {
     if (selectedUsersGroups.length > 0) {
       fetchUsersData();
     }
-  }, [selectedUsersGroups]);
+  }, [selectedUsersGroups, testResult]);
   useEffect(() => {
     const fetchUsersData = async () => {
       try {
@@ -183,13 +234,11 @@ const Test = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Check for required fields
     if (!testName) {
       showModal("Error", "Please fill in all required fields.", ["Ok"]);
       return;
     }
 
-    // Validate start and end time
     const start = new Date(startTime);
     const end = new Date(endTime);
 
@@ -209,14 +258,6 @@ const Test = () => {
 
     const files = document.querySelectorAll("input[type=file]");
 
-    //fileUpload(
-    //  () => {},
-    //  files[0],
-    //  "Upload-data",
-    //  "Users",
-    //  showModal,
-    //  setIsModalOpen
-    //);
     fileUpload(
       () => {},
       files[0],
@@ -233,6 +274,7 @@ const Test = () => {
       if (startTime) configurations["Start Time"] = startTime;
       if (endTime) configurations["End Time"] = endTime;
       if (duration) configurations["Duration"] = duration;
+      if (attempts) configurations["Attempts Limit"] = attempts;
 
       if (
         Array.isArray(selectedUsersGroups) &&
@@ -306,9 +348,10 @@ const Test = () => {
                 padding: "10px",
               })),
           ]
-        : [
+        : tableName === "Questions"
+        ? [
             {
-              name: "S.No",
+              name: "SNo",
               selector: (row, index) => index + 1,
               sortable: true,
               width: "70px",
@@ -322,7 +365,25 @@ const Test = () => {
                 wrap: true,
                 padding: "10px",
               })),
+          ]
+        : [
+            {
+              name: "SNo",
+              selector: (row, index) => index + 1,
+              sortable: true,
+              width: "70px",
+            },
+            ...Object.keys(testResult[0])
+              .map((column) => ({
+                name: column,
+                selector: (row) => row[column],
+                sortable: true,
+                wrap: true,
+                padding: "10px",
+              }))
+              .slice(1),
           ];
+
     const data =
       tableName === "Users"
         ? usersTableData.filter(
@@ -330,9 +391,12 @@ const Test = () => {
               user.userType !== "Admin" &&
               selectedUsersGroups.includes(user.Group)
           )
-        : questionsTableData.filter((question) =>
+        : tableName === "Questions"
+        ? questionsTableData.filter((question) =>
             selectedQuestionsGroups.includes(question.Group)
-          );
+          )
+        : testResult;
+
     setTableColumns(columns);
     setTableData(data);
   }, [
@@ -343,7 +407,45 @@ const Test = () => {
     usersTableColumns,
     questionsTableColumns,
     questionsTableData,
+    testResult,
   ]);
+  const generateReport = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+
+    // Filter out the 'Answer' column from table headers
+    const tableHead = [
+      [
+        ...tableColumns
+          .filter((column) => column.name !== "Answer")
+          .map((column) => column.name),
+      ],
+    ];
+
+    const tableBody = tableData.map((row, index) => {
+      const filteredRow = { ...row };
+      delete filteredRow.Answer;
+
+      return [
+        ...tableColumns
+          .filter((column) => column.name !== "Answer") // Exclude 'Answer' column
+          .map((column) => filteredRow[column.name]),
+      ];
+    });
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text(testName + " Report", 14, 22);
+
+    // Add table
+    doc.autoTable({
+      head: tableHead, // Table headers (with S.No included)
+      body: tableBody, // Table data
+      startY: 30, // Start position for the table
+    });
+
+    // Save the PDF
+    doc.save(testName + " report.pdf");
+  };
 
   return (
     <>
@@ -405,7 +507,14 @@ const Test = () => {
               onChange={(e) => setDuration(e.target.value)}
             />
           </div>
-
+          <div className="form-group">
+            <label>Attempts Limit</label>
+            <input
+              type="number"
+              value={attempts}
+              onChange={(e) => setAttempts(e.target.value)}
+            />
+          </div>
           <div className="form-group">
             <label>Participants Group</label>
             <div className="group-selector">
@@ -534,22 +643,23 @@ const Test = () => {
               <label>Select Data to Show</label>
               <div className="group-selector">
                 <input
+                  style={{ marginRight: "10px" }}
                   type="text"
                   className="group-selector-input"
                   value={tableName}
                   onFocus={() => setTableIsDropdownVisible(true)}
                   readOnly
                 />
-
+                {tableName === "Test Results" && (
+                  <button onClick={generateReport}>Generate Report</button>
+                )}
                 {isTableDropdownVisible && (
                   <div className="group-dropdown">
-                    {["Questions", "Users"].map((group) => (
+                    {["Questions", "Users", "Test Results"].map((group) => (
                       <div
                         key={group}
                         className="group-item"
                         onClick={(e) => {
-                          console.log(e.target.innerText);
-
                           setTableName(e.target.innerText);
                           setTableIsDropdownVisible(false);
                         }}

@@ -74,7 +74,6 @@ async function connectToReplicaSet() {
       const result = await collection.createIndexes([
         { key: { Title: 1 }, unique: true },
       ]);
-      console.log(result[0]);
 
       if (result[0]) {
         return {
@@ -111,8 +110,6 @@ async function connectToReplicaSet() {
 
   async function insertData(collectionName, data) {
     try {
-      console.log(collectionName);
-
       const collection = db.collection(collectionName);
       const options = { ordered: true };
       let result;
@@ -221,6 +218,30 @@ async function connectToReplicaSet() {
       return { flag: false, message: e.message };
     }
   }
+  async function pushData(collectionName, condition, updateData) {
+    try {
+      const collection = db.collection(collectionName);
+
+      const result = await collection.updateOne(
+        { _id: new ObjectId(condition._id) },
+        {
+          $push: updateData,
+        }
+      );
+
+      if (result.acknowledged && result.modifiedCount > 0) {
+        return {
+          flag: true,
+          message: "Data pushed successfully",
+          data: result,
+        };
+      } else {
+        return { flag: false, message: "Couldn't push data", data: result };
+      }
+    } catch (error) {
+      return { flag: false, message: error.message };
+    }
+  }
 
   return {
     createCollection,
@@ -231,6 +252,7 @@ async function connectToReplicaSet() {
     deleteDocument,
 
     updateDocument,
+    pushData,
   };
 }
 

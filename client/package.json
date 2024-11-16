@@ -11,6 +11,8 @@
     "cors": "^2.8.5",
     "csv": "^6.3.10",
     "dotenv": "^16.4.5",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "mongodb": "^6.9.0",
     "papaparse": "^5.4.1",
     "prismjs": "^1.29.0",

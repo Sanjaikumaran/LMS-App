@@ -1,3 +1,6 @@
+* {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
 .quiz-body {
   user-select: none;
   display: flex;

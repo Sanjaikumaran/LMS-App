@@ -10,6 +10,7 @@ const CreateTest = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState("");
+  const [attempts, setAttempts] = useState("");
   const [selectedUsersGroups, setSelectedUsersGroups] = useState([]);
   const [selectedQuestionsGroups, setSelectedQuestionsGroups] = useState([]);
   const [isUsersDropdownVisible, setUsersIsDropdownVisible] = useState(false);
@@ -148,6 +149,7 @@ const CreateTest = () => {
       if (startTime) configurations["Start Time"] = startTime;
       if (endTime) configurations["End Time"] = endTime;
       if (duration) configurations["Duration"] = duration;
+      if (attempts) configurations["Attempts Limit"] = attempts;
 
       if (
         Array.isArray(selectedUsersGroups) &&
@@ -162,6 +164,7 @@ const CreateTest = () => {
       ) {
         configurations["Questions Group"] = selectedQuestionsGroups;
       }
+      configurations["Test Results"] = [];
 
       if (!testName) {
         throw new Error("Test Name is required.");
@@ -242,7 +245,14 @@ const CreateTest = () => {
             onChange={(e) => setDuration(e.target.value)}
           />
         </div>
-
+        <div className="form-group">
+          <label>Attempts Limit</label>
+          <input
+            type="number"
+            value={attempts}
+            onChange={(e) => setAttempts(e.target.value)}
+          />
+        </div>
         <div className="form-group">
           <label>Participants Group</label>
           <div className="group-selector">
