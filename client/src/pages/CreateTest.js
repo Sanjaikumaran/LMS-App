@@ -176,6 +176,7 @@ const CreateTest = () => {
       });
       if (response.flag) {
         showModal("Success", "Test Created Successfully", ["Close"]);
+        window.location.href = "/admin";
       } else {
         showModal("Error", "Test not Created", ["Close"]);
       }

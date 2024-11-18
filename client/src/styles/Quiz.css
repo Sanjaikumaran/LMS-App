@@ -37,7 +37,12 @@
 
   padding: 0;
 }
-
+.fill-answer-input {
+  outline: none;
+  border: none;
+  border-bottom: 2px solid;
+  font-size: 1em;
+}
 .options .option {
   display: flex;
 

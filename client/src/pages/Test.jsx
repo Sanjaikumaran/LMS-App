@@ -90,23 +90,24 @@ const Test = () => {
           );
           setUsersTableColumns(Object.keys(studentData || data[0]));
           setUsersTableData(data);
-
           setAllUsersGroups(uniqueGroups);
           const matchedItems = testResult.map((testItem) => {
             return data.find((value) => value._id === testItem.UserID);
           });
 
           const uniqueItems = new Set(
-            matchedItems.map((item) => JSON.stringify(item))
+            matchedItems.map((item) => item && JSON.stringify(item))
           );
 
-          const uniqueItemsArray = Array.from(uniqueItems).map((item) =>
-            JSON.parse(item)
+          const uniqueItemsArray = Array.from(uniqueItems).map(
+            (item) => item && JSON.parse(item)
           );
+
           const updatedTestResult = testResult.map((testItem, index) => {
             const matchedItem = uniqueItemsArray.find(
-              (item) => item._id === testItem.UserID
+              (item) => item && item._id === testItem.UserID
             );
+
             delete testItem["UserID"];
             if (matchedItem) {
               testItem.Answer = JSON.parse(testItem.Answer);
@@ -150,7 +151,7 @@ const Test = () => {
     if (selectedUsersGroups.length > 0) {
       fetchUsersData();
     }
-  }, [selectedUsersGroups, testResult]);
+  }, [selectedUsersGroups]);
   useEffect(() => {
     const fetchUsersData = async () => {
       try {
@@ -366,7 +367,8 @@ const Test = () => {
                 padding: "10px",
               })),
           ]
-        : [
+        : testResult.length > 0
+        ? [
             {
               name: "SNo",
               selector: (row, index) => index + 1,
@@ -382,7 +384,8 @@ const Test = () => {
                 padding: "10px",
               }))
               .slice(1),
-          ];
+          ]
+        : [];
 
     const data =
       tableName === "Users"
@@ -395,7 +398,9 @@ const Test = () => {
         ? questionsTableData.filter((question) =>
             selectedQuestionsGroups.includes(question.Group)
           )
-        : testResult;
+        : testResult
+        ? testResult
+        : [];
 
     setTableColumns(columns);
     setTableData(data);
@@ -650,7 +655,7 @@ const Test = () => {
                   onFocus={() => setTableIsDropdownVisible(true)}
                   readOnly
                 />
-                {tableName === "Test Results" && (
+                {tableName === "Test Results" && testResult.length > 0 && (
                   <button onClick={generateReport}>Generate Report</button>
                 )}
                 {isTableDropdownVisible && (

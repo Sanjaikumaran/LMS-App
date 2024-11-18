@@ -28,13 +28,6 @@ const App = () => {
       setUserData(userDetails);
     }
   }, [showProfile]);
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const hostname = url.hostname;
-
-    //const localIPs = process.env.REACT_APP_LOCAL_IP1;
-    localStorage.setItem("localIps", hostname);
-  }, []);
 
   const instructions = [
     "Instruction 1: Please read carefully.",

@@ -9,12 +9,6 @@ const circumference = 2 * Math.PI * radius;
 const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 const UserID = userData._id;
 const Quiz = () => {
-  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  //if (userLogged.flag) {
-  //  if (userLogged.userType !== "Student") {
-  //    window.location.href = "/";
-  //  }
-  //}
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
@@ -64,7 +58,7 @@ const Quiz = () => {
 
   useEffect(() => {
     async function fetchQuestionsData() {
-      if (questionsGroup.length === 0) return; // Prevent fetching if questionsGroup is empty
+      if (questionsGroup.length === 0) return;
 
       try {
         const response = await handleApiCall({
@@ -106,7 +100,7 @@ const Quiz = () => {
       }
     }
     fetchQuestionsData();
-  }, [questionsGroup]); // Run this effect only when questionsGroup is populated
+  }, [questionsGroup]);
 
   useEffect(() => {
     if (questions.length) {
@@ -129,7 +123,7 @@ const Quiz = () => {
     let currentTime = new Date();
     if ((timeLeft === 0 && !isAutoSubmit) || currentTime > endDateTime) {
       setIsModalOpen(true);
-      setEndTime(currentTime.getTime() + 60000); // Set end time to 1 minute from now
+      setEndTime(currentTime.getTime() + 60000);
 
       setModalOptions({
         type: "Alert",
@@ -144,7 +138,6 @@ const Quiz = () => {
         },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isAutoSubmit]);
 
   const autoSubmit = () => {
@@ -158,6 +151,7 @@ const Quiz = () => {
     if (selectedOptions.length < questions.length) {
       selectedOptions.push("not-answered");
     }
+
     if (selectedOptions) {
       let correctAnswers = [],
         score = 0,
@@ -176,7 +170,10 @@ const Quiz = () => {
       });
 
       correctAnswers.forEach((correctAnswer, index) => {
-        const userAnswer = selectedOptions[index];
+        let userAnswer = selectedOptions[index];
+        if (Array.isArray(userAnswer)) {
+          userAnswer = userAnswer.map((ans) => ans.trim());
+        }
 
         if (userAnswer === "skipped") {
           skipped++;
@@ -310,6 +307,23 @@ const Quiz = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
+  const handleInputChange = (e, index) => {
+    const updatedAnswers = [...highlightedOptions]; // Copy the current state
+
+    const questionIndex = questions.indexOf(currentQuestion); // Get the current question index
+
+    // Ensure the question has an array for its answers
+    if (!updatedAnswers[questionIndex]) {
+      updatedAnswers[questionIndex] = []; // Initialize as empty array if it doesn't exist
+    }
+
+    // Set the specific part of the answer at the current index
+    updatedAnswers[questionIndex][index] = e.target.value;
+    console.log(updatedAnswers);
+
+    setHighlightedOptions(updatedAnswers); // Update the state with the modified answers
+  };
+
   const handleQuestionNumberClick = (index) => {
     const updatedSelections = [...highlightedOptions];
 
@@ -330,53 +344,87 @@ const Quiz = () => {
         <div className="quiz-app">
           <div className="quiz-content">
             <div className="question-section">
-              <h1>{currentQuestion?.Question}</h1>
+              <h1>
+                {currentQuestion?.Question.includes("____")
+                  ? currentQuestion?.Question.split("____").map(
+                      (part, index) => {
+                        return (
+                          <React.Fragment key={index}>
+                            {part}
+                            {index <
+                              currentQuestion?.Question.split("____").length -
+                                1 && (
+                              <input
+                                type="text"
+                                className="fill-answer-input"
+                                name="answer[]"
+                                required
+                                value={
+                                  highlightedOptions[
+                                    questions.indexOf(currentQuestion)
+                                  ]?.[index] || ""
+                                }
+                                onChange={(e) => handleInputChange(e, index)} // Update the answer at the specified index
+                              />
+                            )}
+                          </React.Fragment>
+                        );
+                      }
+                    )
+                  : currentQuestion?.Question}
+              </h1>
+
               <ul className="options">
-                {currentQuestion?.Option.map((option, index) => (
-                  <li
-                    key={index}
-                    onClick={() =>
-                      handleOptionSelect(option, currentQuestion.type)
-                    }
-                    className={`option ${
-                      currentQuestion.type === "radio" &&
-                      selectedOption === option
-                        ? "selected"
-                        : ""
-                    }${
-                      currentQuestion.type === "checkbox" &&
-                      selectedOption.includes(option)
-                        ? "selected"
-                        : ""
-                    }`}
-                  >
-                    {currentQuestion?.type === "radio" ? (
-                      <label>
-                        <input
-                          type="radio"
-                          name={`question-${currentQuestionIndex}`}
-                          value={option}
-                          checked={selectedOption === option}
-                          onChange={() => handleOptionSelect(option, "radio")}
-                        />
-                        {option}
-                      </label>
-                    ) : (
-                      <label>
-                        <input
-                          type="checkbox"
-                          name={`question-${currentQuestionIndex}`}
-                          value={option}
-                          checked={selectedOption.includes(option)}
-                          onChange={() =>
-                            handleOptionSelect(option, "checkbox")
-                          }
-                        />
-                        {option}
-                      </label>
-                    )}
-                  </li>
-                ))}
+                {currentQuestion?.Option.map(
+                  (option, index) =>
+                    option !== "None" && (
+                      <li
+                        key={index}
+                        onClick={() =>
+                          handleOptionSelect(option, currentQuestion.type)
+                        }
+                        className={`option ${
+                          currentQuestion.type === "radio" &&
+                          selectedOption === option
+                            ? "selected"
+                            : ""
+                        }${
+                          currentQuestion.type === "checkbox" &&
+                          selectedOption.includes(option)
+                            ? "selected"
+                            : ""
+                        }`}
+                      >
+                        {currentQuestion?.type === "radio" ? (
+                          <label>
+                            <input
+                              type="radio"
+                              name={`question-${currentQuestionIndex}`}
+                              value={option}
+                              checked={selectedOption === option}
+                              onChange={() =>
+                                handleOptionSelect(option, "radio")
+                              }
+                            />
+                            {option}
+                          </label>
+                        ) : (
+                          <label>
+                            <input
+                              type="checkbox"
+                              name={`question-${currentQuestionIndex}`}
+                              value={option}
+                              checked={selectedOption.includes(option)}
+                              onChange={() =>
+                                handleOptionSelect(option, "checkbox")
+                              }
+                            />
+                            {option}
+                          </label>
+                        )}
+                      </li>
+                    )
+                )}
               </ul>
             </div>
           </div>

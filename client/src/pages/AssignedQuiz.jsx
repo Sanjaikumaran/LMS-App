@@ -89,7 +89,6 @@ const AssignedQuiz = () => {
       {assignedTests &&
         assignedTests.map((assignedTest, index) => {
           const countdown = timeLeft[assignedTest._id];
-          console.log(countdown);
 
           return (
             <div key={index} className="card-container">

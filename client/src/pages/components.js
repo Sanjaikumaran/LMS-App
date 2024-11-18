@@ -153,11 +153,12 @@ const MessageBox = (props) => {
   );
 };
 const handleApiCall = async (props) => {
-  const localIps = localStorage.getItem("localIps").split(",");
+  const url = new URL(window.location.href);
+  const hostname = url.hostname;
 
   try {
     return await axios
-      .post(`http://${localIps[0]}:5000/${props.API}`, {
+      .post(`http://${hostname}:5000/${props.API}`, {
         data: props.data,
       })
       .then((result) => {
@@ -296,10 +297,51 @@ const fileUpload = async (
 
     switch (fileType) {
       case "csv":
-        insertData = Papa.parse(reader.result).data;
+        if (collectionName === "Users") {
+          insertData = Papa.parse(reader.result).data;
+        } else {
+          insertData = Papa.parse(reader.result).data;
+          insertData = insertData
+            .map((question) => {
+              if (
+                question[0].toLowerCase().trim() !== "question" &&
+                question[0].toLowerCase().trim() !== "questions"
+              ) {
+                if (question[0].includes("____")) {
+                  return {
+                    Question: question[0].trim(),
+                    Option: question[1]
+                      ? question[1]
+                          .split(/::|,,/)
+                          .map((option) => option.trim())
+                      : ["None"],
+                    Answer: question[2]
+                      .split(/::|,,/)
+                      .map((option) => option.trim()),
+                  };
+                }
+                const options = question[1]
+                  ? question[1].split(/::|,,/).map((option) => option.trim())
+                  : [];
+                const answers = question[2]
+                  ? question[2].split(/::|,,/).map((answer) => answer.trim())
+                  : [];
+
+                return {
+                  Question: question[0].trim(),
+                  Option: options,
+                  Answer: answers,
+                };
+              }
+              return null;
+            })
+            .filter((item) => item !== null);
+        }
         break;
       case "gift":
         insertData = GIFTParser(reader.result);
+        console.log(insertData);
+
         break;
       case "xlsx":
         const workbook = XLSX.read(reader.result, { type: "array" });
