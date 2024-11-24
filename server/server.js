@@ -20,15 +20,15 @@ app.get("/*", (req, res) => {
 app.listen(5001);
 
 // Uncomment to automatically open the app in the default browser
-const platform = os.platform();
-const url = `http://localhost:5001/`;
-if (platform === "win32") {
-  exec(`powershell -NoProfile -Command "Start-Process '${url}'"`);
-} else if (platform === "darwin") {
-  exec(`open ${url}`);
-} else {
-  exec(`xdg-open ${url}`);
-}
+//const platform = os.platform();
+//const url = `http://localhost:5001/`;
+//if (platform === "win32") {
+//  exec(`powershell -NoProfile -Command "Start-Process '${url}'"`);
+//} else if (platform === "darwin") {
+//  exec(`open ${url}`);
+//} else {
+//  exec(`xdg-open ${url}`);
+//}
 
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;

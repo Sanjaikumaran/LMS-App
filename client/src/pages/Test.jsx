@@ -113,14 +113,15 @@ const Test = () => {
               testItem.Answer = JSON.parse(testItem.Answer);
 
               const totalQuestions = testItem["Answer"].length;
+              const answers = Object.values(testItem.Answer);
               try {
-                var answeredQuestions = testItem["Answer"].filter(
+                var answeredQuestions = answers.filter(
                   (answer) => answer !== "not-answered" && answer !== "skipped"
                 ).length;
-                var skipped = testItem["Answer"].filter((answer) =>
+                var skipped = answers.filter((answer) =>
                   answer.includes("skipped")
                 ).length;
-                var notAnswered = testItem["Answer"].filter(
+                var notAnswered = answers.filter(
                   (answer) => answer === "not-answered"
                 ).length;
               } catch (error) {}
@@ -130,11 +131,12 @@ const Test = () => {
                 Name: matchedItem.Name,
                 "Roll No": matchedItem["Roll No"],
                 Department: matchedItem.Department,
-                "Total Questions": totalQuestions,
-                "Answered Questions": answeredQuestions,
-                Skipped: skipped,
-                "Not Answered": notAnswered,
-                ...testItem, // Spread the remaining testItem properties
+                "Total Questions": totalQuestions || 0,
+                "Answered Questions": answeredQuestions || 0,
+                Skipped: skipped || 0,
+                "Not Answered": notAnswered || 0,
+                ...testItem,
+                Answers: showAnswers(testItem.Answer),
               };
             }
 
@@ -248,15 +250,6 @@ const Test = () => {
       return;
     }
 
-    console.log(
-      testName,
-      startTime,
-      endTime,
-      duration,
-      selectedUsersGroups,
-      selectedQuestionsGroups
-    );
-
     const files = document.querySelectorAll("input[type=file]");
 
     fileUpload(
@@ -305,17 +298,33 @@ const Test = () => {
       });
 
       if (response.flag) {
-        console.log("Data inserted successfully.");
+        showModal("Success", "Test Updated Successfully", ["Ok"]);
       } else {
-        console.log("Failed to insert data.");
+        showModal("Error", response.error, ["Close"]);
       }
     } catch (error) {
-      console.error("Error occurred:", error.message);
+      showModal("Uncaught Error", error.message, ["Close"]);
     }
-
-    showModal("Success", "Test Created Successfully", ["Close"]);
   };
-
+  const showAnswers = (answers) => {
+    return (
+      <button
+        onClick={() => {
+          showModal(
+            "Info", // Modal title
+            " answers", // Modal content
+            ["Ok"], // Modal buttons
+            () => {
+              console.log(answers);
+              setIsModalOpen(false); // Ensure this state is defined and functional
+            }
+          );
+        }}
+      >
+        View
+      </button>
+    );
+  };
   const displayUsersGroups =
     allUsersGroups.length === 0 ? ["No Groups Available"] : allUsersGroups;
   const displayQuestionsGroups =
@@ -376,6 +385,8 @@ const Test = () => {
               width: "70px",
             },
             ...Object.keys(testResult[0])
+              .filter((column) => column !== "Answer")
+
               .map((column) => ({
                 name: column,
                 selector: (row) => row[column],
@@ -386,6 +397,7 @@ const Test = () => {
               .slice(1),
           ]
         : [];
+    console.log(columns);
 
     const data =
       tableName === "Users"
@@ -417,7 +429,6 @@ const Test = () => {
   const generateReport = () => {
     const doc = new jsPDF({ orientation: "landscape" });
 
-    // Filter out the 'Answer' column from table headers
     const tableHead = [
       [
         ...tableColumns
@@ -432,23 +443,20 @@ const Test = () => {
 
       return [
         ...tableColumns
-          .filter((column) => column.name !== "Answer") // Exclude 'Answer' column
+          .filter((column) => column.name !== "Answer")
           .map((column) => filteredRow[column.name]),
       ];
     });
 
-    // Add title
     doc.setFontSize(18);
     doc.text(testName + " Report", 14, 22);
 
-    // Add table
     doc.autoTable({
-      head: tableHead, // Table headers (with S.No included)
-      body: tableBody, // Table data
-      startY: 30, // Start position for the table
+      head: tableHead,
+      body: tableBody,
+      startY: 30,
     });
 
-    // Save the PDF
     doc.save(testName + " report.pdf");
   };
 
@@ -464,7 +472,19 @@ const Test = () => {
           response={modalOptions?.responseFunc || (() => setIsModalOpen(false))}
         />
       )}
-
+      {
+        <div
+          style={{
+            width: "100%",
+            height: "auto",
+            margin: "auto",
+            padding: "auto",
+            backgroundColor: "red",
+            position: "absolute",
+            zIndex: "10",
+          }}
+        ></div>
+      }
       <div style={{ display: "flex" }}>
         <form
           className="test-form"

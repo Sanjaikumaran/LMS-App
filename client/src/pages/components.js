@@ -600,7 +600,7 @@ const DataTableManagement = (props) => {
 
   const columns = [
     {
-      name: "S.No",
+      name: "SNo",
       selector: (row, index) => index + 1,
       sortable: true,
       width: "70px",
