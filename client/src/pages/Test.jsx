@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "../styles/Test.css";
 import components from "./components";
 import { useLocation } from "react-router-dom";
 import { jsPDF } from "jspdf";
@@ -36,6 +37,10 @@ const Test = () => {
   const [tableData, setTableData] = useState([""]);
   const [tableColumns, setTableColumns] = useState([""]);
 
+  const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(false);
+  const [displayAnswer, setDisplayAnswer] = useState("");
+  // eslint-disable-next-line no-unused-vars
+  const [searchText, setSearchText] = useState("");
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
@@ -136,7 +141,8 @@ const Test = () => {
                 Skipped: skipped || 0,
                 "Not Answered": notAnswered || 0,
                 ...testItem,
-                Answers: showAnswers(testItem.Answer),
+                answersObj: answers,
+                Answers: showAnswers(index),
               };
             }
 
@@ -152,7 +158,7 @@ const Test = () => {
 
     if (selectedUsersGroups.length > 0) {
       fetchUsersData();
-    }
+    } // eslint-disable-next-line
   }, [selectedUsersGroups]);
   useEffect(() => {
     const fetchUsersData = async () => {
@@ -306,19 +312,12 @@ const Test = () => {
       showModal("Uncaught Error", error.message, ["Close"]);
     }
   };
-  const showAnswers = (answers) => {
+  const showAnswers = (index) => {
     return (
       <button
         onClick={() => {
-          showModal(
-            "Info", // Modal title
-            " answers", // Modal content
-            ["Ok"], // Modal buttons
-            () => {
-              console.log(answers);
-              setIsModalOpen(false); // Ensure this state is defined and functional
-            }
-          );
+          setIsAnswersModalOpen(true);
+          setDisplayAnswer([index]);
         }}
       >
         View
@@ -333,6 +332,8 @@ const Test = () => {
       : allQuestionsGroups;
 
   useEffect(() => {
+    const testResultData = [...testResult];
+
     const columns =
       tableName === "Users"
         ? [
@@ -376,7 +377,7 @@ const Test = () => {
                 padding: "10px",
               })),
           ]
-        : testResult.length > 0
+        : testResultData.length > 0
         ? [
             {
               name: "SNo",
@@ -384,20 +385,19 @@ const Test = () => {
               sortable: true,
               width: "70px",
             },
-            ...Object.keys(testResult[0])
-              .filter((column) => column !== "Answer")
-
+            ...Object.keys(testResultData[0])
+              .filter(
+                (column) => column !== "answersObj" && column !== "Answer"
+              )
               .map((column) => ({
                 name: column,
                 selector: (row) => row[column],
                 sortable: true,
                 wrap: true,
-                padding: "10px",
               }))
               .slice(1),
           ]
         : [];
-    console.log(columns);
 
     const data =
       tableName === "Users"
@@ -459,6 +459,103 @@ const Test = () => {
 
     doc.save(testName + " report.pdf");
   };
+  const handleNavigate = (navigateTo) => {
+    if (navigateTo === "Previous") {
+      setDisplayAnswer([displayAnswer[0] - 1]);
+    } else {
+      setDisplayAnswer([displayAnswer[0] + 1]);
+    }
+  };
+  // eslint-disable-next-line no-unused-vars
+  const handleSearch = () => {
+    console.log(searchText);
+  };
+  const AnswerCard = ({ question, index, questions, tr }) => {
+    const questionText = Object.keys(question)[0];
+    const userAnswer = Object.values(question)[0];
+
+    const matchingOptions = questions
+      .filter((q) => selectedQuestionsGroups.includes(q.Group))
+      .find((option) => option.Question === questionText);
+
+    const isParagraph = matchingOptions?.Option[0] === "Paragraph";
+
+    return (
+      <div className="answer-card">
+        <h3 className="question-heading">
+          Q {index + 1}: {questionText}
+        </h3>
+        <div className="answer-details">
+          {matchingOptions && (
+            <>
+              {matchingOptions.Option && (
+                <AnswerSection title="Options" items={matchingOptions.Option} />
+              )}
+              {matchingOptions.Answer && (
+                <AnswerSection
+                  title="Correct Answers"
+                  items={matchingOptions.Answer}
+                />
+              )}
+            </>
+          )}
+
+          {renderUserAnswer(userAnswer)}
+
+          {isParagraph && (
+            <input
+              type="number"
+              className="mark-input"
+              placeholder="Enter marks"
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const AnswerSection = ({ title, items }) => (
+    <div key={title}>
+      <h5>{title}</h5>
+      <ul>
+        {items.map((item, idx) => (
+          <li key={idx}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const renderUserAnswer = (userAnswer, renderInput = false) => {
+    if (!userAnswer) return null;
+
+    return (
+      <div>
+        <h5>User's Answer</h5>
+        {typeof userAnswer === "string" ? (
+          <ul>
+            <li>{userAnswer}</li>
+          </ul>
+        ) : Array.isArray(userAnswer) ? (
+          <ul>
+            {userAnswer.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+
+        {renderInput && (
+          <>
+            <input
+              type="number"
+              className="mark-input"
+              placeholder="Enter marks"
+            />
+            <button className="btn btn-primary">Submit</button>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -472,26 +569,81 @@ const Test = () => {
           response={modalOptions?.responseFunc || (() => setIsModalOpen(false))}
         />
       )}
-      {
-        <div
-          style={{
-            width: "100%",
-            height: "auto",
-            margin: "auto",
-            padding: "auto",
-            backgroundColor: "red",
-            position: "absolute",
-            zIndex: "10",
-          }}
-        ></div>
-      }
+      {isAnswersModalOpen && displayAnswer && (
+        <div className="answers-modal">
+          <div className="actions-div">
+            <div className="user-details">
+              <h3>Name: {testResult[displayAnswer[0]]?.Name}</h3>
+              <h3>Roll No: {testResult[displayAnswer[0]]?.["Roll No"]}</h3>
+              <h3>Department: {testResult[displayAnswer[0]]?.Department}</h3>
+              <h3>Score: {testResult[displayAnswer[0]]?.Score}</h3>
+            </div>
+            <div className="buttons-div">
+              {/*<input
+                type="text"
+                className="search-input"
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                }}
+                placeholder="Search"
+              />
+              <button type="button" onClick={handleSearch}>
+                Search
+              </button>*/}
+              {displayAnswer && testResult.length > 0 && (
+                <>
+                  {displayAnswer[0] > 0 && (
+                    <button
+                      key={"Previous"}
+                      onClick={() => handleNavigate("Previous")}
+                      type="button"
+                    >
+                      Previous
+                    </button>
+                  )}
+
+                  {displayAnswer[0] < testResult.length - 1 && (
+                    <button
+                      key={"Next"}
+                      onClick={() => handleNavigate("Next")}
+                      type="button"
+                    >
+                      Next
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <h1 className="answers-heading">Answers Details</h1>
+
+          <div className="answers-content">
+            {testResult[displayAnswer[0]]?.answersObj &&
+              testResult[displayAnswer[0]]?.answersObj.map(
+                (question, index) => (
+                  <AnswerCard
+                    key={Object.keys(question)[0]}
+                    question={question}
+                    tr={testResult[displayAnswer[0]]}
+                    index={index}
+                    questions={questionsTableData}
+                  />
+                )
+              )}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex" }}>
         <form
           className="test-form"
           onSubmit={handleSubmit}
           style={{ margin: " 20px " }}
         >
-          <h1 className="card-header">{testName}</h1>
+          <h1 className="card-header" style={{ margin: "0" }}>
+            {testName}
+          </h1>
           <div className="form-group">
             <label>Test Name *</label>
             <input
@@ -680,7 +832,7 @@ const Test = () => {
                 )}
                 {isTableDropdownVisible && (
                   <div className="group-dropdown">
-                    {["Questions", "Users", "Test Results"].map((group) => (
+                    {["Users", "Questions", "Test Results"].map((group) => (
                       <div
                         key={group}
                         className="group-item"

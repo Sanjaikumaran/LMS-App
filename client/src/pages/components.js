@@ -423,7 +423,7 @@ const DataTableSection = ({
   isSelectable = false,
 }) => {
   const customStyles = {
-    rows: { style: { padding: "10px", maxHeight: "72px" } },
+    rows: { style: { padding: "10px", maxHeight: "72px", width: "100%" } },
     headCells: {
       style: {
         color: "white",
@@ -432,9 +432,12 @@ const DataTableSection = ({
         backgroundColor: "#007bff",
         paddingLeft: "8px",
         paddingRight: "8px",
+        width: "100%",
       },
     },
-    cells: { style: { paddingLeft: "8px", paddingRight: "8px" } },
+    cells: {
+      style: { paddingLeft: "8px", paddingRight: "8px", width: "100%" },
+    },
   };
 
   return (
