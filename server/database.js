@@ -197,12 +197,16 @@ async function connectToReplicaSet() {
     }
   }
 
-  async function updateDocument(collectionName, filter, docs) {
+  async function updateDocument(collectionName, filter, docs, options = {}) {
     try {
       const collection = db.collection(collectionName);
+
+      const updateOptions = options.multi ? { multi: true } : {};
+
       const result = await collection.updateOne(
         { _id: new ObjectId(filter._id) },
-        { $set: docs }
+        { $set: docs },
+        updateOptions
       );
 
       if (result.acknowledged) {
@@ -218,6 +222,7 @@ async function connectToReplicaSet() {
       return { flag: false, message: e.message };
     }
   }
+
   async function pushData(collectionName, condition, updateData) {
     try {
       const collection = db.collection(collectionName);

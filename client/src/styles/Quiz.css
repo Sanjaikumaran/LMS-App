@@ -4,37 +4,25 @@
 .quiz-body {
   user-select: none;
   display: flex;
-
   padding: 20px;
 }
-
 .quiz-app {
   flex: 1;
-
   max-width: 1000px;
-
   margin: 100px auto;
-
   background-color: white;
-
   padding: 20px;
-
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-
   border-radius: 8px;
 }
-
 .question-section h1 {
   font-size: 1.75em;
   padding: 0 0 0 45px;
   color: #333;
-
   margin-bottom: 20px;
 }
-
 .quiz-section .options {
   list-style-type: none;
-
   padding: 0;
 }
 .fill-answer-input {
@@ -43,98 +31,78 @@
   border-bottom: 2px solid;
   font-size: 1em;
 }
+textarea.fill-answer-input {
+  border: 2px solid;
+  padding: 10px;
+  resize: both;
+  width: 100%;
+  max-width: 500px;
+  max-height: 350px;
+  margin-left: 47px;
+  box-sizing: border-box;
+  overflow: auto;
+  height: fit-content;
+}
+
 .options .option {
   display: flex;
-
   align-items: center;
-
   background-color: #f4f4f9;
-
   border-radius: 25px;
-
   padding: 12px 20px;
-
   margin: 10px 0;
-
   cursor: pointer;
-
   transition: background-color 0.3s;
 }
-
 .options .option.selected {
   background-color: #007bff;
-
   color: white;
 }
-
 .options .option input[type="radio"]:checked + label,
 .options .option input[type="checkbox"]:checked + label {
   background-color: #007bff;
-
   color: white;
 }
-
 .options .option input[type="radio"],
 .options .option input[type="checkbox"] {
   display: none;
 }
-
 .option input[type="radio"] + label,
 .option input[type="checkbox"] + label {
   display: flex;
-
   align-items: center;
-
   padding: 12px 20px;
-
   border-radius: 25px;
-
   margin: 10px 0;
-
   background-color: #e7e7e7;
-
   transition: background-color 0.3s ease;
-
   width: 100%;
 }
-
 .options li:hover {
   background-color: #e2dfdf;
 }
-
 .options label #option {
   font-weight: bold;
-
   margin-right: 10px;
 }
-/* Quiz Footer */
 
+/* Quiz Footer */
 .quiz-footer {
   text-align: center;
-
   margin-top: 20px;
-
   color: #555;
 }
-
 .quiz-footer button {
   margin: 0 10px;
 }
-
 button {
   background-color: #007bff;
-
   color: white;
-
   border: none;
-
   border-radius: 25px;
-
   padding: 10px 20px;
-
   cursor: pointer;
   font-size: medium;
-
   transition: background-color 0.3s ease;
 }
 button:hover {
@@ -146,17 +114,14 @@ button:hover {
 .quiz-footer .skip-button:hover {
   background-color: #0f309b;
 }
-
 .quiz-footer .submit-button {
   background-color: #028a52;
 }
 .quiz-footer .submit-button:hover {
   background-color: #09633d;
 }
-
 button:disabled {
   background-color: #ccc;
-
   cursor: not-allowed;
 }
 
@@ -166,47 +131,31 @@ button:disabled {
   border-radius: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
-
 .timer-circle {
   position: relative;
-
   width: 120px;
-
   height: 120px;
 }
-
 .timer-circle svg {
   position: absolute;
-
   top: 0;
   left: 0;
   width: 100%;
-
   height: 100%;
-
   transform: rotate(-90deg);
 }
-
 .timer-circle circle {
   fill: none;
 }
-
 .timer-text {
   position: absolute;
-
   top: 50%;
-
   left: 50%;
-
   transform: translate(-50%, -50%);
-
   font-size: 1.5em;
-
   color: #333;
-
   font-weight: bold;
 }
-
 .timer-section div {
   text-align: center;
   font-size: 1.2em;
@@ -224,22 +173,17 @@ button:disabled {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
-
 .question-number-section .grid-layout {
   background-color: rgb(255, 255, 255);
-
   border-radius: 10px;
-
   padding: 20px 30px;
   border-radius: 8px !important;
-
   max-height: 22rem;
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
-
 .question-number {
   height: 50px;
   width: 50px;
@@ -252,25 +196,20 @@ button:disabled {
   color: white;
   transition: background-color 0.3s, box-shadow 0.3s;
 }
-
 .question-number.current-question {
   border: 2px solid #666;
 }
-
 .question-number:hover {
   cursor: pointer;
 }
-
 .question-number.answered {
   background-color: #04aa6d;
   border: 2px solid #028a52;
 }
-
 .question-number.not-answered {
   background-color: #aa2b04;
   border: 2px solid #861f02;
 }
-
 .question-number.skipped {
   background-color: #0439aa;
   border: 2px solid #032d7a;

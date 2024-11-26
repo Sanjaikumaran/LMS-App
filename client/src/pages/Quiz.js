@@ -55,6 +55,14 @@ const Quiz = () => {
     }
     fetchData();
   }, [id]);
+  document.querySelectorAll(".fill-answer-input").forEach((textarea) => {
+    textarea.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = `${this.scrollHeight}px`;
+    });
+
+    textarea.dispatchEvent(new Event("input"));
+  });
 
   useEffect(() => {
     async function fetchQuestionsData() {
@@ -138,6 +146,7 @@ const Quiz = () => {
         },
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isAutoSubmit, endTime]);
 
   const autoSubmit = () => {

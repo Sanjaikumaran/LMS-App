@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "../styles/Test.css";
 import components from "./components";
 import { useLocation } from "react-router-dom";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+
 const { Modal, fileUpload, handleApiCall, DataTableSection } = components;
 
 const Test = () => {
@@ -39,7 +38,9 @@ const Test = () => {
 
   const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(false);
   const [displayAnswer, setDisplayAnswer] = useState("");
-  // eslint-disable-next-line no-unused-vars
+  //eslint-disable-next-line no-unused-vars
+  const [marks, setMarks] = useState(0);
+  //eslint-disable-next-line no-unused-vars
   const [searchText, setSearchText] = useState("");
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -158,7 +159,8 @@ const Test = () => {
 
     if (selectedUsersGroups.length > 0) {
       fetchUsersData();
-    } // eslint-disable-next-line
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUsersGroups]);
   useEffect(() => {
     const fetchUsersData = async () => {
@@ -331,134 +333,129 @@ const Test = () => {
       ? ["No Groups Available"]
       : allQuestionsGroups;
 
-  useEffect(() => {
-    const testResultData = [...testResult];
-
-    const columns =
-      tableName === "Users"
-        ? [
-            {
-              name: "S.No",
-              selector: (row, index) => index + 1,
-              sortable: true,
-              width: "70px",
-            },
-            ...usersTableColumns
-              .filter(
-                (column) =>
-                  column !== "Password" &&
-                  column !== "userType" &&
-                  column !== "_id" &&
-                  column !== "Group"
-              )
-              .map((column) => ({
-                name: column,
-                selector: (row) => row[column],
-                sortable: true,
-                wrap: true,
-                padding: "10px",
-              })),
-          ]
-        : tableName === "Questions"
-        ? [
-            {
-              name: "SNo",
-              selector: (row, index) => index + 1,
-              sortable: true,
-              width: "70px",
-            },
-            ...questionsTableColumns
-              .filter((column) => column !== "Group" && column !== "_id")
-              .map((column) => ({
-                name: column,
-                selector: (row) => row[column],
-                sortable: true,
-                wrap: true,
-                padding: "10px",
-              })),
-          ]
-        : testResultData.length > 0
-        ? [
-            {
-              name: "SNo",
-              selector: (row, index) => index + 1,
-              sortable: true,
-              width: "70px",
-            },
-            ...Object.keys(testResultData[0])
-              .filter(
-                (column) => column !== "answersObj" && column !== "Answer"
-              )
-              .map((column) => ({
-                name: column,
-                selector: (row) => row[column],
-                sortable: true,
-                wrap: true,
-              }))
-              .slice(1),
-          ]
-        : [];
-
-    const data =
-      tableName === "Users"
-        ? usersTableData.filter(
-            (user) =>
-              user.userType !== "Admin" &&
-              selectedUsersGroups.includes(user.Group)
+  const columns = useMemo(() => {
+    if (tableName === "Users") {
+      return [
+        {
+          name: "S.No",
+          selector: (row, index) => index + 1,
+          sortable: true,
+          width: "70px",
+        },
+        ...usersTableColumns
+          .filter(
+            (column) =>
+              !["Password", "userType", "_id", "Group"].includes(column)
           )
-        : tableName === "Questions"
-        ? questionsTableData.filter((question) =>
-            selectedQuestionsGroups.includes(question.Group)
-          )
-        : testResult
-        ? testResult
-        : [];
+          .map((column) => ({
+            name: column,
+            selector: (row) => row[column],
+            sortable: true,
+            wrap: true,
+            padding: "10px",
+          })),
+      ];
+    } else if (tableName === "Questions") {
+      return [
+        {
+          name: "SNo",
+          selector: (row, index) => index + 1,
+          sortable: true,
+          width: "70px",
+        },
+        ...questionsTableColumns
+          .filter((column) => !["Group", "_id"].includes(column))
+          .map((column) => ({
+            name: column,
+            selector: (row) => row[column],
+            sortable: true,
+            wrap: true,
+            padding: "10px",
+          })),
+      ];
+    } else if (testResult.length > 0) {
+      return [
+        {
+          name: "SNo",
+          selector: (row, index) => index + 1,
+          sortable: true,
+          width: "70px",
+        },
+        ...Object.keys(testResult[0])
+          .filter((column) => !["answersObj", "Answer"].includes(column))
+          .map((column) => ({
+            name: column,
+            selector: (row) => row[column],
+            sortable: true,
+            wrap: true,
+          }))
+          .slice(1),
+      ];
+    }
+    return [];
+  }, [tableName, testResult, usersTableColumns, questionsTableColumns]);
 
-    setTableColumns(columns);
-    setTableData(data);
+  const data = useMemo(() => {
+    if (tableName === "Users") {
+      return usersTableData.filter(
+        (user) =>
+          user.userType !== "Admin" && selectedUsersGroups.includes(user.Group)
+      );
+    } else if (tableName === "Questions") {
+      return questionsTableData.filter((question) =>
+        selectedQuestionsGroups.includes(question.Group)
+      );
+    } else if (testResult) {
+      const filteredData = testResult.map((testItem) => {
+        const { answersObj, Answer, ...rest } = testItem;
+        return rest;
+      });
+
+      return filteredData;
+    }
+    return [];
   }, [
     tableName,
-    selectedUsersGroups,
-    selectedQuestionsGroups,
     usersTableData,
-    usersTableColumns,
-    questionsTableColumns,
     questionsTableData,
     testResult,
+    selectedUsersGroups,
+    selectedQuestionsGroups,
   ]);
+
+  useEffect(() => {
+    setTableColumns(columns);
+    setTableData(data);
+  }, [columns, data]);
   const generateReport = () => {
-    const doc = new jsPDF({ orientation: "landscape" });
+    const tableHead = tableColumns
+      .filter((column) => column.name !== "Answer" && column.name !== "Answers")
+      .map((column) => column.name)
+      .join(",");
 
-    const tableHead = [
-      [
-        ...tableColumns
+    const tableBody = tableData
+      .map((row) => {
+        const filteredRow = { ...row };
+        delete filteredRow.Answer;
+        delete filteredRow.Answers;
+
+        return tableColumns
           .filter((column) => column.name !== "Answer")
-          .map((column) => column.name),
-      ],
-    ];
+          .map((column) => filteredRow[column.name])
+          .join(",");
+      })
+      .join("\n");
 
-    const tableBody = tableData.map((row, index) => {
-      const filteredRow = { ...row };
-      delete filteredRow.Answer;
+    const csvContent = `${tableHead}\n${tableBody}`;
 
-      return [
-        ...tableColumns
-          .filter((column) => column.name !== "Answer")
-          .map((column) => filteredRow[column.name]),
-      ];
-    });
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
-    doc.setFontSize(18);
-    doc.text(testName + " Report", 14, 22);
-
-    doc.autoTable({
-      head: tableHead,
-      body: tableBody,
-      startY: 30,
-    });
-
-    doc.save(testName + " report.pdf");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${testName} report.csv`;
+    link.click();
   };
+
   const handleNavigate = (navigateTo) => {
     if (navigateTo === "Previous") {
       setDisplayAnswer([displayAnswer[0] - 1]);
@@ -466,11 +463,31 @@ const Test = () => {
       setDisplayAnswer([displayAnswer[0] + 1]);
     }
   };
-  // eslint-disable-next-line no-unused-vars
+  //eslint-disable-next-line no-unused-vars
   const handleSearch = () => {
     console.log(searchText);
   };
-  const AnswerCard = ({ question, index, questions, tr }) => {
+  const addMarks = async (score, marks, testId) => {
+    const response = await handleApiCall({
+      API: "update-score",
+      data: {
+        collection: "Tests",
+        condition: {
+          _id: testId,
+        },
+        score,
+        marks,
+        answer: testResult[displayAnswer[0]].Answer,
+      },
+    });
+    if (response.flag) {
+      testResult[displayAnswer[0]].Score += Number(marks);
+      setMarks(marks);
+      setTestResult([...testResult]);
+    }
+  };
+
+  const AnswerCard = ({ question, index, questions }) => {
     const questionText = Object.keys(question)[0];
     const userAnswer = Object.values(question)[0];
 
@@ -503,11 +520,25 @@ const Test = () => {
           {renderUserAnswer(userAnswer)}
 
           {isParagraph && (
-            <input
-              type="number"
-              className="mark-input"
-              placeholder="Enter marks"
-            />
+            <div className="mark-input-div">
+              <input
+                type="number"
+                className="mark-input"
+                placeholder="Enter Marks"
+              />
+              <button
+                className="mark-input-btn"
+                onClick={(e) =>
+                  addMarks(
+                    testResult[displayAnswer[0]].Score,
+                    e.target.previousElementSibling.value,
+                    id
+                  )
+                }
+              >
+                Add
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -525,7 +556,7 @@ const Test = () => {
     </div>
   );
 
-  const renderUserAnswer = (userAnswer, renderInput = false) => {
+  const renderUserAnswer = (userAnswer) => {
     if (!userAnswer) return null;
 
     return (
@@ -542,17 +573,6 @@ const Test = () => {
             ))}
           </ul>
         ) : null}
-
-        {renderInput && (
-          <>
-            <input
-              type="number"
-              className="mark-input"
-              placeholder="Enter marks"
-            />
-            <button className="btn btn-primary">Submit</button>
-          </>
-        )}
       </div>
     );
   };
@@ -576,7 +596,7 @@ const Test = () => {
               <h3>Name: {testResult[displayAnswer[0]]?.Name}</h3>
               <h3>Roll No: {testResult[displayAnswer[0]]?.["Roll No"]}</h3>
               <h3>Department: {testResult[displayAnswer[0]]?.Department}</h3>
-              <h3>Score: {testResult[displayAnswer[0]]?.Score}</h3>
+              <h3>Score: {Number(testResult[displayAnswer[0]]?.Score)}</h3>
             </div>
             <div className="buttons-div">
               {/*<input
@@ -613,24 +633,47 @@ const Test = () => {
                   )}
                 </>
               )}
+              <button
+                type="button"
+                style={{ backgroundColor: "red" }}
+                onClick={() => setIsAnswersModalOpen(false)}
+              >
+                Close This Page
+              </button>
             </div>
           </div>
 
           <h1 className="answers-heading">Answers Details</h1>
-
           <div className="answers-content">
             {testResult[displayAnswer[0]]?.answersObj &&
-              testResult[displayAnswer[0]]?.answersObj.map(
-                (question, index) => (
+              [...testResult[displayAnswer[0]]?.answersObj]
+                .sort((a, b) => {
+                  const aQuestionText = Object.keys(a)[0];
+                  const bQuestionText = Object.keys(b)[0];
+
+                  const aMatchingOptions = questionsTableData
+                    .filter((q) => selectedQuestionsGroups.includes(q.Group))
+                    .find((option) => option.Question === aQuestionText);
+
+                  const bMatchingOptions = questionsTableData
+                    .filter((q) => selectedQuestionsGroups.includes(q.Group))
+                    .find((option) => option.Question === bQuestionText);
+
+                  const aIsParagraph =
+                    aMatchingOptions?.Option[0] === "Paragraph";
+                  const bIsParagraph =
+                    bMatchingOptions?.Option[0] === "Paragraph";
+
+                  return bIsParagraph - aIsParagraph;
+                })
+                .map((question, index) => (
                   <AnswerCard
                     key={Object.keys(question)[0]}
                     question={question}
-                    tr={testResult[displayAnswer[0]]}
                     index={index}
                     questions={questionsTableData}
                   />
-                )
-              )}
+                ))}
           </div>
         </div>
       )}

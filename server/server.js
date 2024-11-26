@@ -19,17 +19,6 @@ app.get("/*", (req, res) => {
 
 app.listen(5001);
 
-// Uncomment to automatically open the app in the default browser
-//const platform = os.platform();
-//const url = `http://localhost:5001/`;
-//if (platform === "win32") {
-//  exec(`powershell -NoProfile -Command "Start-Process '${url}'"`);
-//} else if (platform === "darwin") {
-//  exec(`open ${url}`);
-//} else {
-//  exec(`xdg-open ${url}`);
-//}
-
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
 
@@ -186,6 +175,7 @@ app.post("/find-data", async (req, res) => {
 
 app.post("/update-data", async (req, res) => {
   const { collection, condition, data } = req.body.data;
+
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.updateDocument(
@@ -193,6 +183,7 @@ app.post("/update-data", async (req, res) => {
       condition,
       data
     );
+
     if (result.data.matchedCount > 0) {
       res.status(200).json({
         flag: true,
@@ -209,8 +200,56 @@ app.post("/update-data", async (req, res) => {
     res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
+app.post("/update-score", async (req, res) => {
+  const { collection, condition, score, marks, answer } = req.body.data;
+
+  try {
+    const dbConnection = await connectToReplicaSet();
+    const result = await dbConnection.getDocument(
+      collection,
+      condition.key,
+      condition.value
+    );
+
+    if (result.flag) {
+      const updatedTestResults = result.data["Test Results"].map((item) => {
+        if (item.Score === score && item.Answer === JSON.stringify(answer)) {
+          item.Score += Number(marks);
+        }
+        return item;
+      });
+
+      const updateData = { "Test Results": updatedTestResults };
+
+      const updateResult = await dbConnection.updateDocument(
+        collection,
+        { _id: result.data._id },
+        updateData
+      );
+
+      if (updateResult.flag) {
+        res.status(200).json({
+          flag: true,
+          matchedCount: updateResult.data.matchedCount,
+          modifiedCount: updateResult.data.modifiedCount,
+          upsertedCount: updateResult.data.upsertedCount || 0,
+        });
+      } else {
+        res
+          .status(401)
+          .json({ flag: false, message: "No documents found to update." });
+      }
+    } else {
+      res.status(404).json({ flag: false, message: "Test not found." });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ flag: false, message: "Database connection error" });
+  }
+});
+
 app.post("/push-data", async (req, res) => {
-  const { collection, condition, updateData } = req.body.data; // Updated destructuring
+  const { collection, condition, updateData } = req.body.data;
   const dbConnection = await connectToReplicaSet();
 
   const result = await dbConnection.pushData(collection, condition, updateData);

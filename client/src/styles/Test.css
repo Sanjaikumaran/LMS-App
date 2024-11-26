@@ -49,7 +49,26 @@
 
 .answers-modal .search-input,
 .mark-input {
+  font-size: larger;
+  height: 40px;
+  width: 150px;
   border: 1px solid #ccc;
+}
+.mark-input-div {
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-top: 10px;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .answers-heading {
@@ -91,7 +110,19 @@
 }
 
 .answer-details ul {
-  padding-left: 20px;
+  max-height: 350px; /* Limit the height of the unordered list */
+  overflow: auto; /* Enable scrolling if content overflows */
+  padding-left: 20px; /* Add left padding for indentation */
+  word-wrap: break-word; /* Ensure long words wrap within the boundaries */
+  list-style-position: inside; /* Keep bullets inside the container */
+}
+
+.answer-details ul li {
+  list-style: none;
+  max-width: 800px; /* Limit the width of each list item */
+  overflow: hidden; /* Hide overflow content if necessary */
+  padding-left: 10px; /* Add slight left padding for list item content */
+  word-wrap: break-word; /* Prevent long words from overflowing */
 }
 
 .answer-details h5 {
