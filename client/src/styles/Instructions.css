@@ -35,3 +35,28 @@
 .button {
   background-color: #6f2f72 !important;
 }
+
+.no-quiz-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 80vh;
+  color: #333;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.no-quiz-container h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #007bff;
+}
+
+.no-quiz-container p {
+  font-size: 1.2rem;
+  color: #555;
+  margin: 0;
+}

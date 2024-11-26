@@ -340,7 +340,6 @@ const fileUpload = async (
         break;
       case "gift":
         insertData = GIFTParser(reader.result);
-        console.log(insertData);
 
         break;
       case "xlsx":
@@ -550,6 +549,9 @@ const DataTableManagement = (props) => {
   const addNew = () => {
     const inputs = {};
     const contentElements = tableColumns.map((column) => {
+      if ("_id" === column) {
+        return null;
+      }
       const inputField = document.createElement("input");
       inputField.className = column;
       inputField.placeholder = column;
@@ -559,21 +561,24 @@ const DataTableManagement = (props) => {
 
     createFormModal({
       headingText: "Add New User",
-      elements: contentElements,
+      elements: contentElements.filter((element) => element !== null),
       saveCallback: (closeModal) => async () => {
-        const data = tableColumns.reduce(
-          (acc, column) => ({ ...acc, [column]: inputs[column].value }),
-          {}
-        );
+        const data = tableColumns
+          .filter((column) => column !== "_id")
+          .reduce(
+            (acc, column) => ({ ...acc, [column]: inputs[column].value }),
+            {}
+          );
         try {
           const response = await handleApiCall({
             API: "insert-data",
             data: { data, collection: props.collectionName },
           });
           response.flag
-            ? showModal("Info", "Data Inserted successfully!", ["Ok"], () =>
-                setTableData([...tableData, data])
-              )
+            ? showModal("Info", "Data Inserted successfully!", ["Ok"], () => {
+                setTableData([...tableData, data]);
+                setIsModalOpen(false);
+              })
             : handleRetry("Error", response.error, addNew);
         } catch (error) {
           handleRetry("Uncaught Error", error.message, addNew);
@@ -592,6 +597,7 @@ const DataTableManagement = (props) => {
       buttons: ["Retry", "Ok"],
       responseFunc: (button) => {
         if (button === "Retry") retryFunction();
+        if (button === "Ok") setIsModalOpen(false);
       },
     });
   };

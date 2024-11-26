@@ -6,6 +6,12 @@ import { useLocation } from "react-router-dom";
 const { Modal, fileUpload, handleApiCall, DataTableSection } = components;
 
 const Test = () => {
+  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  if (userLogged.flag) {
+    if (userLogged.userType !== "Admin") {
+      window.location.href = "/";
+    }
+  }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
   const [testId, setTestId] = useState("");

@@ -138,7 +138,7 @@ async function connectToReplicaSet() {
       const collection = db.collection(collectionName);
       let result;
 
-      const objectIds = docs.map((doc) => new ObjectId(doc));
+      const objectIds = docs.map((doc) => doc && new ObjectId(doc));
 
       result = await collection.deleteMany({
         _id: { $in: objectIds },

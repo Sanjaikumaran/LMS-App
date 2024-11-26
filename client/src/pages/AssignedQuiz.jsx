@@ -3,6 +3,12 @@ import { useNavigate } from "react-router-dom";
 import components from "./components";
 
 const { handleApiCall } = components;
+const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+if (userLogged.flag) {
+  if (userLogged.userType !== "Student") {
+    window.location.href = "/";
+  }
+}
 const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 const UserID = userData._id;
 const AssignedQuiz = () => {
@@ -10,7 +16,6 @@ const AssignedQuiz = () => {
   const [timeLeft, setTimeLeft] = useState({});
   const navigate = useNavigate();
 
-  // Fetch assigned tests
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -43,7 +48,6 @@ const AssignedQuiz = () => {
     fetchData();
   }, []);
 
-  // Set countdown timers for each test
   useEffect(() => {
     const intervalId = setInterval(() => {
       const updatedTimeLeft = {};
@@ -86,6 +90,12 @@ const AssignedQuiz = () => {
   }, [assignedTests]);
   return (
     <div className="assigned-quiz-container">
+      {assignedTests.length <= 0 && (
+        <div className="no-quiz-container">
+          <h1>No test available</h1>
+          <p>Please check back later</p>
+        </div>
+      )}
       {assignedTests &&
         assignedTests.map((assignedTest, index) => {
           const countdown = timeLeft[assignedTest._id];

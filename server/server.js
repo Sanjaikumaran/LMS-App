@@ -243,7 +243,6 @@ app.post("/update-score", async (req, res) => {
       res.status(404).json({ flag: false, message: "Test not found." });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ flag: false, message: "Database connection error" });
   }
 });
