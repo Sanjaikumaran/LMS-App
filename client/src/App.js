@@ -70,7 +70,6 @@ const App = () => {
               </>
             }
           />
-          flex-start
           <Route
             path="/instructions"
             element={

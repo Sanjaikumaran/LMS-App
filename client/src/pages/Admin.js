@@ -4,12 +4,12 @@ import "../styles/Admin.css";
 const { ModuleCard, handleApiCall } = components;
 
 const Admin = () => {
-  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  if (userLogged.flag) {
-    if (userLogged.userType !== "Admin") {
-      window.location.href = "/";
-    }
-  }
+  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  //if (userLogged.flag) {
+  //  if (userLogged.userType !== "Admin") {
+  //    window.location.href = "/";
+  //  }
+  //}
   const [tests, setTests] = useState([]);
 
   useEffect(() => {

@@ -4,12 +4,12 @@ import "../styles/CreateTest.css";
 const { Modal, handleApiCall, fileUpload } = components;
 
 const CreateTest = () => {
-  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  if (userLogged.flag) {
-    if (userLogged.userType !== "Admin") {
-      window.location.href = "/";
-    }
-  }
+  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  //if (userLogged.flag) {
+  //  if (userLogged.userType !== "Admin") {
+  //    window.location.href = "/";
+  //  }
+  //}
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
   const [testName, setTestName] = useState("");

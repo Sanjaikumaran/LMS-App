@@ -5,12 +5,12 @@ import components from "./components";
 const { Modal, response } = components;
 
 const Instructions = ({ instructions }) => {
-  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  if (userLogged.flag) {
-    if (userLogged.userType !== "Student") {
-      window.location.href = "/";
-    }
-  }
+  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+  //if (userLogged.flag) {
+  //  if (userLogged.userType !== "Student") {
+  //    window.location.href = "/";
+  //  }
+  //}
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 

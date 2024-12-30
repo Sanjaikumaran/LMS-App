@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import components from "./components";
 
 const { handleApiCall } = components;
-const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-if (userLogged.flag) {
-  if (userLogged.userType !== "Student") {
-    window.location.href = "/";
-  }
-}
+//const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
+//if (userLogged) {
+//  if (userLogged.userType !== "Student") {
+//    window.location.href = "/";
+//  }
+//}
 const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 const UserID = userData._id;
 const AssignedQuiz = () => {
