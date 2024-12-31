@@ -123,73 +123,88 @@ const CreateTest = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     if (!testName) {
       showModal("Error", "Please fill in all required fields.", ["Ok"]);
       return;
     }
-
+  
     const start = new Date(startTime);
     const end = new Date(endTime);
-
+  
     if (end <= start) {
       showModal("Error", "End time must be greater than start time.", ["Ok"]);
       return;
     }
-
+  
     const files = document.querySelectorAll("input[type=file]");
-
-    fileUpload(
-      () => {},
-      files[0],
-      "Upload-question",
-      "Questions",
-      showModal,
-      setIsModalOpen
-    );
-
+   const submitCallback = async (newGroupName) => {
+    
+    
     try {
-      let configurations = {};
+      const configurations = {
+        ...(testName && { "Test Name": testName }),
+        ...(startTime && { "Start Time": startTime }),
+        ...(endTime && { "End Time": endTime }),
+        ...(duration && { Duration: duration }),
+        ...(attempts && { "Attempts Limit": attempts }),
+        ...(Array.isArray(selectedUsersGroups) &&
+          selectedUsersGroups.length > 0 && {
+            "Participants Group": selectedUsersGroups,
+          }),
+          ...(Array.isArray(selectedQuestionsGroups) &&
+          selectedQuestionsGroups.length > 0
+            ? {
+                "Questions Group": [
+                  ...selectedQuestionsGroups,
+                  newGroupName,
+                ].filter(Boolean),
+              }
+            : {
+                "Questions Group": [newGroupName],
+              }),
+        
+        "Test Results": [],
+      };
 
-      if (testName) configurations["Test Name"] = testName;
-      if (startTime) configurations["Start Time"] = startTime;
-      if (endTime) configurations["End Time"] = endTime;
-      if (duration) configurations["Duration"] = duration;
-      if (attempts) configurations["Attempts Limit"] = attempts;
-
-      if (
-        Array.isArray(selectedUsersGroups) &&
-        selectedUsersGroups.length > 0
-      ) {
-        configurations["Participants Group"] = selectedUsersGroups;
-      }
-
-      if (
-        Array.isArray(selectedQuestionsGroups) &&
-        selectedQuestionsGroups.length > 0
-      ) {
-        configurations["Questions Group"] = selectedQuestionsGroups;
-      }
-      configurations["Test Results"] = [];
-
-      if (!testName) {
-        throw new Error("Test Name is required.");
-      }
-
+  
       const response = await handleApiCall({
         API: "insert-data",
         data: { data: configurations, collection: "Tests" },
       });
+  
       if (response.flag) {
-        showModal("Success", "Test Created Successfully", ["Close"]);
-        window.location.href = "/admin";
+        showModal("Success", "Test Created Successfully", ["Ok"],(button)=>{
+          if(button==="Ok"){
+            window.location.href = "/admin";
+          }
+        });
       } else {
         showModal("Error", "Test not Created", ["Close"]);
       }
     } catch (error) {
       showModal("Uncaught Error", error.message, ["Close"]);
+    }}
+    if (files[0].files[0]) {
+      await fileUpload(
+        (groupName) => {
+          if (!selectedQuestionsGroups.includes(groupName)) {
+            setSelectedQuestionsGroups((prev) => [...prev, groupName]);
+          }
+          setSelectedUsersGroups((prev) => [...prev]);
+        },
+        files[0],
+        "Upload-question",
+        "Questions",
+        showModal,
+        setIsModalOpen,
+        submitCallback
+      );
+      return;
     }
+    submitCallback();
   };
+  
   const displayUsersGroups =
     allUsersGroups.length === 0 ? ["No Groups Available"] : allUsersGroups;
   const displayQuestionsGroups =
@@ -373,7 +388,7 @@ const CreateTest = () => {
 
         <div className="form-group">
           <label>Upload Questions</label>
-          <input type="file" />
+          <input type="file"  />
         </div>
 
         <button type="submit">Submit</button>

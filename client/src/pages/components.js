@@ -12,7 +12,7 @@ const Navbar = (props) => {
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
-      return;
+      return; 
     }
 
     const profileContainer = document.createElement("div");
@@ -201,8 +201,10 @@ const fileUpload = async (
   apiEndpoint,
   collectionName,
   showModal,
-  setIsModalOpen
+  setIsModalOpen,submitCallback=null
 ) => {
+  var groupName 
+  
   // Check if file is selected
   if (!fileName.files[0]) {
     showModal(
@@ -248,6 +250,7 @@ const fileUpload = async (
   };
 
   const handleUpload = async (data) => {
+
     try {
       const response = await handleApiCall({
         API: apiEndpoint,
@@ -255,7 +258,9 @@ const fileUpload = async (
       });
 
       if (response.flag) {
-        fetchCallback();
+        submitCallback(groupName);
+        fetchCallback(groupName);
+        
         showModal("Info", "Data Uploaded Successfully!", ["Ok"], () => {
           fileName.value = "";
           setIsModalOpen(false);
@@ -361,7 +366,7 @@ const fileUpload = async (
         ["Ok", "Cancel"],
         (button) => {
           if (button === "Ok") {
-            const groupName = document.getElementById("groupName").value;
+             groupName = document.getElementById("groupName").value;
             insertData = insertData.map((data) => ({
               ...data,
               Group: groupName,
@@ -370,6 +375,8 @@ const fileUpload = async (
           } else setIsModalOpen(false);
         }
       );
+      
+      
     } else {
       handleUpload(insertData);
     }

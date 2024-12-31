@@ -266,60 +266,68 @@ const Test = () => {
 
     const files = document.querySelectorAll("input[type=file]");
 
-    fileUpload(
-      () => {},
-      files[0],
-      "Upload-question",
-      "Questions",
-      showModal,
-      setIsModalOpen
-    );
+    // Function to handle submission logic
+    const submitCallback = async (newGroupName) => {
+      try {
+        const configurations = {
+          ...(testName && { "Test Name": testName }),
+          ...(startTime && { "Start Time": startTime }),
+          ...(endTime && { "End Time": endTime }),
+          ...(duration && { Duration: duration }),
+          ...(attempts && { "Attempts Limit": attempts }),
+          ...(selectedUsersGroups.length > 0 && {
+            "Participants Group": selectedUsersGroups,
+          }),
+          ...(selectedQuestionsGroups.length > 0 && {
+            "Questions Group": [
+              ...selectedQuestionsGroups,
+              newGroupName,
+            ].filter(Boolean),
+          }),
+        };
 
-    try {
-      let configurations = {};
+        if (!testName) {
+          throw new Error("Test Name is required.");
+        }
 
-      if (testName) configurations["Test Name"] = testName;
-      if (startTime) configurations["Start Time"] = startTime;
-      if (endTime) configurations["End Time"] = endTime;
-      if (duration) configurations["Duration"] = duration;
-      if (attempts) configurations["Attempts Limit"] = attempts;
+        const response = await handleApiCall({
+          API: "update-data",
+          data: {
+            condition: { _id: testId },
+            collection: "Tests",
+            data: configurations,
+          },
+        });
 
-      if (
-        Array.isArray(selectedUsersGroups) &&
-        selectedUsersGroups.length > 0
-      ) {
-        configurations["Participants Group"] = selectedUsersGroups;
+        if (response.flag) {
+          showModal("Success", "Test Updated Successfully", ["Ok"]);
+        } else {
+          showModal("Error", response.error, ["Close"]);
+        }
+      } catch (error) {
+        showModal("Uncaught Error", error.message, ["Close"]);
       }
-
-      if (
-        Array.isArray(selectedQuestionsGroups) &&
-        selectedQuestionsGroups.length > 0
-      ) {
-        configurations["Questions Group"] = selectedQuestionsGroups;
-      }
-
-      if (!testName) {
-        throw new Error("Test Name is required.");
-      }
-
-      const response = await handleApiCall({
-        API: "update-data",
-        data: {
-          condition: { _id: testId },
-          collection: "Tests",
-          data: configurations,
+    };
+    if (files[0].files[0]) {
+      await fileUpload(
+        (groupName) => {
+          if (!selectedQuestionsGroups.includes(groupName)) {
+            setSelectedQuestionsGroups((prev) => [...prev, groupName]);
+          }
+          setSelectedUsersGroups((prev) => [...prev]);
         },
-      });
-
-      if (response.flag) {
-        showModal("Success", "Test Updated Successfully", ["Ok"]);
-      } else {
-        showModal("Error", response.error, ["Close"]);
-      }
-    } catch (error) {
-      showModal("Uncaught Error", error.message, ["Close"]);
+        files[0],
+        "Upload-question",
+        "Questions",
+        showModal,
+        setIsModalOpen,
+        submitCallback
+      );
+      return;
     }
+    submitCallback();
   };
+
   const showAnswers = (index) => {
     return (
       <button
@@ -858,7 +866,7 @@ const Test = () => {
 
           <div className="form-group">
             <label>Upload Questions</label>
-            <input type="file" name="questions-group-file" />
+            <input type="file" name="questions-file" />
           </div>
 
           <button type="submit">Submit</button>
