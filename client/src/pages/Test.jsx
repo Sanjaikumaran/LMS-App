@@ -266,7 +266,6 @@ const Test = () => {
 
     const files = document.querySelectorAll("input[type=file]");
 
-    // Function to handle submission logic
     const submitCallback = async (newGroupName) => {
       try {
         const configurations = {

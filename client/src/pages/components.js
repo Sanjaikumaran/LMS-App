@@ -258,7 +258,7 @@ const fileUpload = async (
       });
 
       if (response.flag) {
-        submitCallback(groupName);
+        submitCallback&&submitCallback(groupName);
         fetchCallback(groupName);
         
         showModal("Info", "Data Uploaded Successfully!", ["Ok"], () => {

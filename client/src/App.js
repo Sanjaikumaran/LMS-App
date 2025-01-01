@@ -14,9 +14,10 @@ import components from "./pages/components";
 const { Navbar } = components;
 
 const App = () => {
-  const [showProfile, setShowProfile] = useState(false);
+  const [showProfile, setShowProfile] = useState(true);
   const [userData, setUserData] = useState();
   const [UserID, setUserID] = useState("");
+
 
   useEffect(() => {
     const userDetails = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -38,7 +39,7 @@ const App = () => {
   const ChangeTitle = ({ title }) => {
     useEffect(() => {
       document.title = title;
-      if (title === "Home") {
+      if (title === "Login") {
         setShowProfile(true);
       } else {
         setShowProfile(false);
