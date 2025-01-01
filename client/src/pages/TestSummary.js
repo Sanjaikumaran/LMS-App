@@ -9,6 +9,7 @@ const TestSummary = () => {
     }
   }
   const navigate = useNavigate();
+  //eslint-disable-next-line
   const [summaryData, setSummaryData] = useState({
     totalQuestions: 0,
     score: 0,
@@ -31,7 +32,9 @@ const TestSummary = () => {
   return (
     <>
       <div className="instructions-div">
-        <h1>Your test has been submitted!</h1>
+        <h1 style={{
+          fontSize: "8rem",
+        }}>Your test has been submitted!</h1>
         <div
           style={{
             display: "flex",
@@ -39,7 +42,7 @@ const TestSummary = () => {
             alignItems: "center",
           }}
         >
-          <ul
+          {/*<ul
             className="instructions"
             style={{
               color: "green",
@@ -59,7 +62,7 @@ const TestSummary = () => {
             <li style={{ listStyle: "none" }}>
               Skipped Questions: {summaryData.skipped}
             </li>
-          </ul>
+          </ul>*/}
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "center" }}>

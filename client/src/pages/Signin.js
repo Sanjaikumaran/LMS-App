@@ -4,7 +4,7 @@ import "../styles/Signin.css";
 import components from "./components";
 const { Modal, response, MessageBox, handleApiCall } = components;
 
-const Signin = () => {
+const Signin = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [responseMessage, setResponseMessage] = useState(null);
   const [userID, setUserID] = useState("");
@@ -41,6 +41,9 @@ const Signin = () => {
           );
 
           localStorage.setItem("userData", JSON.stringify(response.data.data));
+
+          
+          props.setUserID(response.data.data._id)
           setResponseMessage("");
           setIsModalOpen(true);
         } else {

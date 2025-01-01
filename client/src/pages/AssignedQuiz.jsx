@@ -9,11 +9,11 @@ const { handleApiCall } = components;
 //    window.location.href = "/";
 //  }
 //}
-const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-const UserID = userData._id;
-const AssignedQuiz = () => {
+
+const AssignedQuiz = (props) => {
   const [assignedTests, setAssignedTests] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,8 +60,9 @@ const AssignedQuiz = () => {
         const timeDiff = startTime - currentTime;
         const hasEnded = currentTime > endTime;
         let attempts = 0;
+
         assignedTest["Test Results"].forEach((testResult) => {
-          if (testResult.UserID === UserID) {
+          if (testResult.UserID === props.UserID) {
             attempts++;
           }
         });
@@ -87,7 +88,7 @@ const AssignedQuiz = () => {
     }, 1000);
 
     return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, [assignedTests]);
+  }, [assignedTests, props.UserID]);
   return (
     <div className="assigned-quiz-container">
       {assignedTests.length <= 0 && (

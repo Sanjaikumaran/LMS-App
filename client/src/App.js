@@ -16,6 +16,7 @@ const { Navbar } = components;
 const App = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [userData, setUserData] = useState();
+  const [UserID, setUserID] = useState("");
 
   useEffect(() => {
     const userDetails = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -57,7 +58,7 @@ const App = () => {
             element={
               <>
                 <ChangeTitle title="Login" />
-                <Signin setShowProfile={setShowProfile} />
+                <Signin setShowProfile={setShowProfile} setUserID={setUserID} />
               </>
             }
           />{" "}
@@ -66,7 +67,7 @@ const App = () => {
             element={
               <>
                 <ChangeTitle title="Home" />
-                <AssignedQuiz />
+                <AssignedQuiz UserID={UserID} />
               </>
             }
           />
@@ -84,7 +85,7 @@ const App = () => {
             element={
               <>
                 <ChangeTitle title="Quiz" />
-                <Quiz />
+                <Quiz UserID={UserID}/>
               </>
             }
           />{" "}

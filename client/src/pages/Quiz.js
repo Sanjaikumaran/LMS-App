@@ -6,9 +6,8 @@ import components from "./components";
 const { Modal, handleApiCall } = components;
 const radius = 50;
 const circumference = 2 * Math.PI * radius;
-const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-const UserID = userData._id;
-const Quiz = () => {
+
+const Quiz = (props) => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
@@ -226,7 +225,7 @@ const Quiz = () => {
           collection: "Tests",
           updateData: {
             "Test Results": {
-              UserID: UserID,
+              UserID: props.UserID,
               Answer: JSON.stringify(objectAnswers),
               Score: score,
             },
@@ -239,10 +238,12 @@ const Quiz = () => {
         message: response.flag
           ? "Your test has been submitted!"
           : "Error submitting test! \n Please contact admin",
-        buttons: ["Ok "],
+        buttons: ["Ok"],
         responseFunc: (button) => {
           if (button === "Ok") {
             window.location.href = "/summary";
+            console.log("g");
+            
           }
           setIsModalOpen(false);
         },
