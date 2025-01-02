@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/Instructions.css";
 import components from "./components";
-const { Modal, response } = components;
+const { Modal, response,useShortcut } = components;
 
 const Instructions = ({ instructions }) => {
   //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
@@ -17,6 +17,8 @@ const Instructions = ({ instructions }) => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
+  useShortcut("enter", ()=>isModalOpen&&navigate(`/quiz?id=${id}`),null,true);
+  useShortcut("esc", ()=> setIsModalOpen(false),null,true);
   const handleButtonClick = () => {
     setIsModalOpen(true);
   };
@@ -43,7 +45,7 @@ const Instructions = ({ instructions }) => {
           <Modal
             modalType="Confirm"
             modalMessage="Are you sure to start the test?"
-            buttons={["Yes", "No"]}
+            buttons={[["Yes", "No"],["Enter","Esc"]]}
             response={closeModal}
           />
         )}

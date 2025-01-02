@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signin.css";
 import components from "./components";
-const { Modal, response, MessageBox, handleApiCall } = components;
+const { Modal, response, MessageBox, handleApiCall,useShortcut } = components;
 
 const Signin = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [responseMessage, setResponseMessage] = useState(null);
   const [userID, setUserID] = useState("");
   const [userPassword, setUserPassword] = useState("");
-
+const loginRef = useRef(null);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -69,9 +69,12 @@ const Signin = (props) => {
     }
   };
 
+useShortcut("enter",()=>{isModalOpen?closeModal("Ok"):handleLogin()},null,true);
+
+   
   return (
-    <>
-      <div className="login-container">
+    <div ref={loginRef}>
+      <div className="login-container" >
         <h1 className="login-header">Login</h1>
         <div className="login-form">
           <div className="institution-name">
@@ -107,7 +110,7 @@ const Signin = (props) => {
             />
           </div>
           {responseMessage && <MessageBox message={responseMessage} />}
-          <button type="button" onClick={handleLogin}>
+          <button type="button" onClick={handleLogin}className="tooltip" tooltip="Enter" >
             Login
           </button>
         </div>
@@ -117,11 +120,13 @@ const Signin = (props) => {
         <Modal
           modalType="Info"
           modalMessage="Login Successful!"
-          buttons={["Ok"]}
+          buttons={[["Ok"],[
+            "Enter"
+          ]]}
           response={closeModal}
         />
       )}
-    </>
+    </div>
   );
 };
 

@@ -3,7 +3,7 @@ import "../styles/Test.css";
 import components from "./components";
 import { useLocation } from "react-router-dom";
 
-const { Modal, fileUpload, handleApiCall, DataTableSection } = components;
+const { Modal, FileUpload, handleApiCall, DataTableSection } = components;
 
 const Test = () => {
   //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
@@ -308,7 +308,7 @@ const Test = () => {
       }
     };
     if (files[0].files[0]) {
-      await fileUpload(
+      await FileUpload(
         (groupName) => {
           if (!selectedQuestionsGroups.includes(groupName)) {
             setSelectedQuestionsGroups((prev) => [...prev, groupName]);

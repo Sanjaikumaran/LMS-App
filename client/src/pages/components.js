@@ -7,12 +7,42 @@ import "../styles/components.css";
 import axios from "axios";
 import { CgProfile } from "react-icons/cg";
 const XLSX = require("xlsx");
+const shortcut = (keyCombo, callback, targetRef, global) => {
+  const handleKeyDown = (event) => {
+    const keys = keyCombo.split("+");
+    const isMatch = keys.every((key) => {
+      if (key === "ctrl") return event.ctrlKey;
+      if (key === "shift") return event.shiftKey;
+      if (key === "alt") return event.altKey;
+      if (key === "enter") return event.key === "Enter";
+      if (key === "delete") return event.key === "Delete";
+      if (key === "esc" || key === "escape") return event.key === "Escape";
 
+      return event.key.toLowerCase() === key.toLowerCase();
+    });
+
+    if (isMatch) {
+      if (
+        global ||
+        !targetRef ||
+        targetRef.current?.contains(document.activeElement)
+      ) {
+        event.preventDefault();
+        callback(event);
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+};
 const Navbar = (props) => {
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
-      return; 
+      return;
     }
 
     const profileContainer = document.createElement("div");
@@ -94,9 +124,14 @@ const Modal = (props) => {
           <div className="card-body">
             <h3>{props.modalMessage}</h3>{" "}
             <div className="modal-buttons">
-              {props.buttons.map((button, index) => {
+              {props.buttons[0].map((button, index) => {
                 return (
-                  <button key={index} onClick={() => props.response(button)}>
+                  <button
+                    key={index}
+                    onClick={() => props.response(button)}
+                    className="tooltip"
+                    tooltip={props.buttons[1][index]}
+                  >
                     {button}
                   </button>
                 );
@@ -128,15 +163,21 @@ const createFormModal = (props) => {
     overlay.remove();
     modalContainer.remove();
   };
+  shortcut("esc", closeModal);
+  shortcut("enter", props.saveCallback(closeModal));
   const buttonsDiv = document.createElement("div");
   buttonsDiv.className = "modal-buttons";
   const saveButton = document.createElement("button");
+  saveButton.classList.add("tooltip");
+  saveButton.setAttribute("tooltip", "Enter");
   saveButton.innerText = "Save";
   saveButton.onclick = props.saveCallback(closeModal);
 
   const closeButton = document.createElement("button");
   closeButton.innerText = "Close";
-  closeButton.className = "red-bg";
+
+  closeButton.setAttribute("tooltip", "Esc");
+  closeButton.className = "red-bg tooltip";
   closeButton.onclick = closeModal;
 
   buttonsDiv.appendChild(closeButton);
@@ -195,22 +236,50 @@ const ModuleCard = (props) => {
     </div>
   );
 };
-const fileUpload = async (
+const FileUpload = async (
   fetchCallback,
   fileName,
   apiEndpoint,
   collectionName,
   showModal,
-  setIsModalOpen,submitCallback=null
+  setIsModalOpen,
+  submitCallback = null
 ) => {
-  var groupName 
-  
-  // Check if file is selected
+  var groupName;
+  var enterShortcutFunction = null;
+  shortcut(
+    "esc",
+    () => {
+      setIsModalOpen(false);
+    },
+    null,
+    true
+  );
+  shortcut(
+    "enter",
+    () => {
+      console.log(enterShortcutFunction);
+      
+      enterShortcutFunction && enterShortcutFunction();
+      enterShortcutFunction = null;
+    },
+    null,
+    true
+  );
+
   if (!fileName.files[0]) {
+    enterShortcutFunction = () => {
+      fileName.click();
+      setIsModalOpen(false);
+    };
+
     showModal(
       "Error",
       "No file is selected.",
-      ["Select File", "Ok"],
+      [
+        ["Select File", "Cancel"],
+        ["Enter", "Esc"],
+      ],
       (button) => {
         if (button === "Select File") fileName.click();
         setIsModalOpen(false);
@@ -250,7 +319,6 @@ const fileUpload = async (
   };
 
   const handleUpload = async (data) => {
-
     try {
       const response = await handleApiCall({
         API: apiEndpoint,
@@ -258,25 +326,55 @@ const fileUpload = async (
       });
 
       if (response.flag) {
-        submitCallback&&submitCallback(groupName);
+        submitCallback && submitCallback(groupName);
         fetchCallback(groupName);
-        
-        showModal("Info", "Data Uploaded Successfully!", ["Ok"], () => {
+        enterShortcutFunction = () => {
           fileName.value = "";
           setIsModalOpen(false);
-        });
+        };
+
+        showModal(
+          "Info",
+          "Data Uploaded Successfully!",
+          [["Ok"], ["Enter"]],
+          () => {
+            fileName.value = "";
+            setIsModalOpen(false);
+          }
+        );
       } else {
-        showModal("Error", response.error, ["Retry", "Ok"], (button) => {
-          if (button === "Retry") retryUpload();
+        enterShortcutFunction = () => {
           fileName.value = "";
+          retryUpload();
           setIsModalOpen(false);
-        });
+        };
+        showModal(
+          "Error",
+          response.error,
+          [
+            ["Retry", "Cancel"],
+            ["Enter", "Esc"],
+          ],
+          (button) => {
+            if (button === "Retry") retryUpload();
+            fileName.value = "";
+            setIsModalOpen(false);
+          }
+        );
       }
     } catch (error) {
+      enterShortcutFunction = () => {
+        fileName.value = "";
+        retryUpload();
+        setIsModalOpen(false);
+      };
       showModal(
         "Error",
         `Uncaught error: ${error.message || error}`,
-        ["Retry", "Ok"],
+        [
+          ["Retry", "Cancel"],
+          ["Enter", "Esc"],
+        ],
         (button) => {
           if (button === "Retry") retryUpload();
           fileName.value = "";
@@ -287,7 +385,7 @@ const fileUpload = async (
   };
 
   const retryUpload = () => {
-    fileUpload(
+    FileUpload(
       fetchCallback,
       fileName,
       apiEndpoint,
@@ -353,20 +451,34 @@ const fileUpload = async (
         insertData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
         break;
       default:
-        showModal("Error", "Unsupported file type.", ["Ok"], () =>
+        enterShortcutFunction = () => {
+          setIsModalOpen(false);
+        };
+        showModal("Error", "Unsupported file type.", [["Ok"], ["Enter"]], () =>
           setIsModalOpen(false)
         );
         return;
     }
 
     if (apiEndpoint === "Upload-question") {
+      enterShortcutFunction = () => {
+        groupName = document.getElementById("groupName").value;
+        insertData = insertData.map((data) => ({
+          ...data,
+          Group: groupName,
+        }));
+        handleUpload(insertData);
+      };
       showModal(
         "Enter Question Group Name",
         <input type="text" id="groupName" />,
-        ["Ok", "Cancel"],
+        [
+          ["Ok", "Cancel"],
+          ["Enter", "Esc"],
+        ],
         (button) => {
           if (button === "Ok") {
-             groupName = document.getElementById("groupName").value;
+            groupName = document.getElementById("groupName").value;
             insertData = insertData.map((data) => ({
               ...data,
               Group: groupName,
@@ -375,14 +487,12 @@ const fileUpload = async (
           } else setIsModalOpen(false);
         }
       );
-      
-      
     } else {
       handleUpload(insertData);
     }
   };
 
-  // Read the file based on its type
+  // Read the up based on its type
   if (fileType === "xlsx") {
     reader.readAsArrayBuffer(fileName.files[0]);
   } else {
@@ -394,6 +504,7 @@ const ActionDiv = ({
   tablePageName,
   onFileUpload,
   onAddNew,
+
   onRemove,
   actionButtons,
 }) => {
@@ -477,7 +588,14 @@ const DataTableManagement = (props) => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+shortcut("esc",()=>{
+  setIsModalOpen(false);
+})
+var enterShortcutFunction = null;
+shortcut("enter",()=>{
+  enterShortcutFunction&&enterShortcutFunction();
+  enterShortcutFunction = null;
+})
   async function fetchData(collectionName = props.collectionName) {
     try {
       const response = await handleApiCall({
@@ -491,7 +609,9 @@ const DataTableManagement = (props) => {
         setTableColumns(Object.keys(studentData || data[0]));
         setTableData(data);
       } else {
-        showModal("Info", response.error, ["Retry", "Ok"], (button) => {
+        enterShortcutFunction = () => { fetchData(collectionName);
+          setIsModalOpen(false)} 
+        showModal("Info", response.error,[ ["Retry", "Cancel"],["Enter", "Esc"]], (button) => {
           if (button === "Retry") {
             fetchData(collectionName);
             setIsModalOpen(false);
@@ -501,10 +621,12 @@ const DataTableManagement = (props) => {
         });
       }
     } catch (error) {
+      enterShortcutFunction = () => { fetchData(collectionName);
+        setIsModalOpen(false)} 
       showModal(
         "Error",
         `Uncaught error: ${error.message}`,
-        ["Retry", "Ok"],
+        [["Retry", "Cancel"],["Enter", "Esc"]],
         (button) => {
           if (button === "Retry") {
             fetchData(collectionName);
@@ -535,11 +657,15 @@ const DataTableManagement = (props) => {
           data: selectedRows.map((row) => row._id),
         },
       });
+      enterShortcutFunction=()=>{
+        setIsSelectable(false);
+        setIsModalOpen(false);
+      }
       response.flag
         ? showModal(
             "Info",
             `${response.data.deletedCount} ${response.data.message}`,
-            ["Ok"],
+           [ ["Ok"],["Enter"]],
             () => {
               setIsSelectable(false);
               setIsModalOpen(false);
@@ -554,6 +680,7 @@ const DataTableManagement = (props) => {
   };
 
   const addNew = () => {
+
     const inputs = {};
     const contentElements = tableColumns.map((column) => {
       if ("_id" === column) {
@@ -581,8 +708,12 @@ const DataTableManagement = (props) => {
             API: "insert-data",
             data: { data, collection: props.collectionName },
           });
+          enterShortcutFunction=()=>{
+            setTableData([...tableData, data]);
+            setIsModalOpen(false);
+          }
           response.flag
-            ? showModal("Info", "Data Inserted successfully!", ["Ok"], () => {
+            ? showModal("Info", "Data Inserted successfully!", [["Ok"],["Enter"]], () => {
                 setTableData([...tableData, data]);
                 setIsModalOpen(false);
               })
@@ -601,10 +732,10 @@ const DataTableManagement = (props) => {
     setModalOptions({
       type,
       message,
-      buttons: ["Retry", "Ok"],
+      buttons:[ ["Retry", "Cancel"],["Enter", "Esc"]],
       responseFunc: (button) => {
         if (button === "Retry") retryFunction();
-        if (button === "Ok") setIsModalOpen(false);
+        if (button === "Cancel") setIsModalOpen(false);
       },
     });
   };
@@ -637,7 +768,7 @@ const DataTableManagement = (props) => {
       <ActionDiv
         tablePageName={props.tablePageName}
         onFileUpload={(file) =>
-          fileUpload(
+          FileUpload(
             fetchData,
             file,
             props.API,
@@ -668,6 +799,40 @@ const DataTableManagement = (props) => {
   );
 };
 
+const useShortcut = (keyCombo, callback, targetRef = null, global = false) => {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const keys = keyCombo.split("+");
+      const isMatch = keys.every((key) => {
+        if (key === "ctrl") return event.ctrlKey;
+        if (key === "shift") return event.shiftKey;
+        if (key === "alt") return event.altKey;
+        if (key === "enter") return event.key === "Enter";
+        if (key === "delete") return event.key === "Delete";
+        if (key === "esc" || key === "escape") return event.key === "Escape";
+
+        return event.key.toLowerCase() === key.toLowerCase();
+      });
+
+      if (isMatch) {
+        if (
+          global ||
+          !targetRef ||
+          targetRef.current?.contains(document.activeElement)
+        ) {
+          event.preventDefault();
+          callback(event);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [keyCombo, callback, targetRef, global]);
+};
+
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   Navbar,
@@ -677,7 +842,8 @@ export default {
   MessageBox,
   handleApiCall,
   ModuleCard,
-  fileUpload,
+  FileUpload,
   DataTableSection,
   DataTableManagement,
+  useShortcut,
 };

@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 
 import "../styles/Quiz.css";
 import components from "./components";
-const { Modal, handleApiCall } = components;
+const { Modal, handleApiCall, useShortcut } = components;
 const radius = 50;
 const circumference = 2 * Math.PI * radius;
 
@@ -20,10 +20,22 @@ const Quiz = (props) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [highlightedOptions, setHighlightedOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState([]);
-
+  const [enterShortcutFunction, setEnterShortcutFunction] = useState(null);
+  const [escShortcutFunction, setEscShortcutFunction] = useState(null);
   const [endTime, setEndTime] = useState("");
 
   const [questionsGroup, setQuestionsGroup] = useState([]);
+  useShortcut("enter", () => {
+    if (enterShortcutFunction) {
+      enterShortcutFunction();
+      setEnterShortcutFunction(null);
+    }
+  }, null, true);
+  useShortcut("esc", () => {
+    escShortcutFunction(false)
+   
+    setEnterShortcutFunction(null);
+  }, null, true);
   useEffect(() => {
     async function fetchData() {
       try {
@@ -41,9 +53,8 @@ const Quiz = (props) => {
           setEndTime(testData["End Time"]);
 
           setQuestionsGroup(testData["Questions Group"]);
-          const [hours, minutes, seconds] = testData.Duration.split(":").map(
-            Number
-          );
+          const [hours, minutes, seconds] =
+            testData.Duration.split(":").map(Number);
 
           setTotalTime((hours * 60 + minutes) * 60 + seconds);
           setTimeLeft((hours * 60 + minutes) * 60 + seconds);
@@ -103,7 +114,7 @@ const Quiz = (props) => {
           console.log("No questions data found.");
         }
       } catch (error) {
-        console.error("Error fetching questions data:", error);
+        console.log("Error fetching questions data:", error);
       }
     }
     fetchQuestionsData();
@@ -126,27 +137,33 @@ const Quiz = (props) => {
   }, [questions, totalTime]);
 
   useEffect(() => {
-    let endDateTime = new Date(endTime);
-    let currentTime = new Date();
+    const handleTimeout = () => {
+      setTimeLeft(10);
+      setTotalTime(10);
+      autoSubmit();
+      setIsModalOpen(false);
+      setIsAutoSubmit(true);
+    };
+  
+    let endDateTime = new Date(endTime).getTime();
+    let currentTime = Date.now();
+  
     if ((timeLeft === 0 && !isAutoSubmit) || currentTime > endDateTime) {
       setIsModalOpen(true);
-      setEndTime(currentTime.getTime() + 60000);
-
+      setEndTime(Date.now() + 60000);
+  
+      setEnterShortcutFunction(() => handleTimeout);
+      setEscShortcutFunction(() => handleTimeout);
       setModalOptions({
         type: "Alert",
         message: "Time Out! \nYour test will be submitted in 10 secs",
-        buttons: ["Ok"],
-        responseFunc: () => {
-          setTimeLeft(10);
-          setTotalTime(10);
-          autoSubmit();
-          setIsModalOpen(false);
-          setIsAutoSubmit(true);
-        },
+        buttons: [["Ok"], ["Enter"]],
+        responseFunc: handleTimeout,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isAutoSubmit, endTime]);
+  
 
   const autoSubmit = () => {
     const timer = setTimeout(() => {
@@ -232,18 +249,21 @@ const Quiz = (props) => {
           },
         },
       });
-
+      const navFunc=()=>{
+        window.location.href = "/summary";
+        setIsModalOpen(false);
+      }
+      setEnterShortcutFunction(() =>navFunc);
+      setEscShortcutFunction(() =>navFunc);
       setModalOptions({
         type: response.flag ? "Info" : "Error",
         message: response.flag
           ? "Your test has been submitted!"
           : "Error submitting test! \n Please contact admin",
-        buttons: ["Ok"],
+        buttons: [["Ok"], ["Enter"]],
         responseFunc: (button) => {
           if (button === "Ok") {
             window.location.href = "/summary";
-            console.log("g");
-            
           }
           setIsModalOpen(false);
         },
@@ -252,7 +272,27 @@ const Quiz = (props) => {
       setIsModalOpen(true);
     }
   };
-
+const confirmSubmit = () => {
+  const handleConfirmSubmit = () => {
+    handleTestSubmit();
+    setIsModalOpen(false);
+  };
+  setEnterShortcutFunction(() => handleConfirmSubmit);
+  setEscShortcutFunction(()=>    setIsModalOpen)
+  setModalOptions({
+    type: "Confirm",
+    message: "Are you sure to submit the test?",
+    buttons: [["Yes", "No"], ["Enter", "Esc"]],
+    responseFunc: (button) => {
+      if (button === "Yes") {
+        handleConfirmSubmit();
+      } else {
+        setIsModalOpen(false);
+      }
+    },
+  });
+  setIsModalOpen(true);
+};
   const handleOptionSelect = (option, type) => {
     const updatedSelections = [...highlightedOptions];
 
@@ -471,7 +511,7 @@ const Quiz = (props) => {
               onClick={() => {
                 return currentQuestionIndex !== totalQuestions - 1
                   ? handleQuestionNavigate("Next")
-                  : handleTestSubmit();
+                  : confirmSubmit();
               }}
               className={
                 currentQuestionIndex !== totalQuestions - 1

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import components from "./components";
 import "../styles/CreateTest.css";
-const { Modal, handleApiCall, fileUpload } = components;
+const { Modal, handleApiCall, FileUpload } = components;
 
 const CreateTest = () => {
   //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
@@ -186,7 +186,7 @@ const CreateTest = () => {
       showModal("Uncaught Error", error.message, ["Close"]);
     }}
     if (files[0].files[0]) {
-      await fileUpload(
+      await FileUpload(
         (groupName) => {
           if (!selectedQuestionsGroups.includes(groupName)) {
             setSelectedQuestionsGroups((prev) => [...prev, groupName]);
