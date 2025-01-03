@@ -802,6 +802,7 @@ shortcut("enter",()=>{
 const useShortcut = (keyCombo, callback, targetRef = null, global = false) => {
   useEffect(() => {
     const handleKeyDown = (event) => {
+
       const keys = keyCombo.split("+");
       const isMatch = keys.every((key) => {
         if (key === "ctrl") return event.ctrlKey;

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import "../styles/Test.css";
 import components from "./components";
 import { useLocation } from "react-router-dom";
 
-const { Modal, FileUpload, handleApiCall, DataTableSection } = components;
+const { Modal, FileUpload, handleApiCall, DataTableSection, useShortcut } =
+  components;
 
 const Test = () => {
   //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
@@ -44,6 +45,11 @@ const Test = () => {
 
   const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(false);
   const [displayAnswer, setDisplayAnswer] = useState("");
+
+  const [enterShortcutFunction, setEnterShortcutFunction] = useState(null);
+  const [escShortcutFunction, setEscShortcutFunction] = useState(null);
+
+  const submitRef = useRef(null);
   //eslint-disable-next-line no-unused-vars
   const [marks, setMarks] = useState(0);
   //eslint-disable-next-line no-unused-vars
@@ -51,7 +57,29 @@ const Test = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
-
+  useShortcut("Enter", () => {
+    enterShortcutFunction && enterShortcutFunction();
+    setEnterShortcutFunction(null);
+  });
+  useShortcut("Escape", () => {
+    escShortcutFunction && escShortcutFunction();
+    setEscShortcutFunction(null);
+  });
+  useShortcut(
+    "ctrl+s",
+    () => {
+      document.querySelector("button[tooltip='Ctrl+S']").click();
+    },
+    submitRef
+  );
+  useShortcut(
+    "ctrl+p",
+    () => {
+      tableName === "Test Results" && testResult.length > 0 && generateReport();
+    },
+    null,
+    true
+  );
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -252,7 +280,12 @@ const Test = () => {
     event.preventDefault();
 
     if (!testName) {
-      showModal("Error", "Please fill in all required fields.", ["Ok"]);
+      setEnterShortcutFunction(() => setIsModalOpen);
+      setEscShortcutFunction(() => setIsModalOpen);
+      showModal("Error", "Please fill in all required fields.", [
+        ["Ok"],
+        "Enter",
+      ]);
       return;
     }
 
@@ -260,7 +293,12 @@ const Test = () => {
     const end = new Date(endTime);
 
     if (end <= start) {
-      showModal("Error", "End time must be greater than start time.", ["Ok"]);
+      setEnterShortcutFunction(() => setIsModalOpen);
+      setEscShortcutFunction(() => setIsModalOpen);
+      showModal("Error", "End time must be greater than start time.", [
+        ["Ok"],
+        ["Enter"],
+      ]);
       return;
     }
 
@@ -286,7 +324,13 @@ const Test = () => {
         };
 
         if (!testName) {
-          throw new Error("Test Name is required.");
+          setEnterShortcutFunction(() => setIsModalOpen);
+          setEscShortcutFunction(() => setIsModalOpen);
+          showModal("Error", "Please fill in all required fields.", [
+            ["Ok"],
+            ["Enter"],
+          ]);
+          return;
         }
 
         const response = await handleApiCall({
@@ -299,12 +343,21 @@ const Test = () => {
         });
 
         if (response.flag) {
-          showModal("Success", "Test Updated Successfully", ["Ok"]);
+          setEnterShortcutFunction(() => setIsModalOpen);
+          setEscShortcutFunction(() => setIsModalOpen);
+          showModal("Success", "Test Updated Successfully", [
+            ["Ok"],
+            ["Enter"],
+          ]);
         } else {
-          showModal("Error", response.error, ["Close"]);
+          setEnterShortcutFunction(() => setIsModalOpen);
+          setEscShortcutFunction(() => setIsModalOpen);
+          showModal("Error", response.error, [["Close"], ["Esc"]]);
         }
       } catch (error) {
-        showModal("Uncaught Error", error.message, ["Close"]);
+        setEnterShortcutFunction(() => setIsModalOpen);
+        setEscShortcutFunction(() => setIsModalOpen);
+        showModal("Uncaught Error", error.message, [["Close"], ["Esc"]]);
       }
     };
     if (files[0].files[0]) {
@@ -693,6 +746,7 @@ const Test = () => {
 
       <div style={{ display: "flex" }}>
         <form
+          ref={submitRef}
           className="test-form"
           onSubmit={handleSubmit}
           style={{ margin: " 20px " }}
@@ -868,7 +922,9 @@ const Test = () => {
             <input type="file" name="questions-file" />
           </div>
 
-          <button type="submit">Submit</button>
+          <button type="submit" tooltip="Ctrl+S" className="tooltip">
+            Submit
+          </button>
         </form>
         <div>
           <div style={{ margin: "20px" }}>
@@ -884,7 +940,13 @@ const Test = () => {
                   readOnly
                 />
                 {tableName === "Test Results" && testResult.length > 0 && (
-                  <button onClick={generateReport}>Generate Report</button>
+                  <button
+                    onClick={generateReport}
+                    className="tooltip"
+                    tooltip="Ctrl+P"
+                  >
+                    Generate Report
+                  </button>
                 )}
                 {isTableDropdownVisible && (
                   <div className="group-dropdown">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import components from "./components";
 import "../styles/CreateTest.css";
-const { Modal, handleApiCall, FileUpload } = components;
+const { Modal, handleApiCall, FileUpload,useShortcut } = components;
 
 const CreateTest = () => {
   //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
@@ -25,6 +25,25 @@ const CreateTest = () => {
   );
   const [allUsersGroups, setAllUsersGroups] = useState([]);
   const [allQuestionsGroups, setAllQuestionsGroups] = useState([]);
+
+  const [enterShortcutFunction, setEnterShortcutFunction] = useState(null);
+  const [escShortcutFunction, setEscShortcutFunction] = useState(null);
+useShortcut("enter",()=>{
+  enterShortcutFunction&&enterShortcutFunction();
+ setEnterShortcutFunction(null);
+})
+useShortcut("esc",()=>{
+  escShortcutFunction&&escShortcutFunction();
+  setEscShortcutFunction(null);
+
+})
+useShortcut(
+  "ctrl+s",
+  () => {
+    document.querySelector("button[tooltip='Ctrl+S']").click();
+  },
+  null,true
+);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -125,7 +144,9 @@ const CreateTest = () => {
     event.preventDefault();
   
     if (!testName) {
-      showModal("Error", "Please fill in all required fields.", ["Ok"]);
+      setEnterShortcutFunction(() => setIsModalOpen);
+      setEscShortcutFunction(() => setIsModalOpen);
+      showModal("Error", "Please fill in all required fields.", [["Ok"],["Enter"]]);
       return;
     }
   
@@ -133,7 +154,9 @@ const CreateTest = () => {
     const end = new Date(endTime);
   
     if (end <= start) {
-      showModal("Error", "End time must be greater than start time.", ["Ok"]);
+      setEnterShortcutFunction(() => setIsModalOpen);
+      setEscShortcutFunction(() => setIsModalOpen);
+      showModal("Error", "End time must be greater than start time.",[ ["Ok"],["Enter"]]);
       return;
     }
   
@@ -174,16 +197,25 @@ const CreateTest = () => {
       });
   
       if (response.flag) {
-        showModal("Success", "Test Created Successfully", ["Ok"],(button)=>{
+        const navFunc=()=>{
+          window.location.href = "/admin";
+        }
+        setEnterShortcutFunction(()=>navFunc);
+        setEscShortcutFunction(()=>navFunc);
+      
+
+        showModal("Success", "Test Created Successfully", [["Ok"],["Enter"]],(button)=>{
           if(button==="Ok"){
-            window.location.href = "/admin";
+          navFunc();
           }
         });
       } else {
-        showModal("Error", "Test not Created", ["Close"]);
+        setEscShortcutFunction(() => setIsModalOpen);
+        showModal("Error", "Test not Created", [["Close"],["Esc"]]);
       }
     } catch (error) {
-      showModal("Uncaught Error", error.message, ["Close"]);
+      setEscShortcutFunction(() => setIsModalOpen);
+      showModal("Uncaught Error", error.message, [["Close"],["Esc"]]);
     }}
     if (files[0].files[0]) {
       await FileUpload(
@@ -391,7 +423,7 @@ const CreateTest = () => {
           <input type="file"  />
         </div>
 
-        <button type="submit">Submit</button>
+        <button type="submit" className="tooltip" tooltip="Ctrl+S">Submit</button>
       </form>
     </>
   );
