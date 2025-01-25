@@ -400,6 +400,8 @@ const Test = () => {
       : allQuestionsGroups;
 
   const columns = useMemo(() => {
+    console.log(testResult);
+
     if (tableName === "Users") {
       return [
         {

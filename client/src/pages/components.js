@@ -259,7 +259,7 @@ const FileUpload = async (
     "enter",
     () => {
       console.log(enterShortcutFunction);
-      
+
       enterShortcutFunction && enterShortcutFunction();
       enterShortcutFunction = null;
     },
@@ -327,7 +327,7 @@ const FileUpload = async (
 
       if (response.flag) {
         submitCallback && submitCallback(groupName);
-        fetchCallback(groupName);
+        fetchCallback();
         enterShortcutFunction = () => {
           fileName.value = "";
           setIsModalOpen(false);
@@ -338,8 +338,7 @@ const FileUpload = async (
           "Data Uploaded Successfully!",
           [["Ok"], ["Enter"]],
           () => {
-            fileName.value = "";
-            setIsModalOpen(false);
+            enterShortcutFunction();
           }
         );
       } else {
@@ -404,6 +403,8 @@ const FileUpload = async (
           insertData = Papa.parse(reader.result).data;
         } else {
           insertData = Papa.parse(reader.result).data;
+          console.log(insertData);
+
           insertData = insertData
             .map((question) => {
               if (
@@ -449,6 +450,46 @@ const FileUpload = async (
         const workbook = XLSX.read(reader.result, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         insertData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        const arrayData = insertData.map((obj) => {
+          return [obj.Question, obj.Options, Object.Answers];
+        });
+        insertData = [Object.keys(insertData[0]), ...arrayData];
+        console.log(insertData);
+
+        insertData = insertData
+          .map((question) => {
+            if (
+              question[0].toLowerCase().trim() !== "question" &&
+              question[0].toLowerCase().trim() !== "questions"
+            ) {
+              if (question[0].includes("____")) {
+                return {
+                  Question: question[0].trim(),
+                  Option: question[1]
+                    ? question[1].split(/::|,,/).map((option) => option.trim())
+                    : ["None"],
+                  Answer: question[2]
+                    .split(/::|,,/)
+                    .map((option) => option.trim()),
+                };
+              }
+              const options = question[1]
+                ? question[1].split(/::|,,/).map((option) => option.trim())
+                : [];
+              const answers = question[2]
+                ? question[2].split(/::|,,/).map((answer) => answer.trim())
+                : [];
+
+              return {
+                Question: question[0].trim(),
+                Option: options,
+                Answer: answers,
+              };
+            }
+            return null;
+          })
+          .filter((item) => item !== null);
         break;
       default:
         enterShortcutFunction = () => {
@@ -588,14 +629,14 @@ const DataTableManagement = (props) => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-shortcut("esc",()=>{
-  setIsModalOpen(false);
-})
-var enterShortcutFunction = null;
-shortcut("enter",()=>{
-  enterShortcutFunction&&enterShortcutFunction();
-  enterShortcutFunction = null;
-})
+  shortcut("esc", () => {
+    setIsModalOpen(false);
+  });
+  var enterShortcutFunction = null;
+  shortcut("enter", () => {
+    enterShortcutFunction && enterShortcutFunction();
+    enterShortcutFunction = null;
+  });
   async function fetchData(collectionName = props.collectionName) {
     try {
       const response = await handleApiCall({
@@ -609,24 +650,39 @@ shortcut("enter",()=>{
         setTableColumns(Object.keys(studentData || data[0]));
         setTableData(data);
       } else {
-        enterShortcutFunction = () => { fetchData(collectionName);
-          setIsModalOpen(false)} 
-        showModal("Info", response.error,[ ["Retry", "Cancel"],["Enter", "Esc"]], (button) => {
-          if (button === "Retry") {
-            fetchData(collectionName);
-            setIsModalOpen(false);
-          } else {
-            setIsModalOpen(false);
+        enterShortcutFunction = () => {
+          fetchData(collectionName);
+          setIsModalOpen(false);
+        };
+        showModal(
+          "Info",
+          response.error,
+          [
+            ["Retry", "Cancel"],
+            ["Enter", "Esc"],
+          ],
+          (button) => {
+            if (button === "Retry") {
+              fetchData(collectionName);
+              setIsModalOpen(false);
+            } else {
+              setIsModalOpen(false);
+            }
           }
-        });
+        );
       }
     } catch (error) {
-      enterShortcutFunction = () => { fetchData(collectionName);
-        setIsModalOpen(false)} 
+      enterShortcutFunction = () => {
+        fetchData(collectionName);
+        setIsModalOpen(false);
+      };
       showModal(
         "Error",
         `Uncaught error: ${error.message}`,
-        [["Retry", "Cancel"],["Enter", "Esc"]],
+        [
+          ["Retry", "Cancel"],
+          ["Enter", "Esc"],
+        ],
         (button) => {
           if (button === "Retry") {
             fetchData(collectionName);
@@ -657,15 +713,15 @@ shortcut("enter",()=>{
           data: selectedRows.map((row) => row._id),
         },
       });
-      enterShortcutFunction=()=>{
+      enterShortcutFunction = () => {
         setIsSelectable(false);
         setIsModalOpen(false);
-      }
+      };
       response.flag
         ? showModal(
             "Info",
             `${response.data.deletedCount} ${response.data.message}`,
-           [ ["Ok"],["Enter"]],
+            [["Ok"], ["Enter"]],
             () => {
               setIsSelectable(false);
               setIsModalOpen(false);
@@ -680,7 +736,6 @@ shortcut("enter",()=>{
   };
 
   const addNew = () => {
-
     const inputs = {};
     const contentElements = tableColumns.map((column) => {
       if ("_id" === column) {
@@ -708,15 +763,20 @@ shortcut("enter",()=>{
             API: "insert-data",
             data: { data, collection: props.collectionName },
           });
-          enterShortcutFunction=()=>{
+          enterShortcutFunction = () => {
             setTableData([...tableData, data]);
             setIsModalOpen(false);
-          }
+          };
           response.flag
-            ? showModal("Info", "Data Inserted successfully!", [["Ok"],["Enter"]], () => {
-                setTableData([...tableData, data]);
-                setIsModalOpen(false);
-              })
+            ? showModal(
+                "Info",
+                "Data Inserted successfully!",
+                [["Ok"], ["Enter"]],
+                () => {
+                  setTableData([...tableData, data]);
+                  setIsModalOpen(false);
+                }
+              )
             : handleRetry("Error", response.error, addNew);
         } catch (error) {
           handleRetry("Uncaught Error", error.message, addNew);
@@ -732,7 +792,10 @@ shortcut("enter",()=>{
     setModalOptions({
       type,
       message,
-      buttons:[ ["Retry", "Cancel"],["Enter", "Esc"]],
+      buttons: [
+        ["Retry", "Cancel"],
+        ["Enter", "Esc"],
+      ],
       responseFunc: (button) => {
         if (button === "Retry") retryFunction();
         if (button === "Cancel") setIsModalOpen(false);
@@ -802,7 +865,6 @@ shortcut("enter",()=>{
 const useShortcut = (keyCombo, callback, targetRef = null, global = false) => {
   useEffect(() => {
     const handleKeyDown = (event) => {
-
       const keys = keyCombo.split("+");
       const isMatch = keys.every((key) => {
         if (key === "ctrl") return event.ctrlKey;

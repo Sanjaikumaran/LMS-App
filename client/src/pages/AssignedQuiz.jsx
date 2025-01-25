@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import components from "./components";
 
@@ -13,9 +13,13 @@ const { handleApiCall } = components;
 const AssignedQuiz = (props) => {
   const [assignedTests, setAssignedTests] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
+  const userID = useRef(props.UserID);
 
   const navigate = useNavigate();
-
+  if (props.UserID) {
+    localStorage.setItem("UserID", props.UserID);
+  }
+  const userIDLS = localStorage.getItem("UserID");
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,7 +66,10 @@ const AssignedQuiz = (props) => {
         let attempts = 0;
 
         assignedTest["Test Results"].forEach((testResult) => {
-          if (testResult.UserID === props.UserID) {
+          if (
+            testResult.UserID === userID.current ||
+            testResult.UserID === userIDLS
+          ) {
             attempts++;
           }
         });
@@ -88,7 +95,7 @@ const AssignedQuiz = (props) => {
     }, 1000);
 
     return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }, [assignedTests, props.UserID]);
+  }, [assignedTests, userID, userIDLS]);
   return (
     <div className="assigned-quiz-container">
       {assignedTests.length <= 0 && (

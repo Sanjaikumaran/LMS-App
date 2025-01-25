@@ -25,17 +25,27 @@ const Quiz = (props) => {
   const [endTime, setEndTime] = useState("");
 
   const [questionsGroup, setQuestionsGroup] = useState([]);
-  useShortcut("enter", () => {
-    if (enterShortcutFunction) {
-      enterShortcutFunction();
+  useShortcut(
+    "enter",
+    () => {
+      if (enterShortcutFunction) {
+        enterShortcutFunction();
+        setEnterShortcutFunction(null);
+      }
+    },
+    null,
+    true
+  );
+  useShortcut(
+    "esc",
+    () => {
+      escShortcutFunction(false);
+
       setEnterShortcutFunction(null);
-    }
-  }, null, true);
-  useShortcut("esc", () => {
-    escShortcutFunction(false)
-   
-    setEnterShortcutFunction(null);
-  }, null, true);
+    },
+    null,
+    true
+  );
   useEffect(() => {
     async function fetchData() {
       try {
@@ -144,14 +154,14 @@ const Quiz = (props) => {
       setIsModalOpen(false);
       setIsAutoSubmit(true);
     };
-  
+
     let endDateTime = new Date(endTime).getTime();
     let currentTime = Date.now();
-  
+
     if ((timeLeft === 0 && !isAutoSubmit) || currentTime > endDateTime) {
       setIsModalOpen(true);
       setEndTime(Date.now() + 60000);
-  
+
       setEnterShortcutFunction(() => handleTimeout);
       setEscShortcutFunction(() => handleTimeout);
       setModalOptions({
@@ -163,7 +173,6 @@ const Quiz = (props) => {
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, isAutoSubmit, endTime]);
-  
 
   const autoSubmit = () => {
     const timer = setTimeout(() => {
@@ -249,12 +258,12 @@ const Quiz = (props) => {
           },
         },
       });
-      const navFunc=()=>{
+      const navFunc = () => {
         window.location.href = "/summary";
         setIsModalOpen(false);
-      }
-      setEnterShortcutFunction(() =>navFunc);
-      setEscShortcutFunction(() =>navFunc);
+      };
+      setEnterShortcutFunction(() => navFunc);
+      setEscShortcutFunction(() => navFunc);
       setModalOptions({
         type: response.flag ? "Info" : "Error",
         message: response.flag
@@ -272,29 +281,33 @@ const Quiz = (props) => {
       setIsModalOpen(true);
     }
   };
-const confirmSubmit = () => {
-  const handleConfirmSubmit = () => {
-    handleTestSubmit();
-    setIsModalOpen(false);
+  const confirmSubmit = () => {
+    const handleConfirmSubmit = () => {
+      handleTestSubmit();
+      setIsModalOpen(false);
+    };
+    setEnterShortcutFunction(() => handleConfirmSubmit);
+    setEscShortcutFunction(() => setIsModalOpen);
+    setModalOptions({
+      type: "Confirm",
+      message: "Are you sure to submit the test?",
+      buttons: [
+        ["Yes", "No"],
+        ["Enter", "Esc"],
+      ],
+      responseFunc: (button) => {
+        if (button === "Yes") {
+          handleConfirmSubmit();
+        } else {
+          setIsModalOpen(false);
+        }
+      },
+    });
+    setIsModalOpen(true);
   };
-  setEnterShortcutFunction(() => handleConfirmSubmit);
-  setEscShortcutFunction(()=>    setIsModalOpen)
-  setModalOptions({
-    type: "Confirm",
-    message: "Are you sure to submit the test?",
-    buttons: [["Yes", "No"], ["Enter", "Esc"]],
-    responseFunc: (button) => {
-      if (button === "Yes") {
-        handleConfirmSubmit();
-      } else {
-        setIsModalOpen(false);
-      }
-    },
-  });
-  setIsModalOpen(true);
-};
   const handleOptionSelect = (option, type) => {
     const updatedSelections = [...highlightedOptions];
+    console.log(type);
 
     if (type === "radio") {
       if (updatedSelections[currentQuestionIndex] === option) {
@@ -306,24 +319,29 @@ const confirmSubmit = () => {
     } else if (type === "checkbox") {
       const currentSelections = updatedSelections[currentQuestionIndex] || [];
 
+      if (
+        updatedSelections[currentQuestionIndex] === "not-answered" ||
+        updatedSelections[currentQuestionIndex] === "skipped"
+      ) {
+        updatedSelections[currentQuestionIndex] = [];
+      }
       if (currentSelections.includes(option)) {
         updatedSelections[currentQuestionIndex] = currentSelections.filter(
           (o) => o !== option
         );
       } else {
         updatedSelections[currentQuestionIndex] = [];
-        updatedSelections[currentQuestionIndex] = [
-          ...currentSelections,
-          option,
-        ];
+        if (currentSelections === "not-answered") {
+          updatedSelections[currentQuestionIndex] = [option];
+        } else {
+          updatedSelections[currentQuestionIndex] = [
+            ...currentSelections,
+            option,
+          ];
+        }
       }
       if (updatedSelections[currentQuestionIndex].length === 0) {
         updatedSelections[currentQuestionIndex] = "not-answered";
-      } else if (
-        updatedSelections[currentQuestionIndex] === "not-answered" ||
-        updatedSelections[currentQuestionIndex] === "skipped"
-      ) {
-        updatedSelections[currentQuestionIndex] = [];
       }
     }
 
@@ -368,7 +386,10 @@ const confirmSubmit = () => {
     } else {
       const questionIndex = questions.indexOf(currentQuestion);
 
-      if (!updatedAnswers[questionIndex]) {
+      if (
+        !updatedAnswers[questionIndex] ||
+        updatedAnswers[questionIndex] === "not-answered"
+      ) {
         updatedAnswers[questionIndex] = [];
       }
 
@@ -417,7 +438,11 @@ const confirmSubmit = () => {
                                 value={
                                   highlightedOptions[
                                     questions.indexOf(currentQuestion)
-                                  ]?.[index] || ""
+                                  ] !== "not-answered"
+                                    ? highlightedOptions[
+                                        questions.indexOf(currentQuestion)
+                                      ]?.[index]
+                                    : ""
                                 }
                                 onChange={(e) =>
                                   handleInputChange(e, index, "blanks")
@@ -439,7 +464,10 @@ const confirmSubmit = () => {
                   autoComplete="off"
                   onChange={(e) => handleInputChange(e, 0, "paragraphs")}
                   value={
-                    highlightedOptions[questions.indexOf(currentQuestion)] || ""
+                    highlightedOptions[questions.indexOf(currentQuestion)] !==
+                    "not-answered"
+                      ? highlightedOptions[questions.indexOf(currentQuestion)]
+                      : ""
                   }
                 />
               ) : (
