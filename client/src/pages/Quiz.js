@@ -241,9 +241,12 @@ const Quiz = (props) => {
         })
       );
       const objectAnswers = selectedOptions.map((answer, index) => {
-        return { [questions[index].Question]: answer };
+        return {
+          [questions[index].Question]: answer,
+          "Score Added": false,
+          Score: 1,
+        };
       });
-
       const response = await handleApiCall({
         API: "push-data",
         data: {
@@ -307,7 +310,6 @@ const Quiz = (props) => {
   };
   const handleOptionSelect = (option, type) => {
     const updatedSelections = [...highlightedOptions];
-    console.log(type);
 
     if (type === "radio") {
       if (updatedSelections[currentQuestionIndex] === option) {

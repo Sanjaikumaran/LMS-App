@@ -7,6 +7,7 @@ const { exec } = require("child_process");
 const fs = require("node:fs");
 const path = require("path");
 const { error } = require("console");
+const e = require("cors");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -184,7 +185,9 @@ app.post("/update-data", async (req, res) => {
   }
 });
 app.post("/update-score", async (req, res) => {
-  const { collection, condition, score, marks, answer } = req.body.data;
+  const { collection, condition, score, marks, answer, question } =
+    req.body.data;
+
   try {
     const dbConnection = await connectToReplicaSet();
     const result = await dbConnection.getDocument(
@@ -196,9 +199,23 @@ app.post("/update-score", async (req, res) => {
       const updatedTestResults = result.data["Test Results"].map((item) => {
         if (item.Score === score && item.Answer === JSON.stringify(answer)) {
           item.Score += Number(marks);
+
+          let parsedAnswer = JSON.parse(item.Answer);
+
+          parsedAnswer = parsedAnswer.map((answerObj) => {
+            if (Object.keys(answerObj)[0] === question) {
+              answerObj["Score Added"] = true;
+              answerObj["Score"] = Number(marks);
+            }
+            return answerObj;
+          });
+
+          item.Answer = JSON.stringify(parsedAnswer);
         }
+
         return item;
       });
+
       const updateData = { "Test Results": updatedTestResults };
       const updateResult = await dbConnection.updateDocument(
         collection,

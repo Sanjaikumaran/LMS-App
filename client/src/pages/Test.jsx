@@ -400,8 +400,6 @@ const Test = () => {
       : allQuestionsGroups;
 
   const columns = useMemo(() => {
-    console.log(testResult);
-
     if (tableName === "Users") {
       return [
         {
@@ -535,7 +533,7 @@ const Test = () => {
   const handleSearch = () => {
     console.log(searchText);
   };
-  const addMarks = async (score, marks, testId) => {
+  const addMarks = async (score, marks, testId, questionText) => {
     const response = await handleApiCall({
       API: "update-score",
       data: {
@@ -545,6 +543,7 @@ const Test = () => {
         },
         score,
         marks,
+        question: questionText,
         answer: testResult[displayAnswer[0]].Answer,
       },
     });
@@ -555,6 +554,7 @@ const Test = () => {
     }
   };
 
+  const [showAnswer, setShowAnswer] = useState([true]);
   const AnswerCard = ({ question, index, questions }) => {
     const questionText = Object.keys(question)[0];
     const userAnswer = Object.values(question)[0];
@@ -564,6 +564,21 @@ const Test = () => {
       .find((option) => option.Question === questionText);
 
     const isParagraph = matchingOptions?.Option[0] === "Paragraph";
+
+    const handleAddMarks = (e, divIndex) => {
+      const marks = e.target.previousElementSibling.value;
+
+      if (!marks || isNaN(marks)) {
+        alert("Please enter valid marks.");
+        return;
+      }
+
+      addMarks(testResult[displayAnswer[0]].Score, marks, id, questionText);
+
+      const updatedShowAnswer = [...showAnswer];
+      updatedShowAnswer[divIndex] = false;
+      setShowAnswer(updatedShowAnswer);
+    };
 
     return (
       <div className="answer-card">
@@ -587,27 +602,31 @@ const Test = () => {
 
           {renderUserAnswer(userAnswer)}
 
-          {isParagraph && (
-            <div className="mark-input-div">
-              <input
-                type="number"
-                className="mark-input"
-                placeholder="Enter Marks"
-              />
-              <button
-                className="mark-input-btn"
-                onClick={(e) =>
-                  addMarks(
-                    testResult[displayAnswer[0]].Score,
-                    e.target.previousElementSibling.value,
-                    id
+          {isParagraph && !question["Score Added"] && showAnswer.length > 0
+            ? showAnswer.map((showDiv, divIndex) => {
+                return (
+                  showDiv && (
+                    <div key={divIndex} className="mark-input-div">
+                      <input
+                        type="number"
+                        className="mark-input"
+                        placeholder="Enter Marks"
+                      />
+                      <button
+                        className="mark-input-btn"
+                        onClick={(e) => handleAddMarks(e, divIndex)}
+                      >
+                        Add
+                      </button>
+                    </div>
                   )
-                }
-              >
-                Add
-              </button>
-            </div>
-          )}
+                );
+              })
+            : null}
+
+          {isParagraph && !question["Score Added"] && !showAnswer[0] ? (
+            <AnswerSection title="Score" items={[question["Score"]]} />
+          ) : null}
         </div>
       </div>
     );
