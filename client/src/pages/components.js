@@ -6,7 +6,7 @@ import Papa from "papaparse";
 import "../styles/components.css";
 import axios from "axios";
 import { CgProfile } from "react-icons/cg";
-const XLSX = require("xlsx");
+import * as XLSX from "xlsx";
 const shortcut = (keyCombo, callback, targetRef, global) => {
   const handleKeyDown = (event) => {
     const keys = keyCombo.split("+");
@@ -648,7 +648,7 @@ const DataTableManagement = (props) => {
           response.data.data?.filter((value) => !("title" in value)) || [];
         const studentData = data.find((value) => value.userType === "Student");
         setTableColumns(Object.keys(studentData || data[0]));
-        setTableData(data);
+        setTableData(data.filter((value) => value.userType !== "Admin"));
       } else {
         enterShortcutFunction = () => {
           fetchData(collectionName);
@@ -896,8 +896,7 @@ const useShortcut = (keyCombo, callback, targetRef = null, global = false) => {
   }, [keyCombo, callback, targetRef, global]);
 };
 
-// eslint-disable-next-line import/no-anonymous-default-export
-export default {
+const components = {
   Navbar,
   Modal,
   createFormModal,
@@ -910,3 +909,5 @@ export default {
   DataTableManagement,
   useShortcut,
 };
+
+export default components;

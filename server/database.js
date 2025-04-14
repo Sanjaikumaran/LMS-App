@@ -21,11 +21,12 @@ async function connectToReplicaSet() {
     }
     if (!collectionNames.includes("Users")) {
       await db.createCollection("Users");
-      await db.Users.insertOne({
+      const collection = db.collection("Users");
+
+      await collection.insertOne({
         Name: "Admin",
         Password: "admin",
         "Roll No": "admin",
-
         userType: "Admin",
       });
     } // else {
