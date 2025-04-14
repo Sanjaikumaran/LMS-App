@@ -1,13 +1,9 @@
-const os = require("os");
 const cors = require("cors");
 const express = require("express");
 const connectToReplicaSet = require("./database");
 require("dotenv").config();
-const { exec } = require("child_process");
-const fs = require("node:fs");
 const path = require("path");
-const { error } = require("console");
-const e = require("cors");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
