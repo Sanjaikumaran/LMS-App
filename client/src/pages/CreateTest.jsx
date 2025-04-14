@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import components from "./components";
-import "../styles/CreateTest.css";
-const { Modal, handleApiCall, FileUpload,useShortcut } = components;
+
+import shortcut from "../utils/shortcut";
+import FileUpload from "../utils/fileUpload";
+import Modal from "../utils/modal";
+import "../assets/styles/CreateTest.css";
+import handleApiCall from "../utils/handleAPI";
 
 const CreateTest = () => {
-  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  //if (userLogged.flag) {
-  //  if (userLogged.userType !== "Admin") {
-  //    window.location.href = "/";
-  //  }
-  //}
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
   const [testName, setTestName] = useState("");
@@ -20,30 +17,29 @@ const CreateTest = () => {
   const [selectedUsersGroups, setSelectedUsersGroups] = useState([]);
   const [selectedQuestionsGroups, setSelectedQuestionsGroups] = useState([]);
   const [isUsersDropdownVisible, setUsersIsDropdownVisible] = useState(false);
-  const [isQuestionsDropdownVisible, setIsQuestionsDropdownVisible] = useState(
-    false
-  );
+  const [isQuestionsDropdownVisible, setIsQuestionsDropdownVisible] =
+    useState(false);
   const [allUsersGroups, setAllUsersGroups] = useState([]);
   const [allQuestionsGroups, setAllQuestionsGroups] = useState([]);
 
   const [enterShortcutFunction, setEnterShortcutFunction] = useState(null);
   const [escShortcutFunction, setEscShortcutFunction] = useState(null);
-useShortcut("enter",()=>{
-  enterShortcutFunction&&enterShortcutFunction();
- setEnterShortcutFunction(null);
-})
-useShortcut("esc",()=>{
-  escShortcutFunction&&escShortcutFunction();
-  setEscShortcutFunction(null);
-
-})
-useShortcut(
-  "ctrl+s",
-  () => {
-    document.querySelector("button[tooltip='Ctrl+S']").click();
-  },
-  null,true
-);
+  shortcut("enter", () => {
+    enterShortcutFunction && enterShortcutFunction();
+    setEnterShortcutFunction(null);
+  });
+  shortcut("esc", () => {
+    escShortcutFunction && escShortcutFunction();
+    setEscShortcutFunction(null);
+  });
+  shortcut(
+    "ctrl+s",
+    () => {
+      document.querySelector("button[tooltip='Ctrl+S']").click();
+    },
+    null,
+    true
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -142,39 +138,43 @@ useShortcut(
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     if (!testName) {
       setEnterShortcutFunction(() => setIsModalOpen);
       setEscShortcutFunction(() => setIsModalOpen);
-      showModal("Error", "Please fill in all required fields.", [["Ok"],["Enter"]]);
+      showModal("Error", "Please fill in all required fields.", [
+        ["Ok"],
+        ["Enter"],
+      ]);
       return;
     }
-  
+
     const start = new Date(startTime);
     const end = new Date(endTime);
-  
+
     if (end <= start) {
       setEnterShortcutFunction(() => setIsModalOpen);
       setEscShortcutFunction(() => setIsModalOpen);
-      showModal("Error", "End time must be greater than start time.",[ ["Ok"],["Enter"]]);
+      showModal("Error", "End time must be greater than start time.", [
+        ["Ok"],
+        ["Enter"],
+      ]);
       return;
     }
-  
+
     const files = document.querySelectorAll("input[type=file]");
-   const submitCallback = async (newGroupName) => {
-    
-    
-    try {
-      const configurations = {
-        ...(testName && { "Test Name": testName }),
-        ...(startTime && { "Start Time": startTime }),
-        ...(endTime && { "End Time": endTime }),
-        ...(duration && { Duration: duration }),
-        ...(attempts && { "Attempts Limit": attempts }),
-        ...(Array.isArray(selectedUsersGroups) &&
-          selectedUsersGroups.length > 0 && {
-            "Participants Group": selectedUsersGroups,
-          }),
+    const submitCallback = async (newGroupName) => {
+      try {
+        const configurations = {
+          ...(testName && { "Test Name": testName }),
+          ...(startTime && { "Start Time": startTime }),
+          ...(endTime && { "End Time": endTime }),
+          ...(duration && { Duration: duration }),
+          ...(attempts && { "Attempts Limit": attempts }),
+          ...(Array.isArray(selectedUsersGroups) &&
+            selectedUsersGroups.length > 0 && {
+              "Participants Group": selectedUsersGroups,
+            }),
           ...(Array.isArray(selectedQuestionsGroups) &&
           selectedQuestionsGroups.length > 0
             ? {
@@ -186,37 +186,41 @@ useShortcut(
             : {
                 "Questions Group": [newGroupName],
               }),
-        
-        "Test Results": [],
-      };
 
-  
-      const response = await handleApiCall({
-        API: "insert-data",
-        data: { data: configurations, collection: "Tests" },
-      });
-  
-      if (response.flag) {
-        const navFunc=()=>{
-          window.location.href = "/admin";
-        }
-        setEnterShortcutFunction(()=>navFunc);
-        setEscShortcutFunction(()=>navFunc);
-      
+          "Test Results": [],
+        };
 
-        showModal("Success", "Test Created Successfully", [["Ok"],["Enter"]],(button)=>{
-          if(button==="Ok"){
-          navFunc();
-          }
+        const response = await handleApiCall({
+          API: "insert-data",
+          data: { data: configurations, collection: "Tests" },
         });
-      } else {
+
+        if (response.flag) {
+          const navFunc = () => {
+            window.location.href = "/admin";
+          };
+          setEnterShortcutFunction(() => navFunc);
+          setEscShortcutFunction(() => navFunc);
+
+          showModal(
+            "Success",
+            "Test Created Successfully",
+            [["Ok"], ["Enter"]],
+            (button) => {
+              if (button === "Ok") {
+                navFunc();
+              }
+            }
+          );
+        } else {
+          setEscShortcutFunction(() => setIsModalOpen);
+          showModal("Error", "Test not Created", [["Close"], ["Esc"]]);
+        }
+      } catch (error) {
         setEscShortcutFunction(() => setIsModalOpen);
-        showModal("Error", "Test not Created", [["Close"],["Esc"]]);
+        showModal("Uncaught Error", error.message, [["Close"], ["Esc"]]);
       }
-    } catch (error) {
-      setEscShortcutFunction(() => setIsModalOpen);
-      showModal("Uncaught Error", error.message, [["Close"],["Esc"]]);
-    }}
+    };
     if (files[0].files[0]) {
       await FileUpload(
         (groupName) => {
@@ -236,7 +240,7 @@ useShortcut(
     }
     submitCallback();
   };
-  
+
   const displayUsersGroups =
     allUsersGroups.length === 0 ? ["No Groups Available"] : allUsersGroups;
   const displayQuestionsGroups =
@@ -344,7 +348,7 @@ useShortcut(
           <div className="selected-groups">
             {selectedUsersGroups.map((group) => (
               <span key={group} className="selected-group">
-                {group}{" "}
+                {group}
                 <button
                   onClick={() =>
                     removeGroup(
@@ -399,7 +403,7 @@ useShortcut(
           <div className="selected-groups">
             {selectedQuestionsGroups.map((group) => (
               <span key={group} className="selected-group">
-                {group}{" "}
+                {group}
                 <button
                   onClick={() =>
                     removeGroup(
@@ -420,10 +424,12 @@ useShortcut(
 
         <div className="form-group">
           <label>Upload Questions</label>
-          <input type="file"  />
+          <input type="file" />
         </div>
 
-        <button type="submit" className="tooltip" tooltip="Ctrl+S">Submit</button>
+        <button type="submit" className="tooltip" tooltip="Ctrl+S">
+          Submit
+        </button>
       </form>
     </>
   );

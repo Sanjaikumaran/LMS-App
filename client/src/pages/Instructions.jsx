@@ -1,29 +1,29 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/Instructions.css";
-import components from "./components";
-const { Modal, response,useShortcut } = components;
+import "../assets/styles/Instructions.css";
+
+import shortcut from "../utils/shortcut";
+import Modal from "../utils/modal";
 
 const Instructions = ({ instructions }) => {
-  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  //if (userLogged.flag) {
-  //  if (userLogged.userType !== "Student") {
-  //    window.location.href = "/";
-  //  }
-  //}
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
-  useShortcut("enter", ()=>isModalOpen&&navigate(`/quiz?id=${id}`),null,true);
-  useShortcut("esc", ()=> setIsModalOpen(false),null,true);
+  shortcut(
+    "enter",
+    () => isModalOpen && navigate(`/quiz?id=${id}`),
+    null,
+    true
+  );
+  shortcut("esc", () => setIsModalOpen(false), null, true);
   const handleButtonClick = () => {
     setIsModalOpen(true);
   };
   const closeModal = (button) => {
-    if (response(["Yes", "No"], button)) {
+    if ("Yes" === button) {
       navigate(`/quiz?id=${id}`);
     } else {
       setIsModalOpen(false);
@@ -45,7 +45,10 @@ const Instructions = ({ instructions }) => {
           <Modal
             modalType="Confirm"
             modalMessage="Are you sure to start the test?"
-            buttons={[["Yes", "No"],["Enter","Esc"]]}
+            buttons={[
+              ["Yes", "No"],
+              ["Enter", "Esc"],
+            ]}
             response={closeModal}
           />
         )}

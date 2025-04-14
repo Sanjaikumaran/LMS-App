@@ -10,14 +10,13 @@ import CreateTest from "./pages/CreateTest";
 import Users from "./pages/Users";
 import Question from "./pages/Question";
 import Test from "./pages/Test";
-import components from "./pages/components";
-const { Navbar } = components;
+import Navbar from "./utils/navBar";
+import ProtectedRoute from "./utils/ProtectedRoute";
 
 const App = () => {
   const [showProfile, setShowProfile] = useState(true);
   const [userData, setUserData] = useState();
   const [UserID, setUserID] = useState("");
-
 
   useEffect(() => {
     const userDetails = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -49,9 +48,8 @@ const App = () => {
   };
   return (
     <>
-      <Navbar showProfile={showProfile} userData={userData} />
-
       <Router>
+        <Navbar showProfile={showProfile} userData={userData} />
         <Routes>
           <Route
             path="/"
@@ -62,86 +60,106 @@ const App = () => {
                 <Signin setShowProfile={setShowProfile} setUserID={setUserID} />
               </>
             }
-          />{" "}
+          />
           <Route
             path="/home"
             element={
-              <>
-                <ChangeTitle title="Home" />
-                <AssignedQuiz UserID={UserID} />
-              </>
+              <ProtectedRoute allowedRoles={["Student"]}>
+                <>
+                  <ChangeTitle title="Home" />
+                  <AssignedQuiz UserID={UserID} />
+                </>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/instructions"
             element={
-              <>
-                <ChangeTitle title="Instructions" />
-                <Instructions instructions={instructions} />
-              </>
+              <ProtectedRoute allowedRoles={["Student"]}>
+                <>
+                  <ChangeTitle title="Instructions" />
+                  <Instructions instructions={instructions} />
+                </>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/quiz"
             element={
-              <>
-                <ChangeTitle title="Quiz" />
-                <Quiz UserID={UserID}/>
-              </>
+              <ProtectedRoute allowedRoles={["Student"]}>
+                <>
+                  <ChangeTitle title="Quiz" />
+                  <Quiz UserID={UserID} />
+                </>
+              </ProtectedRoute>
             }
-          />{" "}
+          />
           <Route
             path="/summary"
             element={
-              <>
-                <ChangeTitle title="Summary" />
-                <TestSummary />
-              </>
+              <ProtectedRoute allowedRoles={["Student"]}>
+                <>
+                  <ChangeTitle title="Summary" />
+                  <TestSummary />
+                </>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/admin"
             element={
-              <>
-                <ChangeTitle title="Admin" />
-                <Admin />
-              </>
-            }
-          />{" "}
-          <Route
-            path="/create-test"
-            element={
-              <>
-                <ChangeTitle title="Create Test" />
-                <CreateTest />
-              </>
-            }
-          />{" "}
-          <Route
-            path="/manage-test"
-            element={
-              <>
-                <ChangeTitle title="Manage-Test" />
-                <Test />
-              </>
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Admin" />
+                  <Admin />
+                </>
+              </ProtectedRoute>
             }
           />
           <Route
+            path="/create-test"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Create Test" />
+                  <CreateTest />
+                </>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/manage-test"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Manage-Test" />
+                  <Test />
+                </>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/users-module"
             element={
-              <>
-                <ChangeTitle title="Users Module" />
-                <Users />
-              </>
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Users Module" />
+                  <Users />
+                </>
+              </ProtectedRoute>
             }
-          />{" "}
+          />
           <Route
             path="/questions-module"
             element={
-              <>
-                <ChangeTitle title="Questions Module" />
-                <Question />
-              </>
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Questions Module" />
+                  <Question />
+                </>
+              </ProtectedRoute>
             }
           />
         </Routes>

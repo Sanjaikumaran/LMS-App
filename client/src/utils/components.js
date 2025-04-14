@@ -7,38 +7,40 @@ import "../assets/styles/components.css";
 import axios from "axios";
 import { CgProfile } from "react-icons/cg";
 import * as XLSX from "xlsx";
+// utils
+//const Shortcut = (keyCombo, callback, targetRef, global) => {
+//  const handleKeyDown = (event) => {
+//    const keys = keyCombo.split("+");
+//    const isMatch = keys.every((key) => {
+//      if (key === "ctrl") return event.ctrlKey;
+//      if (key === "shift") return event.shiftKey;
+//      if (key === "alt") return event.altKey;
+//      if (key === "enter") return event.key === "Enter";
+//      if (key === "delete") return event.key === "Delete";
+//      if (key === "esc" || key === "escape") return event.key === "Escape";
 
-const shortcut = (keyCombo, callback, targetRef, global) => {
-  const handleKeyDown = (event) => {
-    const keys = keyCombo.split("+");
-    const isMatch = keys.every((key) => {
-      if (key === "ctrl") return event.ctrlKey;
-      if (key === "shift") return event.shiftKey;
-      if (key === "alt") return event.altKey;
-      if (key === "enter") return event.key === "Enter";
-      if (key === "delete") return event.key === "Delete";
-      if (key === "esc" || key === "escape") return event.key === "Escape";
+//      return event.key.toLowerCase() === key.toLowerCase();
+//    });
 
-      return event.key.toLowerCase() === key.toLowerCase();
-    });
+//    if (isMatch) {
+//      if (
+//        global ||
+//        !targetRef ||
+//        targetRef.current?.contains(document.activeElement)
+//      ) {
+//        event.preventDefault();
+//        callback(event);
+//      }
+//    }
+//  };
 
-    if (isMatch) {
-      if (
-        global ||
-        !targetRef ||
-        targetRef.current?.contains(document.activeElement)
-      ) {
-        event.preventDefault();
-        callback(event);
-      }
-    }
-  };
+//  window.addEventListener("keydown", handleKeyDown);
+//  return () => {
+//    window.removeEventListener("keydown", handleKeyDown);
+//  };
+//};
 
-  window.addEventListener("keydown", handleKeyDown);
-  return () => {
-    window.removeEventListener("keydown", handleKeyDown);
-  };
-};
+// utils
 const Navbar = (props) => {
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
@@ -113,9 +115,7 @@ const Navbar = (props) => {
     </>
   );
 };
-const response = (buttons, response) => {
-  return response === buttons[0] ? true : false;
-};
+//utils
 const Modal = (props) => {
   return (
     <>
@@ -123,7 +123,7 @@ const Modal = (props) => {
         <div className="modal-container">
           <h1 className="card-header">{props.modalType}</h1>
           <div className="card-body">
-            <h3>{props.modalMessage}</h3>{" "}
+            <h3>{props.modalMessage}</h3>
             <div className="modal-buttons">
               {props.buttons[0].map((button, index) => {
                 return (
@@ -144,6 +144,7 @@ const Modal = (props) => {
     </>
   );
 };
+
 const createFormModal = (props) => {
   const overlay = document.createElement("div");
   overlay.className = "modal-background";
@@ -164,8 +165,8 @@ const createFormModal = (props) => {
     overlay.remove();
     modalContainer.remove();
   };
-  shortcut("esc", closeModal);
-  shortcut("enter", props.saveCallback(closeModal));
+  Shortcut("esc", closeModal);
+  Shortcut("enter", props.saveCallback(closeModal));
   const buttonsDiv = document.createElement("div");
   buttonsDiv.className = "modal-buttons";
   const saveButton = document.createElement("button");
@@ -237,6 +238,7 @@ const ModuleCard = (props) => {
     </div>
   );
 };
+// utils
 const FileUpload = async (
   fetchCallback,
   fileName,
@@ -248,7 +250,7 @@ const FileUpload = async (
 ) => {
   var groupName;
   var enterShortcutFunction = null;
-  shortcut(
+  Shortcut(
     "esc",
     () => {
       setIsModalOpen(false);
@@ -256,7 +258,7 @@ const FileUpload = async (
     null,
     true
   );
-  shortcut(
+  Shortcut(
     "enter",
     () => {
       console.log(enterShortcutFunction);
@@ -630,11 +632,11 @@ const DataTableManagement = (props) => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  shortcut("esc", () => {
+  Shortcut("esc", () => {
     setIsModalOpen(false);
   });
   var enterShortcutFunction = null;
-  shortcut("enter", () => {
+  Shortcut("enter", () => {
     enterShortcutFunction && enterShortcutFunction();
     enterShortcutFunction = null;
   });
@@ -863,7 +865,8 @@ const DataTableManagement = (props) => {
   );
 };
 
-const useShortcut = (keyCombo, callback, targetRef = null, global = false) => {
+// utils
+const Shortcut = (keyCombo, callback, targetRef = null, global = false) => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       const keys = keyCombo.split("+");
@@ -901,14 +904,14 @@ const components = {
   Navbar,
   Modal,
   createFormModal,
-  response,
+
   MessageBox,
   handleApiCall,
   ModuleCard,
   FileUpload,
   DataTableSection,
   DataTableManagement,
-  useShortcut,
+  Shortcut,
 };
 
 export default components;

@@ -2,12 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const TestSummary = () => {
-  const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  if (userLogged.flag) {
-    if (userLogged.userType !== "Student") {
-      window.location.href = "/";
-    }
-  }
   const navigate = useNavigate();
   //eslint-disable-next-line
   const [summaryData, setSummaryData] = useState({
@@ -32,9 +26,13 @@ const TestSummary = () => {
   return (
     <>
       <div className="instructions-div">
-        <h1 style={{
-          fontSize: "8rem",
-        }}>Your test has been submitted!</h1>
+        <h1
+          style={{
+            fontSize: "8rem",
+          }}
+        >
+          Your test has been submitted!
+        </h1>
         <div
           style={{
             display: "flex",

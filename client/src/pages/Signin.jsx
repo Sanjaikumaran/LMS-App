@@ -1,15 +1,19 @@
-import React, { useState,useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Signin.css";
-import components from "./components";
-const { Modal, response, MessageBox, handleApiCall,useShortcut } = components;
+import "../assets/styles/Signin.css";
+import components from "../utils/components";
+import shortcut from "../utils/shortcut";
+import Modal from "../utils/modal";
+import handleApiCall from "../utils/handleAPI";
+
+const { MessageBox } = components;
 
 const Signin = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [responseMessage, setResponseMessage] = useState(null);
   const [userID, setUserID] = useState("");
   const [userPassword, setUserPassword] = useState("");
-const loginRef = useRef(null);
+  const loginRef = useRef(null);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -42,8 +46,7 @@ const loginRef = useRef(null);
 
           localStorage.setItem("userData", JSON.stringify(response.data.data));
 
-          
-          props.setUserID(response.data.data._id)
+          props.setUserID(response.data.data._id);
           setResponseMessage("");
           setIsModalOpen(true);
         } else {
@@ -58,7 +61,7 @@ const loginRef = useRef(null);
 
   const closeModal = (button) => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    if (response(["Ok"], button)) {
+    if (button === "Ok") {
       if (userData.userType === "Admin") {
         navigate("/admin");
         setIsModalOpen(false);
@@ -69,12 +72,18 @@ const loginRef = useRef(null);
     }
   };
 
-useShortcut("enter",()=>{isModalOpen?closeModal("Ok"):handleLogin()},null,true);
+  shortcut(
+    "enter",
+    () => {
+      isModalOpen ? closeModal("Ok") : handleLogin();
+    },
+    null,
+    true
+  );
 
-   
   return (
     <div ref={loginRef}>
-      <div className="login-container" >
+      <div className="login-container">
         <h1 className="login-header">Login</h1>
         <div className="login-form">
           <div className="institution-name">
@@ -110,7 +119,12 @@ useShortcut("enter",()=>{isModalOpen?closeModal("Ok"):handleLogin()},null,true);
             />
           </div>
           {responseMessage && <MessageBox message={responseMessage} />}
-          <button type="button" onClick={handleLogin}className="tooltip" tooltip="Enter" >
+          <button
+            type="button"
+            onClick={handleLogin}
+            className="tooltip"
+            tooltip="Enter"
+          >
             Login
           </button>
         </div>
@@ -120,9 +134,7 @@ useShortcut("enter",()=>{isModalOpen?closeModal("Ok"):handleLogin()},null,true);
         <Modal
           modalType="Info"
           modalMessage="Login Successful!"
-          buttons={[["Ok"],[
-            "Enter"
-          ]]}
+          buttons={[["Ok"], ["Enter"]]}
           response={closeModal}
         />
       )}
