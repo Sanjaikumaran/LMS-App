@@ -648,7 +648,7 @@ const DataTableManagement = (props) => {
           response.data.data?.filter((value) => !("title" in value)) || [];
         const studentData = data.find((value) => value.userType === "Student");
         setTableColumns(Object.keys(studentData || data[0]));
-        setTableData(data.filter((value) => value.userType !== "Admin"));
+        setTableData(data.filter((value) => value.userType === "Student"));
       } else {
         enterShortcutFunction = () => {
           fetchData(collectionName);
