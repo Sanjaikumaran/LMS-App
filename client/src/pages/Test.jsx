@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import "../styles/Test.css";
-import components from "./components";
+import "../assets/styles/Test.css";
+import components from "../utils/components";
 import { useLocation } from "react-router-dom";
+import Modal from "../utils/modal";
+import handleApiCall from "../utils/handleAPI";
 
-const { Modal, FileUpload, handleApiCall, DataTableSection, useShortcut } =
-  components;
+import shortcut from "../utils/shortcut";
+const { FileUpload, DataTableSection } = components;
 
 const Test = () => {
-  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  //if (userLogged.flag) {
-  //  if (userLogged.userType !== "Admin") {
-  //    window.location.href = "/";
-  //  }
-  //}
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalOptions, setModalOptions] = useState();
   const [testId, setTestId] = useState("");
@@ -57,22 +53,22 @@ const Test = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const id = queryParams.get("id");
-  useShortcut("Enter", () => {
+  shortcut("Enter", () => {
     enterShortcutFunction && enterShortcutFunction();
     setEnterShortcutFunction(null);
   });
-  useShortcut("Escape", () => {
+  shortcut("Escape", () => {
     escShortcutFunction && escShortcutFunction();
     setEscShortcutFunction(null);
   });
-  useShortcut(
+  shortcut(
     "ctrl+s",
     () => {
       document.querySelector("button[tooltip='Ctrl+S']").click();
     },
     submitRef
   );
-  useShortcut(
+  shortcut(
     "ctrl+p",
     () => {
       tableName === "Test Results" && testResult.length > 0 && generateReport();
@@ -860,7 +856,7 @@ const Test = () => {
             <div className="selected-groups">
               {selectedUsersGroups.map((group) => (
                 <span key={group} className="selected-group">
-                  {group}{" "}
+                  {group}
                   <button
                     onClick={() =>
                       removeGroup(
@@ -915,7 +911,7 @@ const Test = () => {
             <div className="selected-groups">
               {selectedQuestionsGroups.map((group) => (
                 <span key={group} className="selected-group">
-                  {group}{" "}
+                  {group}
                   <button
                     onClick={() =>
                       removeGroup(

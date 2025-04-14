@@ -1,6 +1,5 @@
 const { MongoClient, ObjectId } = require("mongodb");
-
-async function connectToReplicaSet() {
+const setupLocalDb = async () => {
   const uri =
     "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
   const client = new MongoClient(uri);
@@ -53,10 +52,18 @@ async function connectToReplicaSet() {
     //    });
     //  }
     //}
+    return db;
   } catch (err) {
     return handleError(err, "Couldn't connect to MongoDB");
   }
+};
 
+setupLocalDb();
+async function connectToReplicaSet() {
+  const db = await setupLocalDb();
+  if (!db) {
+    return handleError(err, "Couldn't connect to MongoDB");
+  }
   function handleError(err, customMessage) {
     return { error: customMessage };
   }

@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from "react";
-import components from "./components";
-import "../styles/Admin.css";
-const { ModuleCard, handleApiCall } = components;
+import components from "../utils/components";
+import "../assets/styles/Admin.css";
+import handleApiCall from "../utils/handleAPI";
+const { ModuleCard } = components;
 
 const Admin = () => {
-  //const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-  //if (userLogged.flag) {
-  //  if (userLogged.userType !== "Admin") {
-  //    window.location.href = "/";
-  //  }
-  //}
   const [tests, setTests] = useState([]);
 
   useEffect(() => {
@@ -49,7 +44,7 @@ const Admin = () => {
           />
         </div>
         <div className="create-new-test">
-          Create New Test{" "}
+          Create New Test
           <button onClick={() => (window.location.href = "/create-test")}>
             Create
           </button>

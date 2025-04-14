@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-import "../styles/Quiz.css";
-import components from "./components";
-const { Modal, handleApiCall, useShortcut } = components;
+import "../assets/styles/Quiz.css";
+
+import shortcut from "../utils/shortcut";
+import Modal from "../utils/modal";
+import handleApiCall from "../utils/handleAPI";
+
 const radius = 50;
 const circumference = 2 * Math.PI * radius;
 
@@ -25,7 +28,7 @@ const Quiz = (props) => {
   const [endTime, setEndTime] = useState("");
 
   const [questionsGroup, setQuestionsGroup] = useState([]);
-  useShortcut(
+  shortcut(
     "enter",
     () => {
       if (enterShortcutFunction) {
@@ -36,7 +39,7 @@ const Quiz = (props) => {
     null,
     true
   );
-  useShortcut(
+  shortcut(
     "esc",
     () => {
       escShortcutFunction(false);

@@ -1,14 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import components from "./components";
 
-const { handleApiCall } = components;
-//const userLogged = JSON.parse(sessionStorage.getItem("userLogged"));
-//if (userLogged) {
-//  if (userLogged.userType !== "Student") {
-//    window.location.href = "/";
-//  }
-//}
+import handleApiCall from "../utils/handleAPI";
 
 const AssignedQuiz = (props) => {
   const [assignedTests, setAssignedTests] = useState([]);
