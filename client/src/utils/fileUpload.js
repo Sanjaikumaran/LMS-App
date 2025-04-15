@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import shortcut from "./shortcut";
 import handleApiCall from "./handleAPI";
 
-const fileUpload = async (
+const fileUpload =  (
   fetchCallback,
   fileName,
   apiEndpoint,

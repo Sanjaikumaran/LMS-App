@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/styles/Signin.css";
-import components from "../utils/components";
+import MessageBox from "../utils/MessageBox";
 import shortcut from "../utils/shortcut";
 import Modal from "../utils/modal";
 import handleApiCall from "../utils/handleAPI";
 
-const { MessageBox } = components;
 
 const Signin = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
