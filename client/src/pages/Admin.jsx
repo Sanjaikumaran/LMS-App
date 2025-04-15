@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import components from "../utils/components";
+import ModuleCard from "../utils/ModuleCard";
 import "../assets/styles/Admin.css";
 import handleApiCall from "../utils/handleAPI";
-const { ModuleCard } = components;
+
 
 const Admin = () => {
   const [tests, setTests] = useState([]);

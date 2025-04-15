@@ -3,50 +3,50 @@ import DataTable from "react-data-table-component";
 import Modal from "./modal";
 import handleApiCall from "./handleAPI";
 import FileUpload from "./fileUpload";
-//import shortcut from "./shortcut";
-//import createFormModal from "./formModal";
-const createFormModal = (props) => {
-  const overlay = document.createElement("div");
-  overlay.className = "modal-background";
-  document.body.appendChild(overlay);
+import FormModal from "./formModal";
+import shortcut from "./shortcut";
+// const createFormModal = (props) => {
+//   const overlay = document.createElement("div");
+//   overlay.className = "modal-background";
+//   document.body.appendChild(overlay);
 
-  const modalContainer = document.createElement("div");
-  modalContainer.className = "modal-container";
+//   const modalContainer = document.createElement("div");
+//   modalContainer.className = "modal-container";
 
-  const heading = document.createElement("h1");
-  heading.className = "card-header";
-  heading.innerText = props.headingText;
-  modalContainer.appendChild(heading);
-  const modalBody = document.createElement("div");
-  modalBody.className = "card-body";
-  props.elements.forEach((element) => modalBody.appendChild(element));
+//   const heading = document.createElement("h1");
+//   heading.className = "card-header";
+//   heading.innerText = props.headingText;
+//   modalContainer.appendChild(heading);
+//   const modalBody = document.createElement("div");
+//   modalBody.className = "card-body";
+//   props.elements.forEach((element) => modalBody.appendChild(element));
 
-  const closeModal = () => {
-    overlay.remove();
-    modalContainer.remove();
-  };
+//   const closeModal = () => {
+//     overlay.remove();
+//     modalContainer.remove();
+//   };
 
-  const buttonsDiv = document.createElement("div");
-  buttonsDiv.className = "modal-buttons";
-  const saveButton = document.createElement("button");
-  saveButton.classList.add("tooltip");
-  saveButton.setAttribute("tooltip", "Enter");
-  saveButton.innerText = "Save";
-  saveButton.onclick = props.saveCallback(closeModal);
+//   const buttonsDiv = document.createElement("div");
+//   buttonsDiv.className = "modal-buttons";
+//   const saveButton = document.createElement("button");
+//   saveButton.classList.add("tooltip");
+//   saveButton.setAttribute("tooltip", "Enter");
+//   saveButton.innerText = "Save";
+//   saveButton.onclick = props.saveCallback(closeModal);
 
-  const closeButton = document.createElement("button");
-  closeButton.innerText = "Close";
+//   const closeButton = document.createElement("button");
+//   closeButton.innerText = "Close";
 
-  closeButton.setAttribute("tooltip", "Esc");
-  closeButton.className = "red-bg tooltip";
-  closeButton.onclick = closeModal;
+//   closeButton.setAttribute("tooltip", "Esc");
+//   closeButton.className = "red-bg tooltip";
+//   closeButton.onclick = closeModal;
 
-  buttonsDiv.appendChild(closeButton);
-  buttonsDiv.appendChild(saveButton);
-  modalBody.appendChild(buttonsDiv);
-  modalContainer.appendChild(modalBody);
-  document.body.appendChild(modalContainer);
-};
+//   buttonsDiv.appendChild(closeButton);
+//   buttonsDiv.appendChild(saveButton);
+//   modalBody.appendChild(buttonsDiv);
+//   modalContainer.appendChild(modalBody);
+//   document.body.appendChild(modalContainer);
+// };
 const ActionDiv = ({
   tablePageName,
   onFileUpload,
@@ -130,19 +130,20 @@ const DataTableManagement = (props) => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [modalProps, setModalProps] = useState(null);
 
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  //shortcut("esc", () => {
-  //  setIsModalOpen(false);
-  //});
-  //var enterShortcutFunction = null;
-  //shortcut("enter", () => {
-  //  enterShortcutFunction && enterShortcutFunction();
-  //  enterShortcutFunction = null;
-  //});
+  shortcut("esc", () => {
+   setIsModalOpen(false);
+  });
+  var enterShortcutFunction = null;
+  shortcut("enter", () => {
+   enterShortcutFunction && enterShortcutFunction();
+   enterShortcutFunction = null;
+  });
   async function fetchData(collectionName = props.collectionName) {
     try {
       const response = await handleApiCall({
@@ -241,63 +242,61 @@ const DataTableManagement = (props) => {
       setIsModalOpen(true);
     }
   };
-
   const addNew = () => {
     const inputs = {};
-    const contentElements = tableColumns.map((column) => {
-      if ("_id" === column) {
-        return null;
-      }
-      const inputField = document.createElement("input");
-      inputField.className = column;
-      inputField.placeholder = column;
-      inputs[column] = inputField;
-      return inputField;
-    });
 
-    createFormModal({
+    const contentElements = tableColumns
+      .filter((col) => col !== "_id" && col !== "userType")
+      .map((col) => (
+        <input
+          key={col}
+          className={col}
+          placeholder={col}
+          ref={(el) => (inputs[col] = el)}
+        />
+      ));
+
+    setModalProps({
       headingText: "Add New User",
-      elements: contentElements.filter((element) => element !== null),
+      elements: contentElements,
       saveCallback: (closeModal) => async () => {
-        const data = tableColumns
-          .filter((column) => column !== "_id")
-          .reduce(
-            (acc, column) => ({ ...acc, [column]: inputs[column].value }),
-            {}
-          );
+        const data = Object.fromEntries(
+          tableColumns
+            .filter((col) => col !== "_id")
+            .map((col) => [col, inputs[col]?.value ?? ""])
+        );
+
         try {
           const response = await handleApiCall({
             API: "insert-data",
             data: { data, collection: props.collectionName },
           });
 
-          //enterShortcutFunction = () => {
-          //  setTableData([...tableData, data]);
-          //  setIsModalOpen(false);
-          //};
-          response.flag
-            ? showModal(
-                "Info",
-                "Data Inserted successfully!",
-                [["Ok"], ["Enter"]],
-                () => {
-                  setTableData([...tableData, data]);
-                  setIsModalOpen(false);
-                }
-              )
-            : handleRetry("Error", response.error, addNew);
-        } catch (error) {
-          handleRetry("Uncaught Error", error.message, addNew);
+          if (response.flag) {
+            showModal(
+              "Info",
+              "Data Inserted successfully!",
+              [["Ok"], ["Enter"]],
+              () => {
+                setTableData((prev) => [...prev, data]);
+                setModalProps(null);
+              }
+            );
+          } else {
+            handleRetry("Error", response.error, addNew);
+          }
+        } catch (err) {
+          handleRetry("Uncaught Error", err.message, addNew);
         } finally {
-          setIsModalOpen(true);
+          setIsModalOpen(true); // if needed elsewhere
         }
+
         closeModal();
       },
+      onClose: () => setModalProps(null),
     });
   };
-  useEffect(() => {
-    console.log("Table Data Updated:", tableData);
-  }, [tableData]);
+
   const handleRetry = (type, message, retryFunction) => {
     setModalOptions({
       type,
@@ -338,6 +337,7 @@ const DataTableManagement = (props) => {
 
   return (
     <>
+    {modalProps && <FormModal {...modalProps} />}
       <ActionDiv
         tablePageName={props.tablePageName}
         onFileUpload={(file) =>
@@ -372,4 +372,4 @@ const DataTableManagement = (props) => {
   );
 };
 
-export default DataTableManagement;
+export {DataTableManagement,DataTableSection} ;

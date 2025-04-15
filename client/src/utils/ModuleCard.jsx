@@ -1,0 +1,22 @@
+import { useNavigate } from "react-router-dom";
+const ModuleCard = (props) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="card-container">
+      <h1 className="card-header">{props.header}</h1>
+      <div className="card-body">
+        <div className="image-container">
+          <img src={props.imageSrc} alt={props.altText} />
+        </div>
+        <div className="button-container">
+          <button onClick={() => navigate(props.navigateTo)} type="button">
+            Open
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ModuleCard
