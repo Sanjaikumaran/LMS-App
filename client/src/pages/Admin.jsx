@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import ModuleCard from "../utils/ModuleCard";
 import "../assets/styles/Admin.css";
-import handleApiCall from "../utils/handleAPI";
 
+import handleApiCall from "../utils/handleAPI";
+import IconAvatar from "../assets/icons/education.png"
+import IconList from "../assets/icons/list.png"
 
 const Admin = () => {
   const [tests, setTests] = useState([]);
@@ -32,13 +34,13 @@ const Admin = () => {
         <div className="cards">
           <ModuleCard
             header="Users"
-            imageSrc={require("./education.png")}
+            imageSrc={IconAvatar}
             altText="Students Icon"
             navigateTo="/users-module"
           />
           <ModuleCard
             header="Questions"
-            imageSrc={require("./list.png")}
+            imageSrc={IconList}
             altText="Test Icon"
             navigateTo="/questions-module"
           />

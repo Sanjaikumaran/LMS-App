@@ -1,87 +1,82 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import "../assets/styles/Signin.css";
+
 import MessageBox from "../utils/MessageBox";
+
+import useModal from "../utils/useModal";
 import shortcut from "../utils/shortcut";
-import Modal from "../utils/modal";
 import handleApiCall from "../utils/handleAPI";
 
+import "../assets/styles/Signin.css";
 
-const Signin = (props) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const Signin = ({ setUserID }) => {
   const [responseMessage, setResponseMessage] = useState(null);
-  const [userID, setUserID] = useState("");
+  const [userID, setUserIDInput] = useState("");
   const [userPassword, setUserPassword] = useState("");
-  const loginRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const { isModalOpen, showModal, closeModal, Modal } = useModal();
+
+  const navigateTo = useCallback(() => {
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    navigate(userData.userType === "Admin" ? "/admin" : "/home");
+    closeModal();
+  }, [navigate, closeModal]);
+
+  const handleLogin = useCallback(async () => {
     const trimmedUserID = userID.trim();
     const trimmedPassword = userPassword.trim();
 
     if (!trimmedUserID || !trimmedPassword) {
-      if (!trimmedUserID && !trimmedPassword) {
-        setResponseMessage("Please Enter UserId & Password");
-      } else if (!trimmedUserID) {
-        setResponseMessage("Please Enter UserId");
-      } else {
-        setResponseMessage("Please Enter Password");
-      }
-    } else {
-      try {
-        const response = await handleApiCall({
-          API: "login",
-          data: { Id: trimmedUserID, userPass: trimmedPassword },
-        });
-
-        if (response && response.flag) {
-          sessionStorage.setItem(
-            "userLogged",
-            JSON.stringify({
-              flag: true,
-              userType: response.data.data.userType,
-            })
-          );
-
-          localStorage.setItem("userData", JSON.stringify(response.data.data));
-
-          props.setUserID(response.data.data._id);
-          setResponseMessage("");
-          setIsModalOpen(true);
-        } else {
-          setResponseMessage(response.error);
-        }
-      } catch (error) {
-        setResponseMessage("An error occurred. Please try again.");
-        console.error("Login error:", error);
-      }
+      setResponseMessage(
+        !trimmedUserID && !trimmedPassword
+          ? "Please Enter UserId & Password"
+          : !trimmedUserID
+          ? "Please Enter UserId"
+          : "Please Enter Password"
+      );
+      return;
     }
-  };
 
-  const closeModal = (button) => {
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    if (button === "Ok") {
-      if (userData.userType === "Admin") {
-        navigate("/admin");
-        setIsModalOpen(false);
+    try {
+      const response = await handleApiCall({
+        API: "login",
+        data: { Id: trimmedUserID, userPass: trimmedPassword },
+      });
+
+      if (response?.flag) {
+        const userData = response.data.data;
+        sessionStorage.setItem(
+          "userLogged",
+          JSON.stringify({ flag: true, userType: userData.userType })
+        );
+        localStorage.setItem("userData", JSON.stringify(userData));
+        setUserID(userData._id);
+        setResponseMessage("");
+
+        showModal("Info", "Login Successful!", [
+          { label: "Ok", shortcut: "Enter", onClick: navigateTo },
+        ]);
       } else {
-        navigate("/home");
-        setIsModalOpen(false);
+        setResponseMessage(response?.error || "Login failed");
       }
+    } catch (error) {
+      console.error("Login error:", error);
+      setResponseMessage("An error occurred. Please try again.");
     }
-  };
+  }, [userID, userPassword, setUserID, showModal, navigateTo]);
 
   shortcut(
     "enter",
     () => {
-      isModalOpen ? closeModal("Ok") : handleLogin();
+      isModalOpen ? navigateTo() : handleLogin();
     },
     null,
     true
   );
 
   return (
-    <div ref={loginRef}>
+    <>
       <div className="login-container">
         <h1 className="login-header">Login</h1>
         <div className="login-form">
@@ -93,31 +88,32 @@ const Signin = (props) => {
             <label htmlFor="user-id">User ID</label>
             <input
               id="user-id"
-              name="user-id"
               type="text"
               value={userID}
               required
               onChange={(e) => {
-                setResponseMessage(false);
-                setUserID(e.target.value);
+                setResponseMessage(null);
+                setUserIDInput(e.target.value);
               }}
             />
           </div>
+
           <div className="input-group">
             <label htmlFor="password">Password</label>
             <input
               id="password"
-              name="password"
               type="password"
               value={userPassword}
               required
               onChange={(e) => {
-                setResponseMessage(false);
+                setResponseMessage(null);
                 setUserPassword(e.target.value);
               }}
             />
           </div>
+
           {responseMessage && <MessageBox message={responseMessage} />}
+
           <button
             type="button"
             onClick={handleLogin}
@@ -128,16 +124,8 @@ const Signin = (props) => {
           </button>
         </div>
       </div>
-
-      {isModalOpen && (
-        <Modal
-          modalType="Info"
-          modalMessage="Login Successful!"
-          buttons={[["Ok"], ["Enter"]]}
-          response={closeModal}
-        />
-      )}
-    </div>
+      <Modal />
+    </>
   );
 };
 

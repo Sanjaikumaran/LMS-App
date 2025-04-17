@@ -1,6 +1,6 @@
 import React from "react";
 
-const Modal = (props) => {
+const useModal = (props) => {
   return (
     <>
       <div className="modal-background">
@@ -28,4 +28,4 @@ const Modal = (props) => {
     </>
   );
 };
-export default Modal;
+export default useModal;
