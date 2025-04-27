@@ -1,0 +1,39 @@
+.loginContainer {
+  position: absolute;
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  margin: auto;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  min-width: 350px;
+  max-width: 600px !important;
+  box-shadow: 0 4px 15px #00000029 !important;
+  border: 1px solid #d1d1d1 !important;
+  border-radius: 8px !important;
+  overflow: inherit !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.loginHeader {
+  background-color: #007bff;
+  color: white;
+  margin: 0;
+  border-radius: 8px 8px 0 0 !important;
+  min-height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.loginContainer .loginForm {
+  padding: 60px;
+  padding-top: 0px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.inputContainer {
+  margin: 20px 0px;
+}

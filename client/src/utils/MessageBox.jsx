@@ -1,7 +1,7 @@
-const MessageBox = (props) => {
+const MessageBox = ({error,success}) => {
     return (
       <>
-        <div className="error-message">{props.message}</div>
+        <div className="error-message">{error}</div>
       </>
     );
   };

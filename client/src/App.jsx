@@ -1,35 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Signin from "./pages/Signin";
-import AssignedQuiz from "./pages/AssignedQuiz";
-import Instructions from "./pages/Instructions";
-import Quiz from "./pages/Quiz";
+import "./utils/variable.css";
+import Login from "./pages/Login";
+import AssignedQuiz from "./pages/Home";
+import Instructions from "./pages/Instruction";
+import Quiz from "./pages/Test";
 import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/Admin";
 import CreateTest from "./pages/CreateTest";
 import Users from "./pages/Users";
 import Question from "./pages/Question";
-import Test from "./pages/Test";
+import Test from "./pages/ManageTest/Test";
 import Navbar from "./utils/navBar";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import { UserProvider } from "./utils/context/userContext";
 
 const App = () => {
   const [showProfile, setShowProfile] = useState(true);
-  const [userData, setUserData] = useState();
-  const [UserID, setUserID] = useState("");
 
-  useEffect(() => {
-    const userDetails = JSON.parse(localStorage.getItem("userData") || "{}");
-    if (userDetails._id) {
-      delete userDetails["_id"];
-      delete userDetails["Group"];
-      delete userDetails["userType"];
-      delete userDetails["Password"];
-
-      setUserData(userDetails);
-    }
-  }, [showProfile]);
-
+ 
   const instructions = [
     "Instruction 1: Please read carefully.",
     "Instruction 2: Choose the correct answers.",
@@ -47,9 +36,9 @@ const App = () => {
     return null;
   };
   return (
-    <>
+    <UserProvider>
       <Router>
-        <Navbar showProfile={showProfile} userData={userData} />
+        <Navbar showProfile={showProfile} />
         <Routes>
           <Route
             path="/"
@@ -57,7 +46,7 @@ const App = () => {
             element={
               <>
                 <ChangeTitle title="Login" />
-                <Signin setShowProfile={setShowProfile} setUserID={setUserID} />
+                <Login setShowProfile={setShowProfile}  />
               </>
             }
           />
@@ -67,7 +56,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Student"]}>
                 <>
                   <ChangeTitle title="Home" />
-                  <AssignedQuiz UserID={UserID} />
+                  <AssignedQuiz />
                 </>
               </ProtectedRoute>
             }
@@ -89,7 +78,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Student"]}>
                 <>
                   <ChangeTitle title="Quiz" />
-                  <Quiz UserID={UserID} />
+                  <Quiz />
                 </>
               </ProtectedRoute>
             }
@@ -164,7 +153,7 @@ const App = () => {
           />
         </Routes>
       </Router>
-    </>
+    </UserProvider>
   );
 };
 

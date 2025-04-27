@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import "../assets/styles/Test.css";
+import "../../assets/styles/Test.css";
 
 import { useLocation } from "react-router-dom";
-import Modal from "../utils/modal";
-import handleApiCall from "../utils/handleAPI";
+import Modal from "../../utils/modal";
+import handleApiCall from "../../utils/handleAPI";
 
-import shortcut from "../utils/shortcut";
-import FileUpload from "../utils/fileUpload"
-import {DataTableSection} from "../utils/customTable";
+import shortcut from "../../utils/shortcut";
+import FileUpload from "../../utils/fileUpload"
+import {DataTableSection} from "../../utils/customTable";
 
 const Test = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
