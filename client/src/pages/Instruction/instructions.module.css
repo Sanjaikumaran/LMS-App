@@ -1,0 +1,34 @@
+.instructionsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+}
+
+.instructionsTitle {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  color: #6f2f72;
+  display: flex;
+  justify-content: center;
+}
+
+.instructionsDescription {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  color: #333;
+  text-align: justify;
+  font-size: large;
+  margin: 10px 0;
+}
+
+.instructionsList {
+  list-style: disc;
+  text-align: justify;
+  font-size: large;
+  margin: 10px 0;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}

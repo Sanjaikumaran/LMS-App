@@ -54,7 +54,7 @@ const setupLocalDb = async () => {
     //}
     return db;
   } catch (err) {
-    return handleError(err, "Couldn't connect to MongoDB");
+    return {error:err, message:"Couldn't connect to MongoDB"};
   }
 };
 

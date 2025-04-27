@@ -1,0 +1,11 @@
+* {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+:root {
+  --primary-btn-color: #007bff;
+  --hover-btn-color: #0056b3;
+  --disabled-btn-color: #4b81bb;
+  --text-color: #333;
+  --background-color: #fff;
+  
+}

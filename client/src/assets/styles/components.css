@@ -124,7 +124,7 @@
 
 /*Message Box*/
 .error-message {
-  color: red;
+  color: #dc2626;
   text-align: center;
 }
 
@@ -142,7 +142,7 @@
   background-color: rgb(255, 255, 255);
   border-radius: 10px;
   min-width: 200px;
-  min-height: 380px;
+  min-height: fit-content;
   max-width: 480px;
   box-shadow: 0 4px 15px #00000029;
   border: 1px solid #d1d1d1;
@@ -183,7 +183,7 @@
   justify-content: center;
 }
 /* Universal */
-button {
+/* button {
   background-color: #007bff;
   color: white;
   border: none;
@@ -192,7 +192,7 @@ button {
   cursor: pointer;
   font-size: medium;
   transition: background-color 0.3s ease;
-}
+} */
 /* Data Table */
 .action-div {
   margin: 20px;

@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 import { CgProfile } from "react-icons/cg";
 import "../assets/styles/components.css";
+import { useUser } from "./context/userContext";
 
 const Navbar = (props) => {
+  const { user } = useUser();
+
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
@@ -13,10 +16,10 @@ const Navbar = (props) => {
     profileContainer.className = "profile-container";
     const profileInfo = document.createElement("div");
     profileInfo.className = "profile-info";
-    Object.keys(profileDetails).map(async (detail) => {
+    Object.keys(user).map(async (detail) => {
       const detailList = document.createElement("li");
       detailList.classList = "detail";
-      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span> ${profileDetails[detail]}</span></p>`;
+      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span> ${user[detail]}</span></p>`;
       profileInfo.appendChild(detailList);
     });
     profileContainer.appendChild(profileInfo);

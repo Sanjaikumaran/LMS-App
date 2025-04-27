@@ -1,12 +1,9 @@
-* {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-}
-.quiz-body {
+.testBody {
   user-select: none;
   display: flex;
   padding: 20px;
 }
-.quiz-app {
+.testApp {
   flex: 1;
   max-width: 1000px;
   margin: 100px auto;
@@ -15,60 +12,69 @@
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
-.question-section h1 {
+.questionSectionHeader {
   font-size: 1.75em;
   padding: 0 0 0 45px;
   color: #333;
   margin-bottom: 20px;
+  display: contents;
 }
-.quiz-section .options {
+.testOptionsContainer {
   list-style-type: none;
   padding: 0;
+  display: grid;
+  gap: 10px;
 }
-.fill-answer-input {
+.fillAnswerInput {
   outline: none;
   border: none;
   border-bottom: 2px solid;
   font-size: 1em;
 }
-textarea.fill-answer-input {
+textarea.fillAnswerInput {
   border: 2px solid;
+  border-radius: 5px;
   padding: 10px;
   resize: both;
   width: 100%;
   max-width: 500px;
   max-height: 350px;
-  margin-left: 47px;
+  margin: 20px 0;
   box-sizing: border-box;
   overflow: auto;
   height: fit-content;
 }
 
-.options .option {
+.option {
   display: flex;
   align-items: center;
   background-color: #f4f4f9;
   border-radius: 25px;
   padding: 12px 20px;
-  margin: 10px 0;
+  /* margin: 10px 0;checkboxInput */
   cursor: pointer;
   transition: background-color 0.3s;
 }
-.options .option.selected {
+.option.selected {
   background-color: #007bff;
   color: white;
 }
-.options .option input[type="radio"]:checked + label,
-.options .option input[type="checkbox"]:checked + label {
+
+.option.selected:hover {
+  background-color: #0245d6;
+  color: white;
+}
+.radioInput:checked + .label,
+.checkboxInput:checked + .label {
   background-color: #007bff;
   color: white;
 }
-.options .option input[type="radio"],
-.options .option input[type="checkbox"] {
+.radioInput,
+.checkboxInput {
   display: none;
 }
-.option input[type="radio"] + label,
-.option input[type="checkbox"] + label {
+.radioInput + .label,
+.checkboxInput + .label {
   display: flex;
   align-items: center;
   padding: 12px 20px;
@@ -78,65 +84,61 @@ textarea.fill-answer-input {
   transition: background-color 0.3s ease;
   width: 100%;
 }
-.options li:hover {
+.option:hover {
   background-color: #e2dfdf;
 }
-.options label #option {
+.label #option {
   font-weight: bold;
   margin-right: 10px;
 }
 
 /* Quiz Footer */
-.quiz-footer {
+.testFooter {
   text-align: center;
   margin-top: 20px;
   color: #555;
 }
-.quiz-footer button {
+.button {
   margin: 0 10px;
 }
-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 25px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: medium;
-  transition: background-color 0.3s ease;
-}
-button:hover {
-  background-color: #0056b3;
-}
-.quiz-footer .skip-button {
+
+.skipButton {
   background-color: #113bc4;
 }
-.quiz-footer .skip-button:hover {
+.skipButton:hover {
   background-color: #0f309b;
 }
-.quiz-footer .submit-button {
+.submitButton {
   background-color: #028a52;
 }
-.quiz-footer .submit-button:hover {
+.submitButton:hover {
   background-color: #09633d;
-}
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
 }
 
 /* Timer Section */
-.timer-section {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+.timerSection {
+  background-color: rgb(255, 255, 255);
+
+  padding: 20px 30px;
+  border-radius: 8px !important;
+
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.timer-circle {
+.timerCircle {
   position: relative;
   width: 120px;
   height: 120px;
+  text-align: center;
+  font-size: 1.2em;
+  display: flex;
+  color: #555;
+  flex-direction: column;
+  align-items: center;
 }
-.timer-circle svg {
+.svg {
   position: absolute;
   top: 0;
   left: 0;
@@ -144,10 +146,10 @@ button:disabled {
   height: 100%;
   transform: rotate(-90deg);
 }
-.timer-circle circle {
+.circle {
   fill: none;
 }
-.timer-text {
+.timerText {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -156,24 +158,17 @@ button:disabled {
   color: #333;
   font-weight: bold;
 }
-.timer-section div {
-  text-align: center;
-  font-size: 1.2em;
-  display: flex;
-  color: #555;
-  flex-direction: column;
-  align-items: center;
-}
+
 
 /* Question Number Section */
-.question-number-section {
+.questionNumberSection {
   margin-top: 10px;
   background-color: white;
   border-radius: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
-.question-number-section .grid-layout {
+.questionNumberContainer {
   background-color: rgb(255, 255, 255);
   border-radius: 10px;
   padding: 20px 30px;
@@ -184,7 +179,7 @@ button:disabled {
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
-.question-number {
+.questionNumber {
   height: 50px;
   width: 50px;
   background-color: #bbb;
@@ -196,21 +191,21 @@ button:disabled {
   color: white;
   transition: background-color 0.3s, box-shadow 0.3s;
 }
-.question-number.current-question {
+.questionNumber.currentQuestion {
   border: 2px solid #666;
 }
-.question-number:hover {
+.questionNumber:hover {
   cursor: pointer;
 }
-.question-number.answered {
+.questionNumber.answered {
   background-color: #04aa6d;
   border: 2px solid #028a52;
 }
-.question-number.not-answered {
+.questionNumber.notAnswered {
   background-color: #aa2b04;
   border: 2px solid #861f02;
 }
-.question-number.skipped {
+.questionNumber.skipped {
   background-color: #0439aa;
   border: 2px solid #032d7a;
 }
