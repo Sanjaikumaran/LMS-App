@@ -1,91 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import DataTable from "react-data-table-component";
-import Modal from "./modal";
 import handleApiCall from "./handleAPI";
 import FileUpload from "./fileUpload";
 import FormModal from "./formModal";
-import shortcut from "./shortcut";
-// const createFormModal = (props) => {
-//   const overlay = document.createElement("div");
-//   overlay.className = "modal-background";
-//   document.body.appendChild(overlay);
+import useModal from "./useModal";
+import Button from "./button";
+import Input from "./input";
 
-//   const modalContainer = document.createElement("div");
-//   modalContainer.className = "modal-container";
-
-//   const heading = document.createElement("h1");
-//   heading.className = "card-header";
-//   heading.innerText = props.headingText;
-//   modalContainer.appendChild(heading);
-//   const modalBody = document.createElement("div");
-//   modalBody.className = "card-body";
-//   props.elements.forEach((element) => modalBody.appendChild(element));
-
-//   const closeModal = () => {
-//     overlay.remove();
-//     modalContainer.remove();
-//   };
-
-//   const buttonsDiv = document.createElement("div");
-//   buttonsDiv.className = "modal-buttons";
-//   const saveButton = document.createElement("button");
-//   saveButton.classList.add("tooltip");
-//   saveButton.setAttribute("tooltip", "Enter");
-//   saveButton.innerText = "Save";
-//   saveButton.onclick = props.saveCallback(closeModal);
-
-//   const closeButton = document.createElement("button");
-//   closeButton.innerText = "Close";
-
-//   closeButton.setAttribute("tooltip", "Esc");
-//   closeButton.className = "red-bg tooltip";
-//   closeButton.onclick = closeModal;
-
-//   buttonsDiv.appendChild(closeButton);
-//   buttonsDiv.appendChild(saveButton);
-//   modalBody.appendChild(buttonsDiv);
-//   modalContainer.appendChild(modalBody);
-//   document.body.appendChild(modalContainer);
-// };
-const ActionDiv = ({
-  tablePageName,
-  onFileUpload,
-  onAddNew,
-
-  onRemove,
-  actionButtons,
-}) => {
-  const uploadFile = () => {
-    onFileUpload(document.querySelector("#data-file"));
-  };
+const ActionDiv = ({ tablePageName, onFileUpload, onAddNew, onRemove, actionButtons }) => {
+  const uploadFile = () => onFileUpload(document.querySelector("#data-file"));
   return (
     <div className="action-div">
-      <div className="upload-file">
-        <label>Upload {tablePageName}</label>
-        <input name="list" id="data-file" type="file" required />
-      </div>
-      <div>
-        <button type="button" onClick={uploadFile}>
-          Upload
-        </button>
-        <button type="button" onClick={onAddNew}>
-          Add New
-        </button>
-        <button type="button" onClick={onRemove}>
-          Remove
-        </button>
-        {actionButtons && actionButtons}
+      <Input label={`Upload ${tablePageName}`} className="upload-file" type="file" onChange={(value,e)=>console.log(document.querySelector("#data-file"))
+      } id="data-file" />
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", paddingTop: "20px" }}>
+        <Button onClick={uploadFile}>Upload</Button>
+        <Button onClick={onAddNew}>Add New</Button>
+        <Button onClick={onRemove}>Remove</Button>
+        {actionButtons}
       </div>
     </div>
   );
 };
 
-const DataTableSection = ({
-  columns,
-  data,
-  onRowSelected = () => {},
-  isSelectable = false,
-}) => {
+const DataTableSection = ({ columns, data, onRowSelected, isSelectable }) => {
   const customStyles = {
     rows: { style: { padding: "10px", maxHeight: "72px", width: "100%" } },
     headCells: {
@@ -94,14 +32,11 @@ const DataTableSection = ({
         fontSize: "larger",
         fontWeight: "bold",
         backgroundColor: "#007bff",
-        paddingLeft: "8px",
-        paddingRight: "8px",
+        padding: "0 8px",
         width: "100%",
       },
     },
-    cells: {
-      style: { paddingLeft: "8px", paddingRight: "8px", width: "100%" },
-    },
+    cells: { style: { padding: "0 8px", width: "100%" } },
   };
 
   return (
@@ -111,11 +46,11 @@ const DataTableSection = ({
         data={data}
         highlightOnHover
         striped
+        fixedHeader
+        responsive
         fixedHeaderScrollHeight="80vh"
         defaultSortFieldId={1}
         customStyles={customStyles}
-        responsive
-        fixedHeader
         selectableRows={isSelectable}
         onSelectedRowsChange={onRowSelected}
       />
@@ -124,27 +59,21 @@ const DataTableSection = ({
 };
 
 const DataTableManagement = (props) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalOptions, setModalOptions] = useState();
   const [isSelectable, setIsSelectable] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [modalProps, setModalProps] = useState(null);
+  const { closeModal, showModal, Modal } = useModal();
+  const inputsRef = useRef({});
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  shortcut("esc", () => {
-   setIsModalOpen(false);
-  });
-  var enterShortcutFunction = null;
-  shortcut("enter", () => {
-   enterShortcutFunction && enterShortcutFunction();
-   enterShortcutFunction = null;
-  });
-  async function fetchData(collectionName = props.collectionName) {
+
+  const fetchData = async (collectionName = props.collectionName) => {
     try {
       const response = await handleApiCall({
         API: "load-data",
@@ -152,67 +81,28 @@ const DataTableManagement = (props) => {
       });
 
       if (response.flag) {
-        const data =
-          response.data.data?.filter((value) => !("title" in value)) || [];
-        const studentData = data.find((value) => value.userType === "Student");
-        setTableColumns(Object.keys(studentData || data[0]));
-        setTableData(data.filter((value) => value.userType === "Student"));
+        const filtered = response.data.data?.filter((v) => !("title" in v)) || [];
+        const studentRows = filtered.filter((v) => v.userType === "Student");
+        const sample = studentRows[0] || filtered[0] || {};
+        setTableColumns(Object.keys(sample));
+        setTableData(studentRows);
       } else {
-        //enterShortcutFunction = () => {
-        //  fetchData(collectionName);
-        //  setIsModalOpen(false);
-        //};
-        showModal(
-          "Info",
-          response.error,
-          [
-            ["Retry", "Cancel"],
-            ["Enter", "Esc"],
-          ],
-          (button) => {
-            if (button === "Retry") {
-              fetchData(collectionName);
-              setIsModalOpen(false);
-            } else {
-              setIsModalOpen(false);
-            }
-          }
-        );
+        showRetryModal("Info", response.error, () => fetchData(collectionName));
       }
-    } catch (error) {
-      //enterShortcutFunction = () => {
-      //  fetchData(collectionName);
-      //  setIsModalOpen(false);
-      //};
-      showModal(
-        "Error",
-        `Uncaught error: ${error.message}`,
-        [
-          ["Retry", "Cancel"],
-          ["Enter", "Esc"],
-        ],
-        (button) => {
-          if (button === "Retry") {
-            fetchData(collectionName);
-            setIsModalOpen(false);
-          } else {
-            setIsModalOpen(false);
-          }
-        }
-      );
+    } catch (err) {
+      showRetryModal("Error", err.message, () => fetchData(collectionName));
     }
-  }
+  };
 
   const handleRowSelected = (state) => setSelectedRows(state.selectedRows);
 
   const remove = async () => {
-    if (!isSelectable) {
-      setIsSelectable(true);
-      return;
-    }
-    if (selectedRows.length === 0) return;
-    const filteredData = tableData.filter((row) => !selectedRows.includes(row));
-    setTableData(filteredData);
+    if (!isSelectable) return setIsSelectable(true);
+    if (!selectedRows.length) return;
+
+    const updatedData = tableData.filter((row) => !selectedRows.includes(row));
+    setTableData(updatedData);
+
     try {
       const response = await handleApiCall({
         API: "delete-data",
@@ -221,135 +111,95 @@ const DataTableManagement = (props) => {
           data: selectedRows.map((row) => row._id),
         },
       });
-      //enterShortcutFunction = () => {
-      //  setIsSelectable(false);
-      //  setIsModalOpen(false);
-      //};
+
       response.flag
-        ? showModal(
-            "Info",
-            `${response.data.deletedCount} ${response.data.message}`,
-            [["Ok"], ["Enter"]],
-            () => {
-              setIsSelectable(false);
-              setIsModalOpen(false);
-            }
-          )
-        : handleRetry("Error", response.error, remove);
+        ? showModal("Info", `${response.data.deletedCount} ${response.data.message}`, [
+            { label: "Ok", shortcut: "Enter", onclick: closeModal },
+          ])
+        : showRetryModal("Error", response.error, remove);
     } catch (error) {
-      handleRetry("Uncaught Error", error.message, remove);
-    } finally {
-      setIsModalOpen(true);
+      showRetryModal("Error", error.message, remove);
     }
   };
-  const addNew = () => {
-    const inputs = {};
 
-    const contentElements = tableColumns
-      .filter((col) => col !== "_id" && col !== "userType")
-      .map((col) => (
-        <input
-          key={col}
-          className={col}
-          placeholder={col}
-          ref={(el) => (inputs[col] = el)}
-        />
-      ));
+  const addNew = () => {
+    inputsRef.current = {};
+    const fields = tableColumns.filter((col) => col !== "_id" && col !== "userType");
+
+    const elements = fields.map((col) => (
+      <input
+        key={col}
+        placeholder={col}
+        className={col}
+        ref={(el) => (inputsRef.current[col] = el)}
+      />
+    ));
 
     setModalProps({
       headingText: "Add New User",
-      elements: contentElements,
+      elements,
       saveCallback: (closeModal) => async () => {
-        const data = Object.fromEntries(
-          tableColumns
-            .filter((col) => col !== "_id")
-            .map((col) => [col, inputs[col]?.value ?? ""])
+        const newData = Object.fromEntries(
+          tableColumns.map((col) => [col, inputsRef.current[col]?.value || ""])
         );
-
         try {
           const response = await handleApiCall({
             API: "insert-data",
-            data: { data, collection: props.collectionName },
+            data: { data: newData, collection: props.collectionName },
           });
-
           if (response.flag) {
-            showModal(
-              "Info",
-              "Data Inserted successfully!",
-              [["Ok"], ["Enter"]],
-              () => {
-                setTableData((prev) => [...prev, data]);
-                setModalProps(null);
-              }
-            );
+            showModal("Info", "Data Inserted successfully!", [
+              {
+                label: "Ok",
+                shortcut: "Enter",
+                onclick: () => setTableData((prev) => [...prev, newData]),
+              },
+            ]);
           } else {
-            handleRetry("Error", response.error, addNew);
+            showRetryModal("Error", response.error, addNew);
           }
         } catch (err) {
-          handleRetry("Uncaught Error", err.message, addNew);
-        } finally {
-          setIsModalOpen(true); // if needed elsewhere
+          showRetryModal("Error", err.message, addNew);
         }
-
         closeModal();
       },
       onClose: () => setModalProps(null),
     });
   };
 
-  const handleRetry = (type, message, retryFunction) => {
-    setModalOptions({
-      type,
-      message,
-      buttons: [
-        ["Retry", "Cancel"],
-        ["Enter", "Esc"],
-      ],
-      responseFunc: (button) => {
-        if (button === "Retry") retryFunction();
-        if (button === "Cancel") setIsModalOpen(false);
-      },
-    });
-  };
-
-  const showModal = (type, message, buttons, responseFunc) => {
-    setModalOptions({ type, message, buttons, responseFunc });
-    setIsModalOpen(true);
+  const showRetryModal = (type, message, retryFn) => {
+    showModal(type, message, [
+      { label: "Retry", shortcut: "Enter", onclick: retryFn },
+      { label: "Cancel", shortcut: "Escape", onclick: closeModal },
+    ]);
   };
 
   const columns = [
     {
       name: "SNo",
-      selector: (row, index) => index + 1,
+      selector: (_, index) => index + 1,
       sortable: true,
       width: "70px",
     },
     ...tableColumns
-      .filter((column) => !["Password", "userType", "_id"].includes(column))
-      .map((column) => ({
-        name: column,
-        selector: (row) => row[column],
+      .filter((col) => !["_id", "userType", "Password"].includes(col))
+      .map((col) => ({
+        name: col,
+        selector: (row) => row[col],
         sortable: true,
         wrap: true,
-        padding: "10px",
       })),
   ];
 
   return (
     <>
-    {modalProps && <FormModal {...modalProps} />}
+      {modalProps && <FormModal {...modalProps} />}
       <ActionDiv
         tablePageName={props.tablePageName}
-        onFileUpload={(file) =>
-          FileUpload(
-            fetchData,
-            file,
-            props.API,
-            props.collectionName,
-            showModal,
-            setIsModalOpen
-          )
-        }
+        onFileUpload={(file) => {
+          console.log(file);
+          
+          FileUpload(fetchData, file, props.API, props.collectionName, showModal)}}
         onAddNew={addNew}
         onRemove={remove}
         actionButtons={props.actionButtons}
@@ -360,16 +210,9 @@ const DataTableManagement = (props) => {
         onRowSelected={handleRowSelected}
         isSelectable={isSelectable}
       />
-      {isModalOpen && (
-        <Modal
-          modalType={modalOptions.type || "Info"}
-          modalMessage={modalOptions.message || "An unexpected issue occurred."}
-          buttons={modalOptions.buttons || ["Ok"]}
-          response={modalOptions.responseFunc || (() => setIsModalOpen(false))}
-        />
-      )}
+      <Modal />
     </>
   );
 };
 
-export {DataTableManagement,DataTableSection} ;
+export { DataTableManagement, DataTableSection };
