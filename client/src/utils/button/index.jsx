@@ -4,7 +4,7 @@ import styles from "./button.module.css";
 const Button = ({
   type = "button",
   children,
-  className = "",
+  className = false,
   onClick,
   shortcut = null,
   disabled = false,
@@ -16,7 +16,7 @@ const Button = ({
 
   useEffect(() => {
     if (!onClick || !shortcut || disabled) return;
-console.log(shortcut);
+    console.log(shortcut);
 
     const handleShortcut = (e) => {
       console.log(e.key);
@@ -41,20 +41,22 @@ console.log(shortcut);
   }, [tooltip, shortcut]);
 
   return (
-    <button
-      type={type}
-      className={`${styles.button} ${finalTooltip ? styles.tooltip : ""} ${
-        disabled ? styles.disabled : ""
-      } ${className}`}
-      onClick={onClick}
-      disabled={disabled || isLoading}
-      aria-disabled={disabled || isLoading}
-      {...(finalTooltip ? { tooltip: finalTooltip } : {})}
-      {...rest}
-    >
-      {isLoading && <span className={styles.spinner}></span>}
-      <span className={isLoading ? styles.loadingText : ""}>{children}</span>
-    </button>
+    <div >
+      <button
+        type={type}
+        className={`${className ? className : styles.button} ${
+          finalTooltip ? styles.tooltip : ""
+        } ${disabled ? styles.disabled : ""}`}
+        onClick={onClick}
+        disabled={disabled || isLoading}
+        aria-disabled={disabled || isLoading}
+        {...(finalTooltip ? { tooltip: finalTooltip } : {})}
+        {...rest}
+      >
+        {isLoading && <span className={styles.spinner}></span>}
+        <span className={isLoading ? styles.loadingText : ""}>{children}</span>
+      </button>
+    </div>
   );
 };
 

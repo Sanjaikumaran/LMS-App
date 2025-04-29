@@ -1,3 +1,9 @@
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
 .button {
   width: inherit;
   font-size: large;
