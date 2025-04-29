@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Button from "../../utils/button";
 
 const TestSummary = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const TestSummary = () => {
       <div className="instructions-div">
         <h1
           style={{
-            fontSize: "8rem",
+            fontSize: "5rem",
           }}
         >
           Your test has been submitted!
@@ -64,7 +65,7 @@ const TestSummary = () => {
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <button
+        <Button
           onClick={() => {
             sessionStorage.clear();
             localStorage.clear();
@@ -72,7 +73,7 @@ const TestSummary = () => {
           }}
         >
           Exit
-        </button>
+        </Button>
       </div>
     </>
   );

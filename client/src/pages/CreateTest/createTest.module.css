@@ -1,0 +1,79 @@
+.createTestContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 20px;
+}
+.createTestForm {
+  margin: auto;
+  margin-top: 20px;
+  max-width: 600px;
+  padding: 0 20px 10px 20px;
+}
+
+.groupSelector {
+  position: relative;
+}
+
+.groupDropdown{
+  position: absolute;
+  top: 100%;
+  left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  max-width: 600px;
+  width: 100%;
+  border: 1px solid #ccc;
+  background-color: white;
+  z-index: 10;
+}
+
+.groupItem {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.groupItem:hover {
+  background-color: #f0f0f0;
+}
+
+.selectedGroups {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.selectedGroup {
+  background-color: #007bff;
+  color: white;
+  padding: 0 6px;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.removeGroupButton {
+  background: none;
+  color: white;
+  border: none;
+  border-radius: 0%;
+  padding: 5px 5px;
+  border-left: 1px solid #ffffff;
+  font-weight: bold;
+  margin-left: 5px;
+  cursor: pointer;
+}
+input[type="file"]::file-selector-button {
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
+}
+input[type="file"] {
+  padding: 0% !important    ;
+  width: 100% !important;
+}
