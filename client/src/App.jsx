@@ -11,6 +11,7 @@ import CreateTest from "./pages/CreateTest";
 import Users from "./pages/Users";
 import Question from "./pages/Question";
 import Test from "./pages/ManageTest/Test";
+import CourseModule from "./pages/videos"; 
 import Navbar from "./utils/navBar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { UserProvider } from "./utils/context/userContext";
@@ -147,6 +148,17 @@ const App = () => {
                 <>
                   <ChangeTitle title="Questions Module" />
                   <Question />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/course-module"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Student"]}>
+                <>
+                  <ChangeTitle title="course Module" />
+                  <CourseModule/>
                 </>
               </ProtectedRoute>
             }
