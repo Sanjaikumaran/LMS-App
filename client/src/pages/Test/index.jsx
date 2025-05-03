@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useUser } from "../../utils/context/userContext";
+
+
 import useModal from "../../utils/useModal";
 import handleApiCall from "../../utils/handleAPI";
 
@@ -14,7 +17,10 @@ import styles from "./test.module.css";
 const radius = 50;
 const circumference = 2 * Math.PI * radius;
 
-const Quiz = (props) => {
+const Quiz = () => {
+  const { user } = useUser();
+  console.log("[Quiz] --> user", user);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const { isModalOpen, showModal, Modal, closeModal } = useModal();
@@ -144,7 +150,7 @@ const Quiz = (props) => {
         condition: { _id: id },
         updateData: {
           "Test Results": {
-            UserID: props.UserID,
+            UserID: user.userID || user._id,
             Answer: JSON.stringify(answerList),
             Score: summary.score,
           },
@@ -159,16 +165,7 @@ const Quiz = (props) => {
         : "Error submitting test. Please contact admin.",
       [{ label: "Ok", shortcut: "Enter", onClick: () => navigate("/summary") }]
     );
-  }, [
-    highlightedOptions,
-    totalQuestions,
-    questions,
-    selectedOptions,
-    id,
-    props.UserID,
-    showModal,
-    navigate,
-  ]);
+  }, [highlightedOptions, totalQuestions, questions, selectedOptions, id, user?.userID, showModal, navigate]);
   
   const triggerAutoSubmit =useCallback(() => {
     setTotalTime(10);

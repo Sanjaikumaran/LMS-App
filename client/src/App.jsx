@@ -10,7 +10,7 @@ import Admin from "./pages/AdminHome";
 import CreateTest from "./pages/CreateTest";
 import Users from "./pages/Users";
 import Question from "./pages/Questions";
-import Test from "./pages/ManageTest/Test";
+import Test from "./pages/ManageTest/";
 import Navbar from "./utils/navBar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { UserProvider } from "./utils/context/userContext";

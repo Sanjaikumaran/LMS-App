@@ -11,7 +11,7 @@ import Button from "../../utils/button";
 import Dropdown from "../../utils/select";
 
 import styles from "./manage.module.css";
-import "../../assets/styles/Test.css";
+// import "../../assets/styles/Test.css";
 
 const Test = () => {
   const { showModal, Modal, closeModal } = useModal();
@@ -77,6 +77,8 @@ const Test = () => {
           selectedQuestionsGroups: data["Questions Group"],
         });
         setTestId(data._id);
+        console.log(data["Test Results"]);
+        
         setTableData((prev) => ({
           ...prev,
           "Test Results": data["Test Results"],
@@ -93,15 +95,16 @@ const Test = () => {
         API: "load-data",
         data: { collection: "Users" },
       });
-  
+
       if (!response.flag) return;
-  
-      const users = response.data.data.filter((u) => !("title" in u));
+
+      const users = response.data.data.filter((u) => !("title" in u) && u.userType !== "Admin");
       const uniqueGroups = [...new Set(users.map((u) => u.Group))].filter(
         (g) => !selectedUsersGroups.includes(g)
       );
-  
-      const studentSample = users.find((u) => u.userType === "Student") || users[0] || {};
+
+      const studentSample =
+        users.find((u) => u.userType === "Student") || users[0] || {};
       const userColumns = [
         {
           name: "SNo",
@@ -110,7 +113,9 @@ const Test = () => {
           width: "70px",
         },
         ...Object.keys(studentSample)
-          .filter((key) => !["Password", "userType", "_id", "Group"].includes(key))
+          .filter(
+            (key) => !["Password", "userType", "_id", "Group"].includes(key)
+          )
           .map((key) => ({
             name: key,
             selector: (row) => row[key],
@@ -119,54 +124,65 @@ const Test = () => {
             padding: "10px",
           })),
       ];
-  
-      const rawResults = response.data.data.testResults || []; 
-      const processedResults = rawResults.map((result, index) => {
-        const matched = users.find((u) => u._id === result.UserID);
-        if (!matched) return result;
-  
-        result.Answer = JSON.parse(result.Answer || "{}");
-        const answers = Object.values(result.Answer);
-  
-        const answered = answers.filter((a) => {
-          const key = Object.keys(a)[0];
-          const value = a[key];
-          return value !== "not-answered" && !value.includes("skipped");
-        }).length;
-  
-        const skipped = answers.filter((a) => {
-          const key = Object.keys(a)[0];
-          return a[key].includes("skipped");
-        }).length;
-  
-        const notAnswered = answers.filter((a) => {
-          const key = Object.keys(a)[0];
-          return a[key] === "not-answered";
-        }).length;
-  
-        return {
-          Name: matched?.Name || "Unknown",
-          "Roll No": matched?.["Roll No"] || "N/A",
-          Department: matched?.Department || "N/A",
-          "Total Questions": answers.length,
-          "Answered Questions": answered,
-          Skipped: skipped,
-          "Not Answered": notAnswered,
-          ...result,
-          answersObj: answers,
-          Answers: (
-            <button
-              onClick={() => {
-                setIsAnswersModalOpen(true);
-                setDisplayAnswer(index);
-              }}
-            >
-              View
-            </button>
-          ),
-        };
+      const data =
+        response.data.data?.filter((value) => !("title" in value)) || [];
+      const matchedItems = tableData["Test Results"].map((testItem) => {
+        return data.find((value) => value._id === testItem.UserID);
       });
-  
+
+      const uniqueItems = new Set(
+        matchedItems.map((item) => item && JSON.stringify(item))
+      );
+      const uniqueItemsArray = Array.from(uniqueItems).map(
+        (item) => item && JSON.parse(item)
+      );
+
+      const updatedTestResult = tableData["Test Results"].map(
+        (testItem, index) => {
+          const matchedItem = uniqueItemsArray.find(
+            (item) => item && item._id === testItem.UserID
+          );
+
+          delete testItem["UserID"];
+          if (matchedItem) {
+            testItem.Answer = JSON.parse(testItem.Answer);
+
+            const totalQuestions = testItem["Answer"].length;
+            const answers = Object.values(testItem.Answer);
+
+
+            try {
+              var answeredQuestions = answers.filter(
+                (answer) =>
+                  Object.values(answer)[0] !== "not-answered" &&
+                  Object.values(answer)[0] !== "skipped"
+              ).length;
+              var skipped = answers.filter((answer) =>
+                Object.values(answer)[0].includes("skipped")
+              ).length;
+              var notAnswered = answers.filter(
+                (answer) => Object.values(answer)[0] === "not-answered"
+              ).length;
+            } catch (error) {}
+
+            return {
+              Name: matchedItem.Name,
+              "Roll No": matchedItem["Roll No"],
+              Department: matchedItem.Department,
+              "Total Questions": totalQuestions || 0,
+              "Answered Questions": answeredQuestions || 0,
+              Skipped: skipped || 0,
+              "Not Answered": notAnswered || 0,
+              // ...testItem,
+              // answersObj: answers,
+              // Answers: showAnswers(index),
+            };
+          }
+
+          return testItem;
+        }
+      );
+
       const resultColumns = [
         {
           name: "SNo",
@@ -174,7 +190,7 @@ const Test = () => {
           sortable: true,
           width: "70px",
         },
-        ...Object.keys(processedResults[0] || {}).map((key) => ({
+        ...Object.keys(updatedTestResult[0] || {}).map((key) => ({
           name: key,
           selector: (row) => row[key],
           sortable: true,
@@ -182,7 +198,7 @@ const Test = () => {
           padding: "10px",
         })),
       ];
-  
+
       setGroupData((prev) => ({ ...prev, allUsersGroups: uniqueGroups }));
       setTableColumns((prev) => ({
         ...prev,
@@ -192,13 +208,13 @@ const Test = () => {
       setTableData((prev) => ({
         ...prev,
         Users: users,
-        "Test Results": processedResults,
+        "Test Results": updatedTestResult,
       }));
     };
-  
+
     loadData();
   }, [selectedUsersGroups]);
-  
+
   useEffect(() => {
     (async () => {
       const response = await handleApiCall({
@@ -342,6 +358,75 @@ const Test = () => {
         ))}
       </div>
     );
+  const generateReport = (format = "csv") => {
+    const tableHead = tableColumns[tableName]
+      .filter((column) => column.name !== "Answer" && column.name !== "Answers")
+      .map((column) => column.name)
+      .join(",");
+
+    const tableBody = tableData[tableName]
+      .map((row) => {
+        return tableColumns[tableName]
+          .filter(
+            (column) => column.name !== "Answer" && column.name !== "Answers"
+          )
+          .map((column) => {
+            const value = row[column.name];
+            if (
+              typeof value === "string" &&
+              (value.includes(",") || value.includes('"'))
+            ) {
+              return `"${value.replace(/"/g, '""')}"`; // Escape quotes
+            }
+            return value;
+          })
+          .join(",");
+      })
+      .join("\n");
+
+    const fileContent = `${tableHead}\n${tableBody}`;
+    const mimeType =
+      format === "pdf" ? "application/pdf" : "text/csv;charset=utf-8;";
+    const fileExtension = format === "pdf" ? "pdf" : "csv";
+
+    const blob = new Blob([fileContent], { type: mimeType });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${testName} report.${fileExtension}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // const generateReport = () => {
+  //   const tableHead = tableColumns[tableName]
+  //     .filter((column) => column.name !== "Answer" && column.name !== "Answers")
+  //     .map((column) => column.name)
+  //     .join(",");
+
+  //   const tableBody = tableData[tableName]
+  //     .map((row) => {
+  //       const filteredRow = { ...row };
+  //       delete filteredRow.Answer;
+  //       delete filteredRow.Answers;
+
+  //       return tableColumns[tableName]
+  //         .filter((column) => column.name !== "Answer")
+  //         .map((column) => filteredRow[column.name])
+  //         .join(",");
+  //     })
+  //     .join("\n");
+
+  //   const csvContent = `${tableHead}\n${tableBody}`;
+
+  //   const blob = new Blob([csvContent], { type: "text/pdf;charset=utf-8;" });
+
+  //   const link = document.createElement("a");
+  //   link.href = URL.createObjectURL(blob);
+  //   link.download = `${testName} report.csv`;
+  //   link.click();
+  // };
+
   return (
     <div>
       <div
@@ -355,7 +440,7 @@ const Test = () => {
         <ModuleCard header={testName}>
           <form className={styles.createTestForm} onSubmit={handleSubmit}>
             <Input
-              label="Test Name *"
+              label="Test Name*"
               value={testName}
               onChange={(value) => {
                 updateForm("testName")(value);
@@ -443,10 +528,12 @@ const Test = () => {
               onSelect={(value) => setTableName(value)}
             />
 
-            {tableName === "Test Results" && (
-              // tableData["Test Results"].length > 0 &&
-              <Button>Generate Report</Button>
-            )}
+            {tableName === "Test Results" &&
+              tableData["Test Results"].length > 0 && (
+                <Button onClick={() => generateReport("csv")}>
+                  Generate Report
+                </Button>
+              )}
           </div>
 
           <div

@@ -9,13 +9,14 @@
   margin-top: 20px;
   max-width: 600px;
   padding: 0 20px 10px 20px;
+  row-gap: 20px;
 }
 
 .groupSelector {
   position: relative;
 }
 
-.groupDropdown{
+.groupDropdown {
   position: absolute;
   top: 100%;
   left: 0;
@@ -63,14 +64,14 @@
   border-left: 1px solid #ffffff;
   font-weight: bold;
   margin-left: 5px;
+  margin-top: 0;
   cursor: pointer;
 }
 .dataSelectorContainer {
   display: flex;
   flex-direction: row;
-max-width: 500px;
+  max-width: 500px;
   gap: 10px;
-
 }
 input[type="file"]::file-selector-button {
   padding: 10px;

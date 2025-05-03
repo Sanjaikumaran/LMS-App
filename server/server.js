@@ -12,10 +12,19 @@ app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/build", "index.html"));
 });
 app.listen(5001);
+const args = process.argv.slice(2).map((arg) => arg.toLowerCase());
+let dbPreference = "Remote";
+
+if (args.includes("-local") || args.includes("-l")) dbPreference = "Local";
+else if (args.includes("-remote") || args.includes("-r")) dbPreference = "Remote";
+
+async function getDbConnection() {
+  return await connectToReplicaSet(dbPreference);
+}
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.getDocument("Users", "Roll No", Id);
     if (result.flag && userPass === result.data.Password) {
       res
@@ -34,7 +43,7 @@ app.post("/login", async (req, res) => {
 app.post("/load-data", async (req, res) => {
   const { collection } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.loadCollection(collection);
     if (result.flag) {
       res
@@ -50,7 +59,7 @@ app.post("/load-data", async (req, res) => {
 app.post("/create-collection", async (req, res) => {
   const { collection } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.createCollection(collection);
     if (result.flag) {
       res.status(200).json({ flag: true, message: result.message });
@@ -84,7 +93,7 @@ app.post("/Upload-data", async (req, res) => {
       doc["Group"] = doc.Department && doc.Department.toUpperCase();
       docs.push(doc);
     });
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.insertData(collection, docs);
     if (result.flag) {
       res.status(200).json({
@@ -106,7 +115,7 @@ app.post("/Upload-data", async (req, res) => {
 app.post("/delete-data", async (req, res) => {
   const { data, collection } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.deleteDocument(collection, data);
     if (result.flag) {
       res.status(200).json({
@@ -124,7 +133,7 @@ app.post("/delete-data", async (req, res) => {
 app.post("/insert-data", async (req, res) => {
   const { data, collection } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.insertDocument(collection, data);
     if (result.flag) {
       res.status(200).json({ flag: true, message: result.message });
@@ -138,7 +147,7 @@ app.post("/insert-data", async (req, res) => {
 app.post("/find-data", async (req, res) => {
   const { collection, condition } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.getDocument(
       collection,
       condition.key,
@@ -158,7 +167,7 @@ app.post("/find-data", async (req, res) => {
 app.post("/update-data", async (req, res) => {
   const { collection, condition, data } = req.body.data;
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.updateDocument(
       collection,
       condition,
@@ -185,7 +194,7 @@ app.post("/update-score", async (req, res) => {
     req.body.data;
 
   try {
-    const dbConnection = await connectToReplicaSet();
+    const dbConnection = await getDbConnection();
     const result = await dbConnection.getDocument(
       collection,
       condition.key,
@@ -239,7 +248,7 @@ app.post("/update-score", async (req, res) => {
 });
 app.post("/push-data", async (req, res) => {
   const { collection, condition, updateData } = req.body.data;
-  const dbConnection = await connectToReplicaSet();
+  const dbConnection = await getDbConnection();
   const result = await dbConnection.pushData(collection, condition, updateData);
   if (result.flag) {
     res.status(200).json({ flag: true, message: "Data pushed successfully" });
@@ -253,7 +262,7 @@ app.post("/push-data", async (req, res) => {
 });
 app.post("/Upload-question", async (req, res) => {
   const { collection, data } = req.body.data;
-  const dbConnection = await connectToReplicaSet();
+  const dbConnection = await getDbConnection();
   const result = await dbConnection.insertData(collection, data);
   if (result) {
     res.status(200).json({ message: "Questions uploaded successfully" });
