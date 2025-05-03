@@ -66,14 +66,14 @@
   margin-left: 5px;
   cursor: pointer;
 }
-input[type="file"]::file-selector-button {
+.createTestForm input[type="file"]::file-selector-button {
   padding: 10px;
   color: white;
   font-weight: bold;
   border: none;
   background-color: #007bff;
 }
-input[type="file"] {
+.createTestForm input[type="file"] {
   padding: 0% !important    ;
   width: 100% !important;
 }
