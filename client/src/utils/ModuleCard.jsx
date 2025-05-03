@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Button from "./button";
 const ModuleCard = (props) => {
   const navigate = useNavigate();
 
@@ -15,9 +16,9 @@ const ModuleCard = (props) => {
               <img src={props.imageSrc} alt={props.altText} />
             </div>
             <div className="button-container">
-              <button onClick={() => navigate(props.navigateTo)} type="button">
+              <Button onClick={() => navigate(props.navigateTo)} >
                 Open
-              </button>
+              </Button>
             </div>{" "}
           </div>
         </>

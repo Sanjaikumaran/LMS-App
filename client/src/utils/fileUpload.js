@@ -1,62 +1,37 @@
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
-import shortcut from "./shortcut";
-import handleApiCall from "./handleAPI";
 
-const fileUpload =  (
+import handleApiCall from "./handleAPI";
+import Input from "./input";
+
+const fileUpload = (
   fetchCallback,
-  fileName,
+  fileInput,
   apiEndpoint,
   collectionName,
   showModal,
-  setIsModalOpen,
+  closeModal,
   submitCallback = null
 ) => {
-  var groupName;
-  var enterShortcutFunction = null;
-
-  shortcut(
-    "esc",
-    () => {
-      setIsModalOpen(false);
-    },
-    null,
-    true
-  );
-
-  shortcut(
-    "enter",
-    () => {
-      enterShortcutFunction && enterShortcutFunction();
-      enterShortcutFunction = null;
-    },
-    null,
-    true
-  );
-
-  if (!fileName.files[0]) {
-    enterShortcutFunction = () => {
-      fileName.click();
-      setIsModalOpen(false);
-    };
-
-    showModal(
-      "Error",
-      "No file is selected.",
-      [
-        ["Select File", "Cancel"],
-        ["Enter", "Esc"],
-      ],
-      (button) => {
-        if (button === "Select File") fileName.click();
-        setIsModalOpen(false);
-      }
-    );
+  if (!fileInput.files[0]) {
+    showModal("Error", "No file is selected.", [
+      {
+        label: "Select File",
+        shortcut: "Enter",
+        onclick: () => {
+          fileInput.click();
+          closeModal();
+        },
+      },
+      { label: "Cancel", shortcut: "Escape", onclick: closeModal },
+    ]);
     return;
   }
 
+  const file = fileInput.files[0];
   const reader = new FileReader();
-  const fileType = fileName.files[0].name.split(".").pop().toLowerCase();
+  const fileType = file.name.split(".").pop().toLowerCase();
+  let groupName;
 
   const GIFTParser = (text) => {
     const questions = [];
@@ -85,6 +60,30 @@ const fileUpload =  (
     return questions;
   };
 
+  const normalizeQuestions = (data) =>
+    data
+      .map(([question, options, answers]) => {
+        if (
+          !question ||
+          ["question", "questions"].includes(question.toLowerCase().trim())
+        )
+          return null;
+
+        const optionList = options
+          ? options.split(/::|,,/).map((o) => o.trim())
+          : ["None"];
+        const answerList = answers
+          ? answers.split(/::|,,/).map((a) => a.trim())
+          : [];
+
+        return {
+          Question: question.trim(),
+          Option: optionList,
+          Answer: answerList,
+        };
+      })
+      .filter(Boolean);
+
   const handleUpload = async (data) => {
     try {
       const response = await handleApiCall({
@@ -95,69 +94,51 @@ const fileUpload =  (
       if (response.flag) {
         submitCallback && submitCallback(groupName);
         fetchCallback();
-        enterShortcutFunction = () => {
-          fileName.value = "";
-          setIsModalOpen(false);
-        };
-
-        showModal(
-          "Info",
-          "Data Uploaded Successfully!",
-          [["Ok"], ["Enter"]],
-          () => {
-            enterShortcutFunction();
-          }
-        );
+        showModal("Info", "Data Uploaded Successfully!", {
+          label: "Ok",
+          shortcut: "Enter",
+          onclick: () => {
+            fileInput.value = "";
+            closeModal();
+          },
+        });
       } else {
-        enterShortcutFunction = () => {
-          fileName.value = "";
-          retryUpload();
-          setIsModalOpen(false);
-        };
-        showModal(
-          "Error",
-          response.error,
-          [
-            ["Retry", "Cancel"],
-            ["Enter", "Esc"],
-          ],
-          (button) => {
-            if (button === "Retry") retryUpload();
-            fileName.value = "";
-            setIsModalOpen(false);
-          }
-        );
+        showModal("Error", response.error, [
+          { label: "Retry", shortcut: "Enter", onclick: retryUpload },
+          {
+            label: "Cancel",
+            shortcut: "Escape",
+            onclick: () => {
+              fileInput.value = "";
+              closeModal();
+            },
+          },
+        ]);
       }
     } catch (error) {
-      enterShortcutFunction = () => {
-        fileName.value = "";
-        retryUpload();
-        setIsModalOpen(false);
-      };
-      showModal(
-        "Error",
-        `Uncaught error: ${error.message || error}`,
-        [
-          ["Retry", "Cancel"],
-          ["Enter", "Esc"],
-        ],
-        (button) => {
-          if (button === "Retry") retryUpload();
-          fileName.value = "";
-          setIsModalOpen(false);
-        }
-      );
+      showModal("Error", `Uncaught error: ${error.message || error}`, [
+        { label: "Retry", shortcut: "Enter", onclick: retryUpload },
+        {
+          label: "Cancel",
+          shortcut: "Escape",
+          onclick: () => {
+            fileInput.value = "";
+            closeModal();
+          },
+        },
+      ]);
     }
   };
 
   const retryUpload = () => {
     fileUpload(
       fetchCallback,
-      fileName,
+      fileInput,
       apiEndpoint,
       collectionName,
       showModal,
-      setIsModalOpen
+      closeModal,
+      submitCallback
     );
   };
 
@@ -166,147 +147,64 @@ const fileUpload =  (
 
     switch (fileType) {
       case "csv":
-        if (collectionName === "Users") {
-          insertData = Papa.parse(reader.result).data;
-        } else {
-          insertData = Papa.parse(reader.result).data;
-          console.log(insertData);
-
-          insertData = insertData
-            .map((question) => {
-              if (
-                question[0].toLowerCase().trim() !== "question" &&
-                question[0].toLowerCase().trim() !== "questions"
-              ) {
-                if (question[0].includes("____")) {
-                  return {
-                    Question: question[0].trim(),
-                    Option: question[1]
-                      ? question[1]
-                          .split(/::|,,/)
-                          .map((option) => option.trim())
-                      : ["None"],
-                    Answer: question[2]
-                      .split(/::|,,/)
-                      .map((option) => option.trim()),
-                  };
-                }
-                const options = question[1]
-                  ? question[1].split(/::|,,/).map((option) => option.trim())
-                  : [];
-                const answers = question[2]
-                  ? question[2].split(/::|,,/).map((answer) => answer.trim())
-                  : [];
-
-                return {
-                  Question: question[0].trim(),
-                  Option: options,
-                  Answer: answers,
-                };
-              }
-              return null;
-            })
-            .filter((item) => item !== null);
-        }
+        const parsed = Papa.parse(reader.result).data;
+        insertData =
+          collectionName === "Users"
+            ? parsed
+            : normalizeQuestions(parsed);
         break;
+
       case "gift":
         insertData = GIFTParser(reader.result);
-
         break;
+
       case "xlsx":
         const workbook = XLSX.read(reader.result, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        insertData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        const arrayData = insertData.map((obj) => {
-          return [obj.Question, obj.Options, Object.Answers];
-        });
-        insertData = [Object.keys(insertData[0]), ...arrayData];
-        console.log(insertData);
-
-        insertData = insertData
-          .map((question) => {
-            if (
-              question[0].toLowerCase().trim() !== "question" &&
-              question[0].toLowerCase().trim() !== "questions"
-            ) {
-              if (question[0].includes("____")) {
-                return {
-                  Question: question[0].trim(),
-                  Option: question[1]
-                    ? question[1].split(/::|,,/).map((option) => option.trim())
-                    : ["None"],
-                  Answer: question[2]
-                    .split(/::|,,/)
-                    .map((option) => option.trim()),
-                };
-              }
-              const options = question[1]
-                ? question[1].split(/::|,,/).map((option) => option.trim())
-                : [];
-              const answers = question[2]
-                ? question[2].split(/::|,,/).map((answer) => answer.trim())
-                : [];
-
-              return {
-                Question: question[0].trim(),
-                Option: options,
-                Answer: answers,
-              };
-            }
-            return null;
-          })
-          .filter((item) => item !== null);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        const rowArray = jsonData.map((obj) => [
+          obj.Question,
+          obj.Options,
+          obj.Answers,
+        ]);
+        insertData = normalizeQuestions(rowArray);
         break;
+
       default:
-        enterShortcutFunction = () => {
-          setIsModalOpen(false);
-        };
-        showModal("Error", "Unsupported file type.", [["Ok"], ["Enter"]], () =>
-          setIsModalOpen(false)
-        );
+        showModal("Error", "Unsupported file type.", [
+          { label: "Ok", shortcut: "Enter", onclick: closeModal },
+        ]);
         return;
     }
 
     if (apiEndpoint === "Upload-question") {
-      enterShortcutFunction = () => {
-        groupName = document.getElementById("groupName").value;
-        insertData = insertData.map((data) => ({
-          ...data,
-          Group: groupName,
-        }));
-        handleUpload(insertData);
-      };
-      showModal(
-        "Enter Question Group Name",
-        <input type="text" id="groupName" />,
-        [
-          ["Ok", "Cancel"],
-          ["Enter", "Esc"],
-        ],
-        (button) => {
-          if (button === "Ok") {
-            groupName = document.getElementById("groupName").value;
-            insertData = insertData.map((data) => ({
-              ...data,
+      showModal("Enter Question Group Name", <Input id="groupName" />, [
+        {
+          label: "Ok",
+          shortcut: "Enter",
+          onclick: () => {
+            groupName = document.getElementById("groupName").value.trim();
+            insertData = insertData.map((q) => ({
+              ...q,
               Group: groupName,
             }));
             handleUpload(insertData);
-          } else setIsModalOpen(false);
-        }
-      );
+          },
+        },
+        { label: "Cancel", shortcut: "Escape", onclick: closeModal },
+      ]);
     } else {
       handleUpload(insertData);
     }
   };
 
-  // Read the up based on its type
   if (fileType === "xlsx") {
-    reader.readAsArrayBuffer(fileName.files[0]);
+    reader.readAsArrayBuffer(file);
   } else {
-    reader.readAsText(fileName.files[0]);
+    reader.readAsText(file);
   }
-  return <></>;
+
+  return;
 };
 
 export default fileUpload;
