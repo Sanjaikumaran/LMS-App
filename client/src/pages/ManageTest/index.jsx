@@ -228,7 +228,11 @@ const Test = () => {
         );
         const questions = data.filter((q) =>
           selectedQuestionsGroups.includes(q.Group)
-        );
+        ).map((v) => ({
+          ...v,
+          Option: Array.isArray(v.Option) ? v.Option.join(", ") : v.Option,
+          Answer: Array.isArray(v.Answer) ? v.Answer.join(", ") : v.Answer,
+        }));
         setGroupData((prev) => ({ ...prev, allQuestionsGroups: uniqueGroups }));
         setTableData((prev) => ({ ...prev, Questions: questions }));
         const columns = [
