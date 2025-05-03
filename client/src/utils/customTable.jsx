@@ -7,13 +7,33 @@ import useModal from "./useModal";
 import Button from "./button";
 import Input from "./input";
 
-const ActionDiv = ({ tablePageName, onFileUpload, onAddNew, onRemove, actionButtons }) => {
+const ActionDiv = ({
+  tablePageName,
+  onFileUpload,
+  onAddNew,
+  onRemove,
+  actionButtons,
+}) => {
   const uploadFile = () => onFileUpload(document.querySelector("#data-file"));
   return (
     <div className="action-div">
-      <Input label={`Upload ${tablePageName}`} className="upload-file" type="file" onChange={(value,e)=>console.log(document.querySelector("#data-file"))
-      } id="data-file" />
-      <div style={{ display: "flex", gap: "10px", alignItems: "center", paddingTop: "20px" }}>
+      <Input
+        label={`Upload ${tablePageName}`}
+        className="upload-file"
+        type="file"
+        onChange={(value, e) =>
+          console.log(document.querySelector("#data-file"))
+        }
+        id="data-file"
+      />
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          alignItems: "center",
+          paddingTop: "20px",
+        }}
+      >
         <Button onClick={uploadFile}>Upload</Button>
         <Button onClick={onAddNew}>Add New</Button>
         <Button onClick={onRemove}>Remove</Button>
@@ -69,8 +89,8 @@ const DataTableManagement = (props) => {
 
   useEffect(() => {
     fetchData();
-  
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async (collectionName = props.collectionName) => {
@@ -81,11 +101,21 @@ const DataTableManagement = (props) => {
       });
 
       if (response.flag) {
-        const filtered = response.data.data?.filter((v) => !("title" in v)) || [];
+        const filtered =
+          response.data.data?.filter((v) => !("title" in v)) || [];
         const studentRows = filtered.filter((v) => v.userType === "Student");
-        const sample = studentRows[0] || filtered[0] || {};
+        const sample = studentRows[0] || filtered[0] || {};        
         setTableColumns(Object.keys(sample));
-        setTableData(studentRows);
+        setTableData(
+          studentRows.length
+            ? studentRows
+            : filtered.map((v) => ({
+                ...v,
+                Option: Array.isArray(v.Option) ? v.Option.join(", ") : v.Option,
+                Answer: Array.isArray(v.Answer) ? v.Answer.join(", ") : v.Answer,
+              }))
+        );
+        
       } else {
         showRetryModal("Info", response.error, () => fetchData(collectionName));
       }
@@ -113,9 +143,11 @@ const DataTableManagement = (props) => {
       });
 
       response.flag
-        ? showModal("Info", `${response.data.deletedCount} ${response.data.message}`, [
-            { label: "Ok", shortcut: "Enter", onclick: closeModal },
-          ])
+        ? showModal(
+            "Info",
+            `${response.data.deletedCount} ${response.data.message}`,
+            [{ label: "Ok", shortcut: "Enter", onclick: closeModal }]
+          )
         : showRetryModal("Error", response.error, remove);
     } catch (error) {
       showRetryModal("Error", error.message, remove);
@@ -124,10 +156,12 @@ const DataTableManagement = (props) => {
 
   const addNew = () => {
     inputsRef.current = {};
-    const fields = tableColumns.filter((col) => col !== "_id" && col !== "userType");
+    const fields = tableColumns.filter(
+      (col) => col !== "_id" && col !== "userType"
+    );
 
     const elements = fields.map((col) => (
-      <input
+      <Input
         key={col}
         placeholder={col}
         className={col}
@@ -198,8 +232,15 @@ const DataTableManagement = (props) => {
         tablePageName={props.tablePageName}
         onFileUpload={(file) => {
           console.log(file);
-          
-          FileUpload(fetchData, file, props.API, props.collectionName, showModal)}}
+
+          FileUpload(
+            fetchData,
+            file,
+            props.API,
+            props.collectionName,
+            showModal
+          );
+        }}
         onAddNew={addNew}
         onRemove={remove}
         actionButtons={props.actionButtons}

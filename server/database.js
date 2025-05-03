@@ -1,32 +1,41 @@
 const { MongoClient, ObjectId } = require("mongodb");
 
-const uriRemote = "mongodb+srv://sanjaikumaran0311:RdJEe2tpfl3P931q@cluster0.vek3x.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const uriLocal = "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
+const uriRemote =
+  "mongodb+srv://sanjaikumaran0311:RdJEe2tpfl3P931q@cluster0.vek3x.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+const uriLocal =
+  "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
 
 async function connectToMongo(uri) {
   const client = new MongoClient(uri);
-  await client.connect();
+  await client.connect();  
   return client;
 }
 
-const setupDb = async () => {
+const setupDb = async (preferred = "Remote") => {
   let client;
   let db;
 
-  try {
-  
-    client = await connectToMongo(uriRemote);
-    console.log("Connected to remote MongoDB.");
-  } catch (errRemote) {
-    console.warn("Failed to connect to remote MongoDB. Trying local...");
+  const tryConnect = async (uri) => {
     try {
+      const client = await connectToMongo(uri);
+  console.log(`Connected to MongoDB at ${preferred}`);
 
-      client = await connectToMongo(uriLocal);
-      console.log("Connected to local MongoDB.");
-    } catch (errLocal) {
-      console.error("Failed to connect to both remote and local MongoDB.");
-      return { error: errLocal, message: "Couldn't connect to any MongoDB" };
+      return client;
+    } catch {
+      return null;
     }
+  };
+
+  if (preferred === "Local") {
+    client = (await tryConnect(uriLocal)) || (await tryConnect(uriRemote));
+  } else {
+    client = (await tryConnect(uriRemote)) || (await tryConnect(uriLocal));
+  }
+
+  if (!client) {
+    console.error("Failed to connect to both remote and local MongoDB.");
+    return { error: true, message: "Couldn't connect to any MongoDB" };
   }
 
   db = client.db("Quizzards");
@@ -35,17 +44,13 @@ const setupDb = async () => {
     const collections = await db.listCollections().toArray();
     const collectionNames = collections.map((col) => col.name);
 
-    if (!collectionNames.includes("Tests")) {
-      await db.createCollection("Tests");
-    }
-    if (!collectionNames.includes("Questions")) {
+    if (!collectionNames.includes("Tests")) await db.createCollection("Tests");
+    if (!collectionNames.includes("Questions"))
       await db.createCollection("Questions");
-    }
+
     if (!collectionNames.includes("Users")) {
       await db.createCollection("Users");
-      const collection = db.collection("Users");
-
-      await collection.insertOne({
+      await db.collection("Users").insertOne({
         Name: "Admin",
         Password: "admin",
         "Roll No": "admin",
@@ -58,15 +63,17 @@ const setupDb = async () => {
     return { error: err, message: "Error during DB setup" };
   }
 };
-setupDb()
-async function connectToReplicaSet() {
-  const db = await setupDb();
-  if (!db) {
-    return handleError(err, "Couldn't connect to MongoDB");
+
+async function connectToReplicaSet(preferred = "Remote") {
+  const db = await setupDb(preferred);
+  if (!db || db.error) {
+    return { error: true, message: "Couldn't connect to MongoDB" };
   }
+
   function handleError(err, customMessage) {
     return { error: customMessage };
   }
+
   async function createCollection(collectionName) {
     try {
       const collections = await db.listCollections().toArray();
@@ -102,7 +109,6 @@ async function connectToReplicaSet() {
       const result = await collection.find({}).toArray();
 
       if (result.length > 0) {
-        delete result._id;
         return {
           flag: true,
           message: "Data loaded successfully",
@@ -131,7 +137,7 @@ async function connectToReplicaSet() {
         return {
           flag: true,
           message: "Data inserted successfully",
-          insertedCount: result.insertedCount,
+          insertedCount: result.insertedCount || 1,
         };
       } else {
         return { flag: false, message: "Couldn't insert data" };
@@ -144,11 +150,9 @@ async function connectToReplicaSet() {
   async function deleteDocument(collectionName, docs) {
     try {
       const collection = db.collection(collectionName);
-      let result;
-
       const objectIds = docs.map((doc) => doc && new ObjectId(doc));
 
-      result = await collection.deleteMany({
+      const result = await collection.deleteMany({
         _id: { $in: objectIds },
       });
 
@@ -169,15 +173,14 @@ async function connectToReplicaSet() {
   async function getDocument(collectionName, uniqueKey, value) {
     try {
       const collection = db.collection(collectionName);
-      if (uniqueKey === "_id") {
-        var result = await collection.findOne({
-          ["_id"]: new ObjectId(value),
-        });
-      } else {
-        var result = await collection.findOne({ [uniqueKey]: value });
-      }
+      const filter =
+        uniqueKey === "_id"
+          ? { _id: new ObjectId(value) }
+          : { [uniqueKey]: value };
 
-      if (result._id) {
+      const result = await collection.findOne(filter);
+
+      if (result?._id) {
         return { flag: true, message: "Data found successfully", data: result };
       } else {
         return { flag: false, message: "No data found" };
@@ -208,7 +211,6 @@ async function connectToReplicaSet() {
   async function updateDocument(collectionName, filter, docs, options = {}) {
     try {
       const collection = db.collection(collectionName);
-
       const updateOptions = options.multi ? { multi: true } : {};
 
       const result = await collection.updateOne(
@@ -263,7 +265,6 @@ async function connectToReplicaSet() {
     getDocument,
     insertDocument,
     deleteDocument,
-
     updateDocument,
     pushData,
   };
