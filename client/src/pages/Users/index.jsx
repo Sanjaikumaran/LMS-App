@@ -1,5 +1,5 @@
 import React from "react";
-import {DataTableManagement} from "../utils/customTable";
+import {DataTableManagement} from "../../utils/customTable";
 const Users = () => {
   return (
     <>

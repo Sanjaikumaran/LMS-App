@@ -97,10 +97,10 @@ textarea.fillAnswerInput {
   text-align: center;
   margin-top: 20px;
   color: #555;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
 }
-.button {
-  margin: 0 10px;
-}
+
 
 .skipButton {
   background-color: #113bc4;

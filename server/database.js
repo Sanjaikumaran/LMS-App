@@ -1,14 +1,37 @@
 const { MongoClient, ObjectId } = require("mongodb");
-const setupLocalDb = async () => {
-  const uri =
-    "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
+
+const uriRemote = "mongodb+srv://sanjaikumaran0311:RdJEe2tpfl3P931q@cluster0.vek3x.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uriLocal = "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
+
+async function connectToMongo(uri) {
   const client = new MongoClient(uri);
+  await client.connect();
+  return client;
+}
+
+const setupDb = async () => {
+  let client;
   let db;
 
   try {
-    await client.connect();
-    db = client.db("Quizzards");
+  
+    client = await connectToMongo(uriRemote);
+    console.log("Connected to remote MongoDB.");
+  } catch (errRemote) {
+    console.warn("Failed to connect to remote MongoDB. Trying local...");
+    try {
 
+      client = await connectToMongo(uriLocal);
+      console.log("Connected to local MongoDB.");
+    } catch (errLocal) {
+      console.error("Failed to connect to both remote and local MongoDB.");
+      return { error: errLocal, message: "Couldn't connect to any MongoDB" };
+    }
+  }
+
+  db = client.db("Quizzards");
+
+  try {
     const collections = await db.listCollections().toArray();
     const collectionNames = collections.map((col) => col.name);
 
@@ -28,39 +51,16 @@ const setupLocalDb = async () => {
         "Roll No": "admin",
         userType: "Admin",
       });
-    } // else {
-    //  try {
-    //    const result = await db.Users.updateOne(
-    //      { Name: "Admin" },
-    //      { $set: { Password: "admin" } }
-    //    );
+    }
 
-    //    if (result.matchedCount === 0) {
-    //      await db.Users.insertOne({
-    //        Name: "Admin",
-    //        Password: "admin",
-    //        "Roll No": "admin",
-    //        userType: "Admin",
-    //      });
-    //    }
-    //  } catch (error) {
-    //    await db.Users.insertOne({
-    //      Name: "Admin",
-    //      Password: "admin",
-    //      "Roll No": "admin",
-    //      userType: "Admin",
-    //    });
-    //  }
-    //}
     return db;
   } catch (err) {
-    return {error:err, message:"Couldn't connect to MongoDB"};
+    return { error: err, message: "Error during DB setup" };
   }
 };
-
-setupLocalDb();
+setupDb()
 async function connectToReplicaSet() {
-  const db = await setupLocalDb();
+  const db = await setupDb();
   if (!db) {
     return handleError(err, "Couldn't connect to MongoDB");
   }

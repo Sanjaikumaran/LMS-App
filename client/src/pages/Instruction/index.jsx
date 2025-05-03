@@ -43,7 +43,7 @@ const Instructions = ({ instructions }) => {
       </div>
 
       <div className={styles.buttonContainer}>
-        <Button onClick={handleButtonClick} className="start-test-button">
+        <Button onClick={handleButtonClick}>
           Start Test
         </Button>
 

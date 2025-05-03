@@ -1,5 +1,5 @@
-/* Create New Test Container */
-.create-new-test {
+
+.createTest {
   display: flex;
   margin-top: 20px;
 
@@ -16,8 +16,8 @@
   margin-bottom: 20px;
 }
 
-/* Create New Test Button */
-.create-new-test button {
+
+.createTest button {
   background-color: #ffffff;
   border: none;
   color: #007bff;
@@ -30,6 +30,14 @@
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-.create-new-test button:hover {
+.createTest button:hover {
   background-color: #e6e2e2;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 20px;
+  gap: 20px;
+  justify-content: flex-start;
 }

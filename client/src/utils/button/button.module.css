@@ -1,7 +1,15 @@
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
 .button {
   width: inherit;
   font-size: large;
-
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: var(--primary-btn-color);
   color: white;
   border: none;
@@ -10,7 +18,9 @@
   margin-top: 15px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  text-align: center;
 }
+
 
 .button:hover {
   background-color: var(--hover-btn-color);

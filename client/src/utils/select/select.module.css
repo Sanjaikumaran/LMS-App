@@ -1,0 +1,74 @@
+.inputContainer {
+  margin: inherit;
+  position: relative;
+}
+
+.disabledInput {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.label {
+  display: block;
+  text-align: start;
+  margin-bottom: 5px;
+}
+
+.input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  width: 100%;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.normalBorder:focus {
+  border-color: #3b82f6;
+}
+
+.optionsContainer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  overscroll-behavior: contain;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  max-height: 148px;
+  overflow-y: auto;
+  width: 100%;
+  margin-top: 4px;
+  border-radius: 4px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(8, 12, 43, 0.12);
+}
+
+.optionItem {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  border-bottom: 1px solid #f2f3f7de;
+  padding: 8px 16px;
+}
+
+.optionItem:last-child {
+  border-bottom: none;
+}
+
+.optionItem:hover {
+  background-color: #f0f0f0;
+}
+
+.errorBorder {
+  border: 1px solid #ef4444;
+}
+
+.errorText {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
