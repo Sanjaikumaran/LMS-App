@@ -49,7 +49,7 @@ const Signin = () => {
       });
 
       if (response?.flag) {
-        const userData = response.data.data;
+        const userData = response.data.data[0];
         sessionStorage.setItem(
           "userLogged",
           JSON.stringify({ flag: true, userType: userData.userType })

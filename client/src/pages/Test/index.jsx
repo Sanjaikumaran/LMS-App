@@ -54,7 +54,7 @@ const Quiz = () => {
             "End Time": end,
             "Questions Group": group,
             Duration,
-          } = res.data.data;
+          } = res.data.data[0];
           setEndTime(end);
           setQuestionsGroup(group);
           const [h, m, s] = Duration.split(":").map(Number);
@@ -150,7 +150,7 @@ const Quiz = () => {
         condition: { _id: id },
         updateData: {
           "Test Results": {
-            UserID: user.userID || user._id,
+            UserID: user.userId || user._id,
             Answer: JSON.stringify(answerList),
             Score: summary.score,
           },
@@ -165,7 +165,7 @@ const Quiz = () => {
         : "Error submitting test. Please contact admin.",
       [{ label: "Ok", shortcut: "Enter", onClick: () => navigate("/summary") }]
     );
-  }, [highlightedOptions, totalQuestions, questions, selectedOptions, id, user?.userID, showModal, navigate]);
+  }, [highlightedOptions, totalQuestions, questions, selectedOptions, id, user?.userId, showModal, navigate]);
   
   const triggerAutoSubmit =useCallback(() => {
     setTotalTime(10);

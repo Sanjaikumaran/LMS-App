@@ -8,9 +8,12 @@ import Quiz from "./pages/Test";
 import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/AdminHome";
 import CreateTest from "./pages/CreateTest";
+import CreateCourse from "./pages/CourseCreation";
+import ManageCourse from "./pages/ManageCourse"
+import MyCourses from "./pages/MyCourses"
 import Users from "./pages/Users";
 import Question from "./pages/Questions";
-import Test from "./pages/ManageTest/";
+import Test from "./pages/ManageTest";
 import Navbar from "./utils/navBar";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import { UserProvider } from "./utils/context/userContext";
@@ -116,7 +119,28 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
+  <Route
+            path="/create-course"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Create Course" />
+                  <CreateCourse />
+                </>
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/manage-course"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <>
+                  <ChangeTitle title="Manage-Test" />
+                  <ManageCourse />
+                </>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/manage-test"
             element={
@@ -147,6 +171,17 @@ const App = () => {
                 <>
                   <ChangeTitle title="Questions Module" />
                   <Question />
+                </>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-course"
+            element={
+              <ProtectedRoute allowedRoles={["Student"]}>
+                <>
+                  <ChangeTitle title="My Courses" />
+                <MyCourses />
                 </>
               </ProtectedRoute>
             }

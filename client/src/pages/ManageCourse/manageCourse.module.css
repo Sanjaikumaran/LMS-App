@@ -1,0 +1,151 @@
+.manageCourseContainer {
+  display: flex;
+  height: 92.3vh;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 280px;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #7f8c8d;
+  padding-bottom: 5px;
+}
+
+.courseInfo {
+  margin-bottom: 20px;
+}
+
+.courseInfo h2 {
+  font-size: 1.2rem;
+  margin: 10px 0 5px;
+}
+
+.moduleItem {
+  padding: 10px;
+  margin-bottom: 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #34495e;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.moduleItem:hover {
+  background-color: #3b5770;
+}
+.deleteModuleButton{
+  background-color: #f1f1f1;
+  color: #fff;
+  border-radius: 50% 50%;
+  padding: 4px;
+}
+.deleteModuleButton:hover{
+  background-color: #ff4d4d;
+}
+.active {
+  background-color: #1abc9c;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* Main Content Styles */
+.moduleContent {
+
+
+  padding: 30px;
+  overflow-y: auto;
+  background-color: #fff;
+  position: relative;
+}
+
+/* Module Video */
+.moduleContent video {
+  max-width: 100%;
+  height: 70vh;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.moduleDetails {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+/* Module Description */
+.moduleContent p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-top: 20px;
+  color: #333;
+}
+
+.createCourseContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 998;
+}
+
+.createCourseForm {
+  margin: auto;
+  margin-top: 20px;
+  max-width: 600px;
+  padding: 0 20px 10px 20px;
+}
+
+.selectedGroups {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.selectedGroup {
+  background-color: #007bff;
+  color: white;
+  padding: 0 6px;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.removeGroupButton {
+  background: none;
+  color: white;
+  border: none;
+  border-radius: 0%;
+  padding: 5px 5px;
+  border-left: 1px solid #ffffff;
+  font-weight: bold;
+  margin-left: 5px;
+  margin-top: 0;
+  cursor: pointer;
+}
+
+.buttonContainer {
+  display: grid;
+  justify-content: end;
+  gap: 20px;
+  grid-auto-flow: column;
+}

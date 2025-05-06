@@ -66,7 +66,7 @@ const Test = () => {
       });
 
       if (response.flag) {
-        const data = response.data.data;
+        const data = response.data.data[0];
         setFormData({
           testName: data["Test Name"],
           startTime: data["Start Time"],

@@ -8,7 +8,7 @@ const uriLocal =
 
 async function connectToMongo(uri) {
   const client = new MongoClient(uri);
-  await client.connect();  
+  await client.connect();
   return client;
 }
 
@@ -19,7 +19,7 @@ const setupDb = async (preferred = "Remote") => {
   const tryConnect = async (uri) => {
     try {
       const client = await connectToMongo(uri);
-  console.log(`Connected to MongoDB at ${preferred}`);
+      console.log(`Connected to MongoDB at ${preferred}`);
 
       return client;
     } catch {
@@ -47,7 +47,8 @@ const setupDb = async (preferred = "Remote") => {
     if (!collectionNames.includes("Tests")) await db.createCollection("Tests");
     if (!collectionNames.includes("Questions"))
       await db.createCollection("Questions");
-
+    if (!collectionNames.includes("Courses"))
+      await db.createCollection("Courses");
     if (!collectionNames.includes("Users")) {
       await db.createCollection("Users");
       await db.collection("Users").insertOne({
@@ -178,9 +179,10 @@ async function connectToReplicaSet(preferred = "Remote") {
           ? { _id: new ObjectId(value) }
           : { [uniqueKey]: value };
 
-      const result = await collection.findOne(filter);
+      const result = await collection.find(filter).toArray();
 
-      if (result?._id) {
+
+      if (result.length > 0) {
         return { flag: true, message: "Data found successfully", data: result };
       } else {
         return { flag: false, message: "No data found" };

@@ -12,7 +12,7 @@ export const UserProvider = ({ children }) => {
     if (user) {
       const sanitizedUser = { ...user };
 
-      sanitizedUser["userID"] = sanitizedUser["userID"] || sanitizedUser["_id"];
+      sanitizedUser["userId"] = sanitizedUser["_id"] || sanitizedUser["userId"];
 
       delete sanitizedUser["_id"];
       delete sanitizedUser["Password"];
