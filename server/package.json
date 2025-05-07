@@ -2,10 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "description": "node server for the Quizzards application",
-  "main": "server.js",
+  "main": "server.js -l",
   "scripts": {
-    "test": "node server.js",
-    "start": "node server.js"
+    "test": "node server.js -l",
+    "start": "node server.js -l"
   },
   "keywords": [
     "node"
@@ -21,6 +21,7 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "mongodb": "^6.10.0",
+    "multer": "^1.4.5-lts.2",
     "node-session": "^1.2.1"
   }
 }

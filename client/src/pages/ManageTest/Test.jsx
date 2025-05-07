@@ -40,12 +40,13 @@ const Test = () => {
   const [tableData, setTableData] = useState([""]);
   const [tableColumns, setTableColumns] = useState([""]);
 
-  const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(false);
+  const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(true);
   const [displayAnswer, setDisplayAnswer] = useState("");
 
   const [enterShortcutFunction, setEnterShortcutFunction] = useState(null);
   const [escShortcutFunction, setEscShortcutFunction] = useState(null);
 
+  
   const submitRef = useRef(null);
   //eslint-disable-next-line no-unused-vars
   const [marks, setMarks] = useState(0);
@@ -89,7 +90,7 @@ const Test = () => {
         });
 
         if (response.flag) {
-          const responseData = response.data.data;
+          const responseData = response.data.data[0];
           setTestId(responseData._id);
           setSelectedUsersGroups(responseData["Participants Group"] || []);
           setSelectedQuestionsGroups(responseData["Questions Group"] || []);
@@ -382,7 +383,7 @@ const Test = () => {
       <button
         onClick={() => {
           setIsAnswersModalOpen(true);
-          setDisplayAnswer([index]);
+          setDisplayAnswer(0);
         }}
       >
         View

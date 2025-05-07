@@ -1,5 +1,6 @@
 
-.createTest {
+
+.createCourse {
   display: flex;
   margin-top: 20px;
 
@@ -17,7 +18,7 @@
 }
 
 
-.createTest button {
+.createCourse button {
   background-color: #ffffff;
   border: none;
   color: #007bff;
@@ -30,7 +31,7 @@
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-.createTest button:hover {
+.createCourse button:hover {
   background-color: #e6e2e2;
 }
 
@@ -40,4 +41,102 @@
   padding: 20px;
   gap: 20px;
   justify-content: flex-start;
+}
+.cardsBody{
+  padding: 10px;
+}
+.createCourseContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 998;
+}
+
+.createCourseForm {
+  margin: auto;
+  margin-top: 20px;
+  max-width: 600px;
+  padding: 0 20px 10px 20px;
+}
+
+.groupSelector {
+  position: relative;
+}
+
+.groupDropdown{
+  position: absolute;
+  top: 100%;
+  left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  max-width: 600px;
+  width: 100%;
+  border: 1px solid #ccc;
+  background-color: white;
+  z-index: 10;
+}
+
+.groupItem {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.groupItem:hover {
+  background-color: #f0f0f0;
+}
+
+.selectedGroups {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.selectedGroup {
+  background-color: #007bff;
+  color: white;
+  padding: 0 6px;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.removeGroupButton {
+  background: none;
+  color: white;
+  border: none;
+  border-radius: 0%;
+  padding: 5px 5px;
+  border-left: 1px solid #ffffff;
+  font-weight: bold;
+  margin-left: 5px;
+  margin-top: 0;
+  cursor: pointer;
+}
+.createCourseForm input[type="file"]::file-selector-button {
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
+}
+.createCourseForm input[type="file"] {
+  padding: 0% !important    ;
+  width: 100% !important;
+}
+.buttonContainer {
+  display: grid;
+  justify-content: end; 
+  gap: 20px;
+  grid-auto-flow: column; 
+  
+
 }

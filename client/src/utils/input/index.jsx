@@ -27,26 +27,46 @@ const Input = ({
           {label}
         </label>
       )}
-
-      <input
-        id={inputId}
-        value={value}
-        type={type}
-        required={required}
-        autoComplete={autoComplete}
-        autoFocus={autoFocus}
-        disabled={disabled}
-        placeholder={placeHolder}
-        onChange={(e) => {
-          onChange(e.target.value, e);
-        }}
-        className={`${inputClassName ?? styles.input} ${
-          error ? styles.errorBorder : styles.normalBorder
-        } ${disabled && styles.disabledInput}`}
-        aria-invalid={!!error}
-        aria-describedby={error ? errorId : undefined}
-        {...rest}
-      />
+      {type === "textarea" ? (
+        <textarea
+          rows={3}
+          id={inputId}
+          value={value}
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
+          disabled={disabled}
+          placeholder={placeHolder}
+          onChange={(e) => {
+            onChange(e.target.value, e);
+          }}
+          className={`${inputClassName ?? styles.input} ${
+            error ? styles.errorBorder : styles.normalBorder
+          } ${disabled && styles.disabledInput}`}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          {...rest}
+        ></textarea>
+      ) : (
+        <input
+          id={inputId}
+          value={value}
+          type={type}
+          required={required}
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
+          disabled={disabled}
+          placeholder={placeHolder}
+          onChange={(e) => {
+            onChange(e.target.value, e);
+          }}
+          className={`${inputClassName ?? styles.input} ${
+            error ? styles.errorBorder : styles.normalBorder
+          } ${disabled && styles.disabledInput}`}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          {...rest}
+        />
+      )}
 
       {error && (
         <p id={errorId} className={styles.errorText} role="alert">

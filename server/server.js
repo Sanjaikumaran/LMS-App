@@ -1,8 +1,11 @@
 const cors = require("cors");
+const fs = require('fs');
 const express = require("express");
+const multer = require('multer');
 const connectToReplicaSet = require("./database");
 require("dotenv").config();
 const path = require("path");
+const { log } = require("console");
 
 const app = express();
 app.use(cors());
@@ -21,12 +24,47 @@ else if (args.includes("-remote") || args.includes("-r")) dbPreference = "Remote
 async function getDbConnection() {
   return await connectToReplicaSet(dbPreference);
 }
+
+const upload = multer({ storage: multer.memoryStorage() }).single('video');
+
+app.post('/upload-video', (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      return res.status(500).json({ flag: false, message: 'Upload failed', error: err.message });
+    }
+
+    const { courseName, filename, path: customPath } = req.body;
+
+    const uploadDir = customPath
+      ? path.join(__dirname, customPath)
+      : path.join(__dirname, `../client/src/assets/${courseName}/videos`);
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const finalFilename = filename || `video_${Date.now()}${path.extname(req.file.originalname)}`;
+    const fullPath = path.join(uploadDir, finalFilename);
+
+    fs.writeFile(fullPath, req.file.buffer, (fsErr) => {
+      if (fsErr) {
+        return res.status(500).json({ flag: false, message: 'Saving file failed', error: fsErr.message });
+      }
+
+      res.status(200).json({
+        flag: true,
+        message: 'Video uploaded successfully',
+        data: { path: fullPath, filename: finalFilename },
+      });
+    });
+  });
+});
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
   try {
     const dbConnection = await getDbConnection();
     const result = await dbConnection.getDocument("Users", "Roll No", Id);
-    if (result.flag && userPass === result.data.Password) {
+    if (result.flag && userPass === result.data[0].Password) {
       res
         .status(200)
         .json({ flag: true, message: "Login successful", data: result.data });
@@ -153,7 +191,9 @@ app.post("/find-data", async (req, res) => {
       condition.key,
       condition.value
     );
-    if (result.flag) {
+
+    
+    if (result.flag) {   
       res
         .status(200)
         .json({ flag: true, message: result.message, data: result.data });
@@ -201,7 +241,7 @@ app.post("/update-score", async (req, res) => {
       condition.value
     );
     if (result.flag) {
-      const updatedTestResults = result.data["Test Results"].map((item) => {
+      const updatedTestResults = result.data[0]["Test Results"].map((item) => {
         if (item.Score === score && item.Answer === JSON.stringify(answer)) {
           item.Score += Number(marks);
 
