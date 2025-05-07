@@ -2,10 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "description": "node server for the Quizzards application",
-  "main": "server.js",
+  "main": "server.js -l",
   "scripts": {
-    "test": "node server.js",
-    "start": "node server.js"
+    "test": "node server.js -l",
+    "start": "node server.js -l"
   },
   "keywords": [
     "node"

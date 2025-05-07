@@ -8,9 +8,9 @@ import Quiz from "./pages/Test";
 import TestSummary from "./pages/TestSummary";
 import Admin from "./pages/AdminHome";
 import CreateTest from "./pages/CreateTest";
-import CreateCourse from "./pages/CourseCreation";
-import ManageCourse from "./pages/ManageCourse"
-import MyCourses from "./pages/MyCourses"
+
+import ManageCourse from "./pages/ManageCourse";
+import MyCourses from "./pages/MyCourses";
 import Users from "./pages/Users";
 import Question from "./pages/Questions";
 import Test from "./pages/ManageTest";
@@ -21,7 +21,6 @@ import { UserProvider } from "./utils/context/userContext";
 const App = () => {
   const [showProfile, setShowProfile] = useState(true);
 
- 
   const instructions = [
     "Instruction 1: Please read carefully.",
     "Instruction 2: Choose the correct answers.",
@@ -49,7 +48,7 @@ const App = () => {
             element={
               <>
                 <ChangeTitle title="Login" />
-                <Login setShowProfile={setShowProfile}  />
+                <Login setShowProfile={setShowProfile} />
               </>
             }
           />
@@ -119,18 +118,8 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-  <Route
-            path="/create-course"
-            element={
-              <ProtectedRoute allowedRoles={["Admin"]}>
-                <>
-                  <ChangeTitle title="Create Course" />
-                  <CreateCourse />
-                </>
-              </ProtectedRoute>
-            }
-          />
-            <Route
+
+          <Route
             path="/manage-course"
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
@@ -181,7 +170,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Student"]}>
                 <>
                   <ChangeTitle title="My Courses" />
-                <MyCourses />
+                  <MyCourses />
                 </>
               </ProtectedRoute>
             }
