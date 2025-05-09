@@ -93,8 +93,6 @@ const CreateTest = () => {
   };
 
   const handleSubmit = async () => {
-
-
     if (!testName) {
       setError((prev) => ({ ...prev, testName: "Test Name is required" }));
       return;
@@ -192,7 +190,7 @@ const CreateTest = () => {
     <>
       <div className={styles.createTestContainer}>
         <ModuleCard header="Create New Test">
-          <form className={styles.createTestForm} >
+          <form className={styles.createTestForm}>
             <Input
               label="Test Name *"
               value={testName}
@@ -210,7 +208,6 @@ const CreateTest = () => {
                 updateForm("startTime")(value);
                 setError((prev) => ({ ...prev, startTime: "", endTime: "" }));
               }}
-           
               error={error.startTime}
             />
             <Input
@@ -221,7 +218,6 @@ const CreateTest = () => {
                 updateForm("endTime")(value);
                 setError((prev) => ({ ...prev, startTime: "", endTime: "" }));
               }}
-           
               error={error.endTime}
             />
             <Input
@@ -261,7 +257,7 @@ const CreateTest = () => {
               type="Questions"
             />
             <Input label="Upload Questions" type="file" />
-            <Button  shortcut="Ctrl + S" onClick={handleSubmit}>
+            <Button shortcut="Ctrl + S" onClick={handleSubmit}>
               Submit
             </Button>
           </form>

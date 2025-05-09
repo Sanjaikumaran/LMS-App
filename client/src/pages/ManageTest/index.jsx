@@ -78,7 +78,7 @@ const Test = () => {
         });
         setTestId(data._id);
         console.log(data["Test Results"]);
-        
+
         setTableData((prev) => ({
           ...prev,
           "Test Results": data["Test Results"],
@@ -98,7 +98,9 @@ const Test = () => {
 
       if (!response.flag) return;
 
-      const users = response.data.data.filter((u) => !("title" in u) && u.userType !== "Admin");
+      const users = response.data.data.filter(
+        (u) => !("title" in u) && u.userType !== "Admin"
+      );
       const uniqueGroups = [...new Set(users.map((u) => u.Group))].filter(
         (g) => !selectedUsersGroups.includes(g)
       );
@@ -149,7 +151,6 @@ const Test = () => {
 
             const totalQuestions = testItem["Answer"].length;
             const answers = Object.values(testItem.Answer);
-
 
             try {
               var answeredQuestions = answers.filter(
@@ -226,13 +227,13 @@ const Test = () => {
         const uniqueGroups = [...new Set(data.map((q) => q.Group))].filter(
           (g) => !selectedQuestionsGroups.includes(g)
         );
-        const questions = data.filter((q) =>
-          selectedQuestionsGroups.includes(q.Group)
-        ).map((v) => ({
-          ...v,
-          Option: Array.isArray(v.Option) ? v.Option.join(", ") : v.Option,
-          Answer: Array.isArray(v.Answer) ? v.Answer.join(", ") : v.Answer,
-        }));
+        const questions = data
+          .filter((q) => selectedQuestionsGroups.includes(q.Group))
+          .map((v) => ({
+            ...v,
+            Option: Array.isArray(v.Option) ? v.Option.join(", ") : v.Option,
+            Answer: Array.isArray(v.Answer) ? v.Answer.join(", ") : v.Answer,
+          }));
         setGroupData((prev) => ({ ...prev, allQuestionsGroups: uniqueGroups }));
         setTableData((prev) => ({ ...prev, Questions: questions }));
         const columns = [

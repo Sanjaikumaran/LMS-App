@@ -37,7 +37,7 @@ const useModal = () => {
                       if (onClick) onClick();
                       closeModal();
                     }}
-                    tooltip={tooltip? tooltip : shortcut }
+                    tooltip={tooltip ? tooltip : shortcut}
                     shortcut={shortcut}
                   >
                     {label}

@@ -16,10 +16,8 @@ const ModuleCard = (props) => {
               <img src={props.imageSrc} alt={props.altText} />
             </div>
             <div className="button-container">
-              <Button onClick={() => navigate(props.navigateTo)} >
-                Open
-              </Button>
-            </div>{" "}
+              <Button onClick={() => navigate(props.navigateTo)}>Open</Button>
+            </div>
           </div>
         </>
       )}

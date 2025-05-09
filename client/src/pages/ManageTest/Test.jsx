@@ -6,8 +6,8 @@ import Modal from "../../utils/modal";
 import handleApiCall from "../../utils/handleAPI";
 
 import shortcut from "../../utils/shortcut";
-import FileUpload from "../../utils/fileUpload"
-import {DataTableSection} from "../../utils/customTable";
+import FileUpload from "../../utils/fileUpload";
+import { DataTableSection } from "../../utils/customTable";
 
 const Test = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,7 +46,6 @@ const Test = () => {
   const [enterShortcutFunction, setEnterShortcutFunction] = useState(null);
   const [escShortcutFunction, setEscShortcutFunction] = useState(null);
 
-  
   const submitRef = useRef(null);
   //eslint-disable-next-line no-unused-vars
   const [marks, setMarks] = useState(0);

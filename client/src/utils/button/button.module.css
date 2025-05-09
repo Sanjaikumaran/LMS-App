@@ -2,7 +2,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
 }
 .button {
   width: inherit;
@@ -21,7 +20,6 @@
   text-align: center;
 }
 
-
 .button:hover {
   background-color: var(--hover-btn-color);
 }
@@ -38,7 +36,7 @@
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 8px; 
+  margin-right: 8px;
   display: inline-block;
   vertical-align: middle;
 }
@@ -50,31 +48,30 @@
 }
 /* Tooltip styles */
 .tooltip {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-  }
-  
-  .tooltip::after {
-    content: attr(tooltip);
-    position: absolute;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 5px;
-    white-space: nowrap;
-    font-size: 14px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 10;
-  }
-  
-  .tooltip:hover::after {
-    opacity: 1;
-    visibility: visible;
-  }
-  
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip::after {
+  content: attr(tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}

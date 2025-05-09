@@ -26,9 +26,7 @@ const Dropdown = ({
   const [showOptions, setShowOptions] = useState(isOpen);
   const inputId = id || `input-${label?.replace(/\s+/g, "-").toLowerCase()}`;
   const errorId = `${inputId}-error`;
-  useEffect(()=>{
-
-  },[value])
+  useEffect(() => {}, [value]);
 
   return (
     <div className={styles.inputContainer} style={{ position: "relative" }}>
@@ -55,12 +53,13 @@ const Dropdown = ({
           onFocus && onFocus(e);
         }}
         onBlur={(e) => {
-
           setTimeout(() => setShowOptions(false), 100);
           onBlur && onBlur(e);
         }}
         readOnly={searchable ? false : true}
-        className={`${inputClassName ?? styles.input} ${error ? styles.errorBorder : styles.normalBorder} ${disabled && styles.disabledInput}`}
+        className={`${inputClassName ?? styles.input} ${
+          error ? styles.errorBorder : styles.normalBorder
+        } ${disabled && styles.disabledInput}`}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
         {...rest}
@@ -68,18 +67,21 @@ const Dropdown = ({
 
       {showOptions && options.length > 0 && (
         <div className={styles.optionsContainer}>
-          {options.map((option, index) => ( option &&
-            <span
-              key={`${option}-${index}`}
-              onClick={() => {
-                onSelect && onSelect(option);
-                setShowOptions(false);
-              }}
-              className={styles.optionItem}
-            >
-              {option}
-            </span>
-          ))}
+          {options.map(
+            (option, index) =>
+              option && (
+                <span
+                  key={`${option}-${index}`}
+                  onClick={() => {
+                    onSelect && onSelect(option);
+                    setShowOptions(false);
+                  }}
+                  className={styles.optionItem}
+                >
+                  {option}
+                </span>
+              )
+          )}
         </div>
       )}
 

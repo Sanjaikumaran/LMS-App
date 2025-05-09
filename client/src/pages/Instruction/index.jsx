@@ -43,9 +43,7 @@ const Instructions = ({ instructions }) => {
       </div>
 
       <div className={styles.buttonContainer}>
-        <Button onClick={handleButtonClick}>
-          Start Test
-        </Button>
+        <Button onClick={handleButtonClick}>Start Test</Button>
 
         <Modal />
       </div>

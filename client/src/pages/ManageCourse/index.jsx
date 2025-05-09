@@ -593,7 +593,6 @@ const ManageCourse = () => {
               flexDirection: "row",
             }}
           >
-            
             {selectedModule.path && (
               <video controls>
                 <source
@@ -622,7 +621,7 @@ const ManageCourse = () => {
           </div>
         )}
       </main>
-      <Modal />{" "}
+      <Modal />
     </div>
   );
 };

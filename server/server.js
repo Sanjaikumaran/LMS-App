@@ -1,7 +1,7 @@
 const cors = require("cors");
-const fs = require('fs');
+const fs = require("fs");
 const express = require("express");
-const multer = require('multer');
+const multer = require("multer");
 const connectToReplicaSet = require("./database");
 require("dotenv").config();
 const path = require("path");
@@ -19,18 +19,21 @@ const args = process.argv.slice(2).map((arg) => arg.toLowerCase());
 let dbPreference = "Remote";
 
 if (args.includes("-local") || args.includes("-l")) dbPreference = "Local";
-else if (args.includes("-remote") || args.includes("-r")) dbPreference = "Remote";
+else if (args.includes("-remote") || args.includes("-r"))
+  dbPreference = "Remote";
 
 async function getDbConnection() {
   return await connectToReplicaSet(dbPreference);
 }
 
-const upload = multer({ storage: multer.memoryStorage() }).single('video');
+const upload = multer({ storage: multer.memoryStorage() }).single("video");
 
-app.post('/upload-video', (req, res) => {
+app.post("/upload-video", (req, res) => {
   upload(req, res, (err) => {
     if (err) {
-      return res.status(500).json({ flag: false, message: 'Upload failed', error: err.message });
+      return res
+        .status(500)
+        .json({ flag: false, message: "Upload failed", error: err.message });
     }
 
     const { courseName, filename, path: customPath } = req.body;
@@ -43,17 +46,24 @@ app.post('/upload-video', (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const finalFilename = filename || `video_${Date.now()}${path.extname(req.file.originalname)}`;
+    const finalFilename =
+      filename || `video_${Date.now()}${path.extname(req.file.originalname)}`;
     const fullPath = path.join(uploadDir, finalFilename);
 
     fs.writeFile(fullPath, req.file.buffer, (fsErr) => {
       if (fsErr) {
-        return res.status(500).json({ flag: false, message: 'Saving file failed', error: fsErr.message });
+        return res
+          .status(500)
+          .json({
+            flag: false,
+            message: "Saving file failed",
+            error: fsErr.message,
+          });
       }
 
       res.status(200).json({
         flag: true,
-        message: 'Video uploaded successfully',
+        message: "Video uploaded successfully",
         data: { path: fullPath, filename: finalFilename },
       });
     });
@@ -192,8 +202,7 @@ app.post("/find-data", async (req, res) => {
       condition.value
     );
 
-    
-    if (result.flag) {   
+    if (result.flag) {
       res
         .status(200)
         .json({ flag: true, message: result.message, data: result.data });

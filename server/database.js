@@ -181,7 +181,6 @@ async function connectToReplicaSet(preferred = "Remote") {
 
       const result = await collection.find(filter).toArray();
 
-
       if (result.length > 0) {
         return { flag: true, message: "Data found successfully", data: result };
       } else {

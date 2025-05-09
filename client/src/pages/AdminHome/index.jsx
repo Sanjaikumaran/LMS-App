@@ -347,7 +347,7 @@ const Admin = () => {
         if (response.flag) {
           setTests(response.data.data);
         } else {
-          console.log('[Admin Home] --> No Tests Found');
+          console.log("[Admin Home] --> No Tests Found");
         }
       } catch (error) {
         console.log(`[Admin Home] --> ${error.message}`);
@@ -360,7 +360,10 @@ const Admin = () => {
       try {
         const response = await handleApiCall({
           API: "find-data",
-          data: { collection: "Courses", condition: {key:'userId',value:user?.userId} },
+          data: {
+            collection: "Courses",
+            condition: { key: "userId", value: user?.userId },
+          },
         });
         if (response.flag) {
           setCourses(response.data.data);
@@ -428,10 +431,10 @@ const Admin = () => {
       <div className={styles.createCourse}>
         My Tests
         <Button onClick={() => (window.location.href = "/create-test")}>
-        Create New Test
+          Create New Test
         </Button>
       </div>
-     
+
       <div className={styles.cards}>
         {tests &&
           tests.map((test) => (

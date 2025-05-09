@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { useUser } from "../../utils/context/userContext";
 
-
 import useModal from "../../utils/useModal";
 import handleApiCall from "../../utils/handleAPI";
 
@@ -20,7 +19,7 @@ const circumference = 2 * Math.PI * radius;
 const Quiz = () => {
   const { user } = useUser();
   console.log("[Quiz] --> user", user);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const { isModalOpen, showModal, Modal, closeModal } = useModal();
@@ -165,9 +164,19 @@ const Quiz = () => {
         : "Error submitting test. Please contact admin.",
       [{ label: "Ok", shortcut: "Enter", onClick: () => navigate("/summary") }]
     );
-  }, [highlightedOptions, totalQuestions, questions, selectedOptions, id, user?.userId, showModal, navigate]);
-  
-  const triggerAutoSubmit =useCallback(() => {
+  }, [
+    highlightedOptions,
+    totalQuestions,
+    questions,
+    selectedOptions,
+    id,
+    user.userId,
+    user._id,
+    showModal,
+    navigate,
+  ]);
+
+  const triggerAutoSubmit = useCallback(() => {
     setTotalTime(10);
     setTimeLeft(10);
     setIsAutoSubmit(true);
@@ -185,7 +194,6 @@ const Quiz = () => {
     }
   }, [endTime, isAutoSubmit, showModal, timeLeft, triggerAutoSubmit]);
 
-
   useEffect(() => {
     if (!questions.length) return;
     const timer = setInterval(() => {
@@ -200,8 +208,6 @@ const Quiz = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [autoSubmit, questions, totalTime]);
-
-
 
   const confirmSubmit = () => {
     showModal("Confirm", "Are you sure you want to submit the test?", [

@@ -104,18 +104,21 @@ const DataTableManagement = (props) => {
         const filtered =
           response.data.data?.filter((v) => !("title" in v)) || [];
         const studentRows = filtered.filter((v) => v.userType === "Student");
-        const sample = studentRows[0] || filtered[0] || {};        
+        const sample = studentRows[0] || filtered[0] || {};
         setTableColumns(Object.keys(sample));
         setTableData(
           studentRows.length
             ? studentRows
             : filtered.map((v) => ({
                 ...v,
-                Option: Array.isArray(v.Option) ? v.Option.join(", ") : v.Option,
-                Answer: Array.isArray(v.Answer) ? v.Answer.join(", ") : v.Answer,
+                Option: Array.isArray(v.Option)
+                  ? v.Option.join(", ")
+                  : v.Option,
+                Answer: Array.isArray(v.Answer)
+                  ? v.Answer.join(", ")
+                  : v.Answer,
               }))
         );
-        
       } else {
         showRetryModal("Info", response.error, () => fetchData(collectionName));
       }

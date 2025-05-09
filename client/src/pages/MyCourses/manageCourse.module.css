@@ -47,13 +47,13 @@
 .moduleItem:hover {
   background-color: #3b5770;
 }
-.deleteModuleButton{
+.deleteModuleButton {
   background-color: #f1f1f1;
   color: #fff;
   border-radius: 50% 50%;
   padding: 4px;
 }
-.deleteModuleButton:hover{
+.deleteModuleButton:hover {
   background-color: #ff4d4d;
 }
 .active {
@@ -64,8 +64,6 @@
 
 /* Main Content Styles */
 .moduleContent {
-
-
   padding: 30px;
   overflow-y: auto;
   background-color: #fff;

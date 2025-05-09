@@ -108,10 +108,7 @@ const AssignedQuiz = () => {
 
   return (
     <>
-      <div className={styles.createCourse}>
-        My Courses
-      
-      </div>
+      <div className={styles.createCourse}>My Courses</div>
       <div className={styles.assignedQuizContainer}>
         {assignedCourses.length === 0 ? (
           <div className={styles.noTestContainer}>
@@ -140,12 +137,8 @@ const AssignedQuiz = () => {
           })
         )}
       </div>
-      <div className={styles.createCourse}>
-        My Tests
-      
-      </div>
+      <div className={styles.createCourse}>My Tests</div>
       <div className={styles.assignedQuizContainer}>
-      
         {assignedTests.length === 0 ? (
           <div className={styles.noTestContainer}>
             <h1>No test available</h1>

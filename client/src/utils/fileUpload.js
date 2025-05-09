@@ -149,9 +149,7 @@ const fileUpload = (
       case "csv":
         const parsed = Papa.parse(reader.result).data;
         insertData =
-          collectionName === "Users"
-            ? parsed
-            : normalizeQuestions(parsed);
+          collectionName === "Users" ? parsed : normalizeQuestions(parsed);
         break;
 
       case "gift":

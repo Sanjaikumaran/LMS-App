@@ -101,7 +101,6 @@ textarea.fillAnswerInput {
   grid-template-columns: repeat(3, 1fr);
 }
 
-
 .skipButton {
   background-color: #113bc4;
 }
@@ -158,7 +157,6 @@ textarea.fillAnswerInput {
   color: #333;
   font-weight: bold;
 }
-
 
 /* Question Number Section */
 .questionNumberSection {
