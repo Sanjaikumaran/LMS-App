@@ -7,8 +7,6 @@ const generateDescription = async (title, field, updateForm, setError) => {
     return;
   }
   setError((prev) => ({ ...prev, [field]: "" }));
-
-  const API_KEY = "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";
   const response = await axios.post(
     "https://api.groq.com/openai/v1/chat/completions",
     {
@@ -29,7 +27,7 @@ Instruction: Write a short and precise *description* for the above title, not an
     {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${process.env.REACT_APP_GROQ_API_KEY}`,
       },
     }
   );
