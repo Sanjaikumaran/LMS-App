@@ -7,6 +7,7 @@ import styles from "./manageCourse.module.css";
 const ManageCourse = () => {
   const [courseData, setCourseData] = useState(null);
   const [modules, setModules] = useState([]);
+  const [testData, setTestData] = useState(null);
 
   const [selectedModuleIndex, setSelectedModuleIndex] = useState(0);
 
@@ -34,7 +35,24 @@ const ManageCourse = () => {
         console.log("Error fetching course data:", err.message);
       }
     };
+    const fetchTest = async () => {
+      try {
+        const { flag, data } = await handleApiCall({
+          API: "find-data",
+          data: {
+            collection: "Tests",
+            condition: { key: "courseId", value: courseId },
+          },
+        });
 
+        if (flag && data.data.length) {
+          setTestData(data.data[0]);
+        }
+      } catch (err) {
+        console.log("Error fetching course data:", err.message);
+      }
+    };
+    fetchTest();
     fetchCourseData();
   }, [courseId]);
 
@@ -67,11 +85,17 @@ const ManageCourse = () => {
 
         <h3>Course Test:-</h3>
         <div className={styles.courseInfo}>
-          <h2>{courseData ? courseData["Course Title"] : "Loading..."}</h2>
+          <h2>{testData ? testData["Test Name"] : "No Test Created Yet"}</h2>
           <p>
-            Duration: {courseData?.["Start Date"]} to {courseData?.["End Date"]}
+            Start date:{" "}
+            {testData?.["Start Time"].split("T")[0].split("-").join("/")}
           </p>
-          <p>No. of Modules: {courseData?.modules?.length}</p>
+          <p>
+            End date:{" "}
+            {testData?.["End Time"].split("T")[0].split("-").join("/")}
+          </p>
+          <p>Duration: {testData?.Duration}</p>
+          <p>Attempts Limit: {testData?.["Attempts Limit"]}</p>
         </div>
       </aside>
       <main className={styles.moduleContent}>

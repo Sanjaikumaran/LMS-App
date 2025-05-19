@@ -9,8 +9,10 @@ import useModal from "../../utils/useModal";
 import styles from "./admin.module.css";
 import { useUser } from "../../utils/context/userContext";
 import handleApiCall from "../../utils/handleAPI";
+import { generateDescription } from "../../utils/AIHelper";
 import IconAvatar from "../../assets/icons/education.png";
 import IconList from "../../assets/icons/list.png";
+
 const CreateCourse = ({ setShowCreateCourse, showModal, closeModal }) => {
   const { user } = useUser();
 
@@ -240,16 +242,34 @@ const CreateCourse = ({ setShowCreateCourse, showModal, closeModal }) => {
               }}
               error={error.courseTitle}
             />
-            <Input
-              type="textarea"
-              label="Course Description *"
-              value={courseDescription}
-              onChange={(value) => {
-                updateForm("courseDescription")(value);
-                setError((prev) => ({ ...prev, courseDescription: "" }));
-              }}
-              error={error.courseDescription}
-            />
+            <div>
+              {
+                <span
+                  className={styles.hitAiButton}
+                  onClick={() =>
+                    generateDescription(
+                      courseTitle,
+                      "courseDescription",
+                      updateForm,
+                      setError
+                    )
+                  }
+                >
+                  ✨
+                </span>
+              }
+              <Input
+                type="textarea"
+                label={`Course Description *`}
+                value={courseDescription}
+                onChange={(value) => {
+                  updateForm("courseDescription")(value);
+                  setError((prev) => ({ ...prev, courseDescription: "" }));
+                }}
+                error={error.courseDescription}
+              />
+            </div>
+
             <Input
               type="date"
               label="Start Date *"
@@ -294,16 +314,34 @@ const CreateCourse = ({ setShowCreateCourse, showModal, closeModal }) => {
               }}
               error={error.moduleTitle}
             />
-            <Input
-              type="textarea"
-              label="Module Description *"
-              value={moduleDescription}
-              onChange={(value) => {
-                updateForm("moduleDescription")(value);
-                setError((prev) => ({ ...prev, moduleDescription: "" }));
-              }}
-              error={error.moduleDescription}
-            />
+            <div>
+              {
+                <span
+                  className={styles.hitAiButton}
+                  onClick={() =>
+                    generateDescription(
+                      moduleTitle,
+                      "moduleDescription",
+                      updateForm,
+                      setError
+                    )
+                  }
+                >
+                  ✨
+                </span>
+              }
+              <Input
+                type="textarea"
+                label="Module Description *"
+                value={moduleDescription}
+                onChange={(value) => {
+                  updateForm("moduleDescription")(value);
+                  setError((prev) => ({ ...prev, moduleDescription: "" }));
+                }}
+                error={error.moduleDescription}
+              />
+            </div>
+
             <Dropdown
               label="Participants Group"
               value={participantsGroup.join(", ") || "Select Groups"}
@@ -338,11 +376,14 @@ const Admin = () => {
   const [tests, setTests] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTestData = async () => {
       try {
         const response = await handleApiCall({
-          API: "load-data",
-          data: { collection: "Tests" },
+          API: "find-data",
+          data: {
+            collection: "Tests",
+            condition: { key: "userId", value: user?.userId || user?._id },
+          },
         });
         if (response.flag) {
           setTests(response.data.data);
@@ -353,16 +394,14 @@ const Admin = () => {
         console.log(`[Admin Home] --> ${error.message}`);
       }
     };
-    fetchData();
-  }, []);
-  useEffect(() => {
-    const fetchData = async () => {
+    fetchTestData();
+    const fetchCourseData = async () => {
       try {
         const response = await handleApiCall({
           API: "find-data",
           data: {
             collection: "Courses",
-            condition: { key: "userId", value: user?.userId },
+            condition: { key: "userId", value: user?.userId || user?._id },
           },
         });
         if (response.flag) {
@@ -374,8 +413,8 @@ const Admin = () => {
         console.log(`[Admin Home] --> ${error.message}`);
       }
     };
-    fetchData();
-  }, [user?.userId]);
+    fetchCourseData();
+  }, [user?._id, user?.userId]);
 
   return (
     <>
@@ -443,8 +482,18 @@ const Admin = () => {
               header={test["Test Name"]}
               imageSrc=""
               altText=""
-              navigateTo={`/manage-test?id=${test._id}`}
-            />
+            >
+              <div className={styles.cardsBody}>
+                <div>{test["Test Description"]}</div>
+                <div>
+                  <Button
+                    onClick={() => navigate(`/manage-test?id=${test._id}`)}
+                  >
+                    Manage
+                  </Button>
+                </div>
+              </div>
+            </ModuleCard>
           ))}
       </div>
       <Modal />
