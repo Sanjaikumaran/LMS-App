@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import handleApiCall from "../../utils/handleAPI";
+import { generateDescription } from "../../utils/AIHelper";
 import FileUpload from "../../utils/fileUpload";
 import { DataTableSection } from "../../utils/customTable";
 import useModal from "../../utils/useModal";
@@ -46,9 +47,11 @@ const Test = () => {
 
   const location = useLocation();
   const id = new URLSearchParams(location.search).get("id");
+  const courseId = new URLSearchParams(location.search).get("courseId");
 
   const {
     testName,
+    testDescription,
     startTime,
     endTime,
     duration,
@@ -62,13 +65,19 @@ const Test = () => {
     (async () => {
       const response = await handleApiCall({
         API: "find-data",
-        data: { collection: "Tests", condition: { key: "_id", value: id } },
+        data: {
+          collection: "Tests",
+          condition: id
+            ? { key: "_id", value: id }
+            : { key: "courseId", value: courseId },
+        },
       });
 
       if (response.flag) {
         const data = response.data.data[0];
         setFormData({
           testName: data["Test Name"],
+          testDescription: data["Test Description"],
           startTime: data["Start Time"],
           endTime: data["End Time"],
           duration: data["Duration"],
@@ -284,6 +293,7 @@ const Test = () => {
     const submitCallback = async (newGroupName) => {
       const config = {
         "Test Name": testName,
+        "Test Description": testDescription,
         "Start Time": startTime,
         "End Time": endTime,
         Duration: duration,
@@ -453,7 +463,33 @@ const Test = () => {
               }}
               error={error.testName}
             />
-
+            <div>
+              {
+                <span
+                  className={styles.hitAiButton}
+                  onClick={() =>
+                    generateDescription(
+                      testName,
+                      "testDescription",
+                      updateForm,
+                      setError
+                    )
+                  }
+                >
+                  ✨
+                </span>
+              }
+              <Input
+                type="textarea"
+                label="Test Description *"
+                value={testDescription || ""}
+                onChange={(value) => {
+                  updateForm("testDescription")(value);
+                  setError((prev) => ({ ...prev, testDescription: "" }));
+                }}
+                error={error.testDescription}
+              />
+            </div>
             {[
               {
                 label: "Start Date and Time",

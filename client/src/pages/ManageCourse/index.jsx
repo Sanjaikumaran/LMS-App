@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+
+import { generateDescription } from "../../utils/AIHelper";
 import handleApiCall from "../../utils/handleAPI";
 import Button from "../../utils/button";
 import ModuleCard from "../../utils/ModuleCard";
@@ -6,14 +8,17 @@ import styles from "./manageCourse.module.css";
 import Input from "../../utils/input";
 import Dropdown from "../../utils/select";
 import useModal from "../../utils/useModal";
+import { useNavigate } from "react-router-dom";
 
 const ManageCourse = () => {
   const { Modal, showModal, closeModal } = useModal();
+  const navigate = useNavigate();
   const [courseData, setCourseData] = useState(null);
   const [modules, setModules] = useState([]);
   const [editMode, setEditMode] = useState("");
   const [groupData, setGroupData] = useState([]);
   const [selectedModuleIndex, setSelectedModuleIndex] = useState(0);
+  const [testData, setTestData] = useState(null);
 
   const [formData, setFormData] = useState({
     courseTitle: "",
@@ -39,7 +44,6 @@ const ManageCourse = () => {
   });
 
   const courseId = new URLSearchParams(window.location.search).get("id");
-  console.log(courseId);
 
   const selectedModule = modules[selectedModuleIndex];
 
@@ -64,8 +68,8 @@ const ManageCourse = () => {
     fetchGroups();
   }, []);
   useEffect(() => {
-    console.log(courseData);
-  }, [courseData]);
+    console.log(testData);
+  }, [testData]);
   useEffect(() => {
     if (selectedModule) {
       setFormData((prev) => ({
@@ -106,7 +110,26 @@ const ManageCourse = () => {
         console.log("Error fetching course data:", err.message);
       }
     };
+    const fetchTest = async () => {
+      try {
+        const { flag, data } = await handleApiCall({
+          API: "find-data",
+          data: {
+            collection: "Tests",
+            condition: { key: "courseId", value: courseId },
+          },
+        });
 
+        if (flag && data.data.length) {
+          console.log(data.data[0]);
+
+          setTestData(data.data[0]);
+        }
+      } catch (err) {
+        console.log("Error fetching course data:", err.message);
+      }
+    };
+    fetchTest();
     fetchCourseData();
   }, [courseId]);
 
@@ -401,6 +424,7 @@ const ManageCourse = () => {
       ]
     );
   };
+
   return (
     <div className={styles.manageCourseContainer}>
       {editMode === "course" ? (
@@ -413,13 +437,33 @@ const ManageCourse = () => {
                 onChange={updateForm("courseTitle")}
                 error={error.courseTitle}
               />
-              <Input
-                type="textarea"
-                label="Course Description *"
-                value={formData.courseDescription}
-                onChange={updateForm("courseDescription")}
-                error={error.courseDescription}
-              />
+              <div>
+                {
+                  <span
+                    className={styles.hitAiButton}
+                    onClick={() =>
+                      generateDescription(
+                        formData.courseTitle,
+                        "courseDescription",
+                        updateForm,
+                        setError
+                      )
+                    }
+                  >
+                    ✨
+                  </span>
+                }
+                <Input
+                  type="textarea"
+                  label={`Course Description *`}
+                  value={formData.courseDescription}
+                  onChange={(value) => {
+                    updateForm("courseDescription")(value);
+                    setError((prev) => ({ ...prev, courseDescription: "" }));
+                  }}
+                  error={error.courseDescription}
+                />
+              </div>
               <Input
                 type="date"
                 label="Start Date *"
@@ -472,13 +516,31 @@ const ManageCourse = () => {
                 onChange={updateForm("moduleTitle")}
                 error={error.moduleTitle}
               />
-              <Input
-                type="textarea"
-                label="Module Description *"
-                value={formData.moduleDescription}
-                onChange={updateForm("moduleDescription")}
-                error={error.moduleDescription}
-              />
+              <div>
+                {
+                  <span
+                    className={styles.hitAiButton}
+                    onClick={() =>
+                      generateDescription(
+                        formData.moduleTitle,
+                        "moduleDescription"
+                      )
+                    }
+                  >
+                    ✨
+                  </span>
+                }
+                <Input
+                  type="textarea"
+                  label="Module Description *"
+                  value={formData.moduleDescription || ""}
+                  onChange={(value) => {
+                    updateForm("moduleDescription")(value);
+                    setError((prev) => ({ ...prev, moduleDescription: "" }));
+                  }}
+                  error={error.moduleDescription}
+                />
+              </div>
               <div className={styles.buttonContainer}>
                 <Button
                   style={{ backgroundColor: "red" }}
@@ -541,9 +603,8 @@ const ManageCourse = () => {
         <h3>Course Details:-</h3>
         <div className={styles.courseInfo}>
           <h2>{courseData ? courseData["Course Title"] : "Loading..."}</h2>
-          <p>
-            Duration: {courseData?.["Start Date"]} to {courseData?.["End Date"]}
-          </p>
+          <p>Start Date: {courseData?.["Start Date"]}</p>
+          <p>End Date: {courseData?.["End Date"]}</p>
           <p>No. of Modules: {courseData?.modules?.length}</p>
           <Button onClick={() => setEditMode("course")}>Edit</Button>
         </div>
@@ -572,12 +633,26 @@ const ManageCourse = () => {
 
         <h3>Course Test:-</h3>
         <div className={styles.courseInfo}>
-          <h2>{courseData ? courseData["Course Title"] : "Loading..."}</h2>
+          <h2>{testData ? testData["Test Name"] : "No Test Created Yet"}</h2>
           <p>
-            Duration: {courseData?.["Start Date"]} to {courseData?.["End Date"]}
+            Start date:{" "}
+            {testData?.["Start Time"].split("T")[0].split("-").join("/")}
           </p>
-          <p>No. of Modules: {courseData?.modules?.length}</p>
-          <Button onClick={() => setEditMode("course")}>Edit</Button>
+          <p>
+            End date:{" "}
+            {testData?.["End Time"].split("T")[0].split("-").join("/")}
+          </p>
+          <p>Duration: {testData?.Duration}</p>
+          <p>No. of Attempts: {testData?.["Test Results"].length}</p>
+          <Button
+            onClick={() =>
+              navigate(
+                `/${testData ? "manage" : "create"}-test?courseId=${courseId}`
+              )
+            }
+          >
+            {testData ? "Manage Test" : "Create Test"}
+          </Button>
         </div>
       </aside>
       <main className={styles.moduleContent}>

@@ -4,16 +4,20 @@ import FileUpload from "../../utils/fileUpload";
 import useModal from "../../utils/useModal";
 import styles from "./createTest.module.css";
 import handleApiCall from "../../utils/handleAPI";
+import { generateDescription } from "../../utils/AIHelper";
 import ModuleCard from "../../utils/ModuleCard";
 import Input from "../../utils/input";
 import Button from "../../utils/button";
 import Dropdown from "../../utils/select";
+import { useUser } from "../../utils/context/userContext";
 
 const CreateTest = () => {
+  const { user } = useUser();
   const { Modal, showModal, closeModal } = useModal();
-
+  const courseId = new URLSearchParams(window.location.search).get("courseId");
   const [formData, setFormData] = useState({
     testName: "",
+    testDescription: "",
     startTime: "",
     endTime: "",
     duration: "",
@@ -31,6 +35,7 @@ const CreateTest = () => {
 
   const {
     testName,
+    testDescription,
     startTime,
     endTime,
     duration,
@@ -109,8 +114,11 @@ const CreateTest = () => {
 
     const submitCallback = async (newGroupName = "") => {
       const configurations = {
+        courseId: courseId,
+        userId: user?.userId || user?._id,
         "Test Name": testName,
         "Start Time": startTime,
+        "Test Description": testDescription,
         "End Time": endTime,
         Duration: duration,
         "Attempts Limit": attempts,
@@ -200,6 +208,33 @@ const CreateTest = () => {
               }}
               error={error.testName}
             />
+            <div>
+              {
+                <span
+                  className={styles.hitAiButton}
+                  onClick={() =>
+                    generateDescription(
+                      testName,
+                      "testDescription",
+                      updateForm,
+                      setError
+                    )
+                  }
+                >
+                  ✨
+                </span>
+              }
+              <Input
+                type="textarea"
+                label="Test Description *"
+                value={testDescription || ""}
+                onChange={(value) => {
+                  updateForm("testDescription")(value);
+                  setError((prev) => ({ ...prev, testDescription: "" }));
+                }}
+                error={error.testDescription}
+              />
+            </div>
             <Input
               type="datetime-local"
               label="Start Date and Time"

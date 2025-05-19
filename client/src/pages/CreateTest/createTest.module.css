@@ -64,6 +64,7 @@
   border-left: 1px solid #ffffff;
   font-weight: bold;
   margin-left: 5px;
+  margin-top: 0;
   cursor: pointer;
 }
 .createTestForm input[type="file"]::file-selector-button {
@@ -76,4 +77,14 @@
 .createTestForm input[type="file"] {
   padding: 0% !important    ;
   width: 100% !important;
+}
+
+.hitAiButton {
+  position: relative;
+  top: 18px;
+  cursor: pointer;
+  border: 1px solid #89a8c3;
+  padding: 2px;
+  right: -415px;
+  border-radius: 2px;
 }
