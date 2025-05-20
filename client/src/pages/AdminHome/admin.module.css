@@ -1,29 +1,21 @@
+/* Create Course Button Bar */
 .createCourse {
   display: flex;
-  margin-top: 20px;
-
   align-items: center;
   justify-content: space-between;
-  background-color: #007bff;
-  color: white;
-  padding: 15px 20px;
+  padding: 15px;
   font-size: 1.5em;
   font-weight: bold;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border: 1px solid #d1d1d1;
-  margin-bottom: 20px;
 }
 
 .createCourse button {
-  background-color: #ffffff;
-  border: none;
-  color: #007bff;
-
+  background: linear-gradient(86.73deg, #3696e5 0.38%, #7424dc 98.88%);
+  color: #ffffff;
+  margin: 0;
   font-weight: bold;
   cursor: pointer;
   padding: 8px 14px;
-  /*border-radius: 50%;*/
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
@@ -32,116 +24,49 @@
   background-color: #e6e2e2;
 }
 
+/* Cards Layout */
 .cards {
   display: flex;
   flex-wrap: wrap;
-  padding: 20px;
   gap: 20px;
-  justify-content: flex-start;
+  overflow: auto;
+  padding: 30px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  border: 1px solid #ebecee;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px 0 #0000000f;
+  cursor: pointer;
+
+  width: 500px;
+}
+.card h1 {
+  margin: 0;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e1e1e3;
 }
 .cardsBody {
-  padding: 10px;
+  padding: 20px;
+  color: rgb(66, 66, 66);
 }
-.createCourseContainer {
+.content {
+  min-height: 100px;
+}
+.cardsBody button {
+  background: linear-gradient(86.73deg, #3696e5 0.38%, #7424dc 98.88%);
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 8px 14px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.buttonsContainer {
   display: flex;
   justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 998;
-}
-
-.createCourseForm {
-  margin: auto;
-  margin-top: 20px;
-  max-width: 600px;
-  padding: 0 20px 10px 20px;
-}
-
-.groupSelector {
-  position: relative;
-}
-
-.groupDropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  max-width: 600px;
-  width: 100%;
-  border: 1px solid #ccc;
-  background-color: white;
-  z-index: 10;
-}
-
-.groupItem {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.groupItem:hover {
-  background-color: #f0f0f0;
-}
-
-.selectedGroups {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 10px;
-}
-
-.selectedGroup {
-  background-color: #007bff;
-  color: white;
-  padding: 0 6px;
-  border-radius: 15px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.removeGroupButton {
-  background: none;
-  color: white;
-  border: none;
-  border-radius: 0%;
-  padding: 5px 5px;
-  border-left: 1px solid #ffffff;
-  font-weight: bold;
-  margin-left: 5px;
-  margin-top: 0;
-  cursor: pointer;
-}
-.createCourseForm input[type="file"]::file-selector-button {
-  padding: 10px;
-  color: white;
-  font-weight: bold;
-  border: none;
-  background-color: #007bff;
-}
-.createCourseForm input[type="file"] {
-  padding: 0% !important    ;
-  width: 100% !important;
-}
-.buttonContainer {
-  display: grid;
-  justify-content: end;
-  gap: 20px;
-  grid-auto-flow: column;
-}
-
-.hitAiButton {
-  position: relative;
-  top: 18px;
-  cursor: pointer;
-  border: 1px solid #89a8c3;
-  padding: 2px;
-  right: -415px;
-  border-radius: 2px;
+  gap: 10px;
 }

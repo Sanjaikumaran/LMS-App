@@ -15,6 +15,7 @@ const Input = ({
   onChange,
   placeHolder = "Enter value",
   id,
+  row,
   ...rest
 }) => {
   const inputId = id || `input-${label?.replace(/\s+/g, "-").toLowerCase()}`;
@@ -29,7 +30,7 @@ const Input = ({
       )}
       {type === "textarea" ? (
         <textarea
-          rows={3}
+          rows={row ?? 4}
           id={inputId}
           value={value}
           autoComplete={autoComplete}

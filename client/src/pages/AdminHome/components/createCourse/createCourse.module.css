@@ -1,95 +1,3 @@
-.header {
-  margin: 0;
-  padding: 15px 20px 0 20px;
-  border-bottom: 1px solid #e1e1e3;
-}
-.headerTop {
-  display: flex;
-  justify-content: space-between;
-}
-.headerButtons {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-}
-.headerTop h1 {
-  margin: 0;
-}
-.tabs {
-  align-items: center;
-  display: flex;
-  padding: 0 24px;
-  position: relative;
-}
-.tabs span {
-  align-items: center;
-  color: #080c2ba6;
-  cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  font-size: 14px;
-  justify-content: center;
-  line-height: 20px;
-  padding: 12px 16px;
-  position: relative;
-  white-space: nowrap;
-}
-.activeTab {
-  color: #504ee4 !important;
-  font-weight: 600;
-}
-.activeTab::before {
-  border-bottom: 2px solid #504ee4;
-  bottom: 0;
-  content: "";
-  left: 0;
-  position: absolute;
-  right: 0;
-}
-.testDetailsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  justify-content: center;
-  width: 70%;
-  margin: auto;
-}
-
-.detailCard h1 {
-  padding: 15px;
-  color: #080c2bd9;
-  margin: 0;
-}
-.detailCard {
-  background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0px 0px 2px #080c2b29, 0px 1px 4px #080c2b1f;
-  display: flex;
-  column-gap: 8px;
-  display: flex;
-
-  width: 100%;
-  flex-direction: column;
-}
-.detailCardHeader {
-  display: flex;
-  padding: 10px;
-  border-bottom: 1px solid #e1e1e3;
-  flex-direction: row;
-}
-.detailCardBody {
-  padding: 20px;
-  color: #080c2ba6;
-}
-.detailsColumn {
-  display: flex;
-  justify-content: space-evenly;
-  flex-direction: row;
-  gap: 50px;
-}
-.detailsColumn div {
-  width: 200px;
-}
 /* Scrim Overlay */
 .scrim {
   position: fixed;
@@ -101,8 +9,8 @@
   z-index: 15;
 }
 
-/* Create Test Panel Container */
-.createTestContainer {
+/* Create Course Panel Container */
+.createCourseContainer {
   display: flex;
   justify-content: end;
   position: fixed;
@@ -114,7 +22,7 @@
 }
 
 /* Panel Header */
-.createTestHeader {
+.createCourseHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -128,7 +36,7 @@
 }
 
 /* Form Container */
-.createTestForm {
+.createCourseForm {
   margin: auto;
   margin-top: 20px;
   max-width: 600px;
@@ -136,7 +44,7 @@
 }
 
 /* Panel Style */
-.createTestPanel {
+.createCoursePanel {
   position: relative;
   background-color: #ffffff;
   min-width: 30vw;
@@ -202,7 +110,7 @@
 }
 
 /* File Input Style */
-.createTestForm input[type="file"]::file-selector-button {
+.createCourseForm input[type="file"]::file-selector-button {
   padding: 10px;
   color: white;
   font-weight: bold;
@@ -210,7 +118,7 @@
   background-color: #007bff;
 }
 
-.createTestForm input[type="file"] {
+.createCourseForm input[type="file"] {
   padding: 0 !important;
   width: 100% !important;
 }
@@ -223,12 +131,12 @@
   gap: 20px;
   grid-auto-flow: column;
   border-top: 1px solid #e1e1e3;
-  padding:  10px;
+  padding: 10px;
 }
-.cancelButton{
-    background: #f5f5f7 !important;
-                  border: 1px solid #e1e1e3;
-                  color: #080c2bd9;
+.cancelButton {
+  background: #f5f5f7 !important;
+  border: 1px solid #e1e1e3;
+  color: #080c2bd9;
 }
 .hitAiButton {
   position: relative;

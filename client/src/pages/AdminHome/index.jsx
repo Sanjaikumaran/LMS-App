@@ -2,500 +2,235 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import ModuleCard from "../../utils/ModuleCard";
-import Input from "../../utils/input";
 import Button from "../../utils/button";
-import Dropdown from "../../utils/select";
 import useModal from "../../utils/useModal";
 import styles from "./admin.module.css";
 import { useUser } from "../../utils/context/userContext";
 import handleApiCall from "../../utils/handleAPI";
-import { generateDescription } from "../../utils/AIHelper";
 import IconAvatar from "../../assets/icons/education.png";
 import IconList from "../../assets/icons/list.png";
-
-const CreateCourse = ({ setShowCreateCourse, showModal, closeModal }) => {
-  const { user } = useUser();
-
-  const [formData, setFormData] = useState({
-    courseTitle: "",
-    courseDescription: "",
-    courseStartDate: "",
-    courseEndDate: "",
-    moduleVideo: "",
-    moduleTitle: "",
-    moduleDescription: "",
-    participantsGroup: [],
-  });
-  const [groupData, setGroupData] = useState([]);
-  const [error, setError] = useState({
-    courseTitle: "",
-    courseDescription: "",
-    courseStartDate: "",
-    courseEndDate: "",
-    moduleVideo: "",
-    moduleTitle: "",
-    moduleDescription: "",
-  });
-  const {
-    courseTitle,
-    courseDescription,
-    courseStartDate,
-    courseEndDate,
-    moduleVideo,
-    moduleTitle,
-    moduleDescription,
-    participantsGroup,
-  } = formData;
-  useEffect(() => {
-    const fetchGroups = async (collection) => {
-      try {
-        const { flag, data } = await handleApiCall({
-          API: "load-data",
-          data: { collection },
-        });
-        if (flag) {
-          const uniqueGroups = [
-            ...new Set(data.data.map((item) => item.Group)),
-          ];
-          setGroupData((prev) => uniqueGroups);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-      }
-    };
-
-    fetchGroups("Users");
-  }, []);
-  const updateForm = (field) => (value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const modifyGroup = (group, type, action) => {
-    if (group === "No Groups Available") return;
-
-    const selectedKey = `participantsGroup`;
-
-    setFormData((prev) => ({
-      ...prev,
-      [selectedKey]:
-        action === "add"
-          ? prev[selectedKey].includes(group)
-            ? prev[selectedKey]
-            : [...prev[selectedKey], group]
-          : prev[selectedKey].filter((g) => g !== group),
-    }));
-  };
-
-  const RenderSelectedGroups = ({ groups, type }) =>
-    groups.length > 0 && (
-      <div className={styles.selectedGroups}>
-        {groups.map((group) => (
-          <span key={group} className={styles.selectedGroup}>
-            {group}
-            <Button
-              className={styles.removeGroupButton}
-              onClick={() => modifyGroup(group, type, "remove")}
-            >
-              ×
-            </Button>
-          </span>
-        ))}
-      </div>
-    );
-  const validateForm = () => {
-    const newErrors = {};
-    if (!courseTitle.trim()) newErrors.courseTitle = "Course Title is required";
-    if (!courseDescription.trim())
-      newErrors.courseDescription = "Course Description is required";
-    if (!courseStartDate) newErrors.courseStartDate = "Start Date is required";
-    if (!courseEndDate) newErrors.courseEndDate = "End Date is required";
-    if (!moduleVideo?.target?.files?.[0])
-      newErrors.moduleVideo = "Module Video is required";
-    if (!moduleTitle.trim()) newErrors.moduleTitle = "Module Title is required";
-    if (!moduleDescription.trim())
-      newErrors.moduleDescription = "Module Description is required";
-
-    setError(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleVideoUpload = async (file, filename, path, courseName) => {
-    const formData = new FormData();
-    formData.append("video", file);
-    formData.append("filename", filename);
-    formData.append("path", path);
-    formData.append("courseName", courseName);
-
-    try {
-      const response = await fetch("http://localhost:5000/upload-video", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (result.flag) {
-        console.log("Video uploaded successfully:", result.data);
-      } else {
-        console.error("Video upload failed:", result.message);
-      }
-    } catch (error) {
-      console.error("Error uploading video:", error);
-    }
-  };
-
-  const handleSubmit = async () => {
-    console.log(validateForm());
-
-    if (!validateForm()) return;
-
-    showModal(
-      "Confirm Course Creation",
-      "Are you sure you want to create this course?",
-      [
-        {
-          label: "Cancel",
-          shortcut: "Escape",
-          onClick: closeModal,
-        },
-        {
-          label: "Yes, Create",
-          shortcut: "Enter",
-          onClick: async () => {
-            const file = moduleVideo.target.files[0];
-            const filename = `${courseTitle.replace(
-              /\s+/g,
-              "-"
-            )}-${moduleTitle.replace(/\s+/g, "-")}.${file.name
-              .split(".")
-              .pop()}`;
-            const path = `../client/src/assets/videos/${courseTitle.replace(
-              /\s+/g,
-              "-"
-            )}-${Date.now()}/`;
-
-            if (file) {
-              await handleVideoUpload(file, filename, path, courseTitle);
-            }
-
-            const configurations = {
-              userId: user?.userId || user?._id,
-              "Course Title": courseTitle,
-              "Course Description": courseDescription,
-              "Start Date": courseStartDate,
-              "End Date": courseEndDate,
-              modules: [
-                {
-                  "Module Title": moduleTitle,
-                  "Module Description": moduleDescription,
-                  path: `${path}${filename}`,
-                },
-              ],
-
-              "Participants Group": participantsGroup,
-            };
-
-            try {
-              const { flag } = await handleApiCall({
-                API: "insert-data",
-                data: { data: configurations, collection: "Courses" },
-              });
-              if (flag) {
-                setShowCreateCourse(false);
-              }
-              showModal(
-                flag ? "Success" : "Error",
-                flag ? "Course Created Successfully" : "Course not Created",
-                [
-                  {
-                    label: "Ok",
-                    shortcut: "Enter",
-                    onClick: flag
-                      ? () => (window.location.href = "/admin")
-                      : closeModal,
-                  },
-                ]
-              );
-            } catch (err) {
-              showModal("Uncaught Error", err.message, [
-                { label: "Ok", shortcut: "Enter", onClick: closeModal },
-              ]);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  return (
-    <>
-      <div className={styles.createCourseContainer}>
-        <ModuleCard header="Create New Course">
-          <form className={styles.createCourseForm}>
-            <Input
-              label="Course Title *"
-              value={courseTitle}
-              onChange={(value) => {
-                updateForm("courseTitle")(value);
-                setError((prev) => ({ ...prev, courseTitle: "" }));
-              }}
-              error={error.courseTitle}
-            />
-            <div>
-              {
-                <span
-                  className={styles.hitAiButton}
-                  onClick={() =>
-                    generateDescription(
-                      courseTitle,
-                      "courseDescription",
-                      updateForm,
-                      setError
-                    )
-                  }
-                >
-                  ✨
-                </span>
-              }
-              <Input
-                type="textarea"
-                label={`Course Description *`}
-                value={courseDescription}
-                onChange={(value) => {
-                  updateForm("courseDescription")(value);
-                  setError((prev) => ({ ...prev, courseDescription: "" }));
-                }}
-                error={error.courseDescription}
-              />
-            </div>
-
-            <Input
-              type="date"
-              label="Start Date *"
-              value={courseStartDate}
-              onChange={(value) => {
-                updateForm("courseStartDate")(value);
-                setError((prev) => ({
-                  ...prev,
-                  courseStartDate: "",
-                  endTime: "",
-                }));
-              }}
-              error={error.courseStartDate}
-            />
-            <Input
-              type="date"
-              label="End Date *"
-              value={courseEndDate}
-              onChange={(value) => {
-                updateForm("courseEndDate")(value);
-                setError((prev) => ({ ...prev, c: "", courseEndDate: "" }));
-              }}
-              error={error.courseEndDate}
-            />
-            <Input
-              type="file"
-              accept=".mp4, .mkv, .webm, .avi, .mov, .hevc, video/*"
-              label="Upload Module Video *"
-              onChange={(value, e) => {
-                updateForm("moduleVideo")(e);
-                setError((prev) => ({ ...prev, moduleVideo: "" }));
-              }}
-              error={error.moduleVideo}
-            />
-
-            <Input
-              label="Module Title *"
-              value={moduleTitle}
-              onChange={(value) => {
-                updateForm("moduleTitle")(value);
-                setError((prev) => ({ ...prev, moduleTitle: "" }));
-              }}
-              error={error.moduleTitle}
-            />
-            <div>
-              {
-                <span
-                  className={styles.hitAiButton}
-                  onClick={() =>
-                    generateDescription(
-                      moduleTitle,
-                      "moduleDescription",
-                      updateForm,
-                      setError
-                    )
-                  }
-                >
-                  ✨
-                </span>
-              }
-              <Input
-                type="textarea"
-                label="Module Description *"
-                value={moduleDescription}
-                onChange={(value) => {
-                  updateForm("moduleDescription")(value);
-                  setError((prev) => ({ ...prev, moduleDescription: "" }));
-                }}
-                error={error.moduleDescription}
-              />
-            </div>
-
-            <Dropdown
-              label="Participants Group"
-              value={participantsGroup.join(", ") || "Select Groups"}
-              onSelect={(value) => modifyGroup(value, "Users", "add")}
-              options={groupData.length ? groupData : ["No Groups Available"]}
-            />
-            <RenderSelectedGroups groups={participantsGroup} type="Users" />
-            <div className={styles.buttonContainer}>
-              <Button
-                style={{ backgroundColor: "red" }}
-                onClick={() => setShowCreateCourse(false)}
-              >
-                Cancel
-              </Button>
-              <Button shortcut="Ctrl + S" onClick={handleSubmit}>
-                Create
-              </Button>
-            </div>
-          </form>
-        </ModuleCard>
-      </div>
-    </>
-  );
-};
-
-const Admin = () => {
+import CreateCourse from "./components/createCourse";
+import CreateTest from "./components/createTest";
+import { DataTableManagement } from "../../utils/customTable";
+const Admin = ({ page }) => {
+  localStorage.setItem("page", page);
   const { Modal, showModal, closeModal } = useModal();
   const { user } = useUser();
   const navigate = useNavigate();
+
   const [courses, setCourses] = useState([]);
-  const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [tests, setTests] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState("");
+  const fetchTestData = async () => {
+    try {
+      const response = await handleApiCall({
+        API: "find-data",
+        data: {
+          collection: "Tests",
+          condition: { key: "userId", value: user?.userId || user?._id },
+        },
+      });
+      if (response.flag) {
+        setTests(response.data.data);
+      } else {
+        console.log("[Admin Home] --> No Tests Found");
+      }
+    } catch (error) {
+      console.log(`[Admin Home] --> ${error.message}`);
+    }
+  };
+
+  const fetchCourseData = async () => {
+    try {
+      const response = await handleApiCall({
+        API: "find-data",
+        data: {
+          collection: "Courses",
+          condition: { key: "userId", value: user?.userId || user?._id },
+        },
+      });
+      if (response.flag) {
+        setCourses(response.data.data);
+      } else {
+        console.log("[Admin Home] --> No Courses Found");
+      }
+    } catch (error) {
+      console.log(`[Admin Home] --> ${error.message}`);
+    }
+  };
 
   useEffect(() => {
-    const fetchTestData = async () => {
-      try {
-        const response = await handleApiCall({
-          API: "find-data",
-          data: {
-            collection: "Tests",
-            condition: { key: "userId", value: user?.userId || user?._id },
-          },
-        });
-        if (response.flag) {
-          setTests(response.data.data);
-        } else {
-          console.log("[Admin Home] --> No Tests Found");
-        }
-      } catch (error) {
-        console.log(`[Admin Home] --> ${error.message}`);
-      }
-    };
-    fetchTestData();
-    const fetchCourseData = async () => {
-      try {
-        const response = await handleApiCall({
-          API: "find-data",
-          data: {
-            collection: "Courses",
-            condition: { key: "userId", value: user?.userId || user?._id },
-          },
-        });
-        if (response.flag) {
-          setCourses(response.data.data);
-        } else {
-          console.log("[Admin Home] --> No Tests Found");
-        }
-      } catch (error) {
-        console.log(`[Admin Home] --> ${error.message}`);
-      }
-    };
-    fetchCourseData();
+    if (user?._id || user?.userId) {
+      fetchCourseData();
+      fetchTestData();
+    }
   }, [user?._id, user?.userId]);
+  const deleteItem = async (id, collection, refetchFunc) => {
+    showModal("Confirm", "Are you sure you want to delete?", [
+      { label: "Cancel", shortcut: "Escape", onClick: closeModal },
+      {
+        label: "Yes, Delete",
+        shortcut: "Enter",
+        onClick: async () => {
+          await handleApiCall({
+            API: "delete-data",
+            data: { collection, data: [id] },
+          });
+          showModal("Success", "Deleted Successfully", [
+            {
+              label: "Ok",
+              shortcut: "Enter",
+              onClick: () => {
+                refetchFunc();
+                closeModal();
+              },
+            },
+          ]);
+        },
+      },
+    ]);
+  };
 
   return (
     <>
-      {showCreateCourse && (
+      {showCreateModal === "course" ? (
         <CreateCourse
-          setShowCreateCourse={setShowCreateCourse}
+          setShowCreateCourse={setShowCreateModal}
           showModal={showModal}
-          closeModal={closeModal}
+          closeModal={() => {
+            closeModal();
+            setShowCreateModal("");
+            fetchCourseData();
+          }}
         />
+      ) : showCreateModal === "test" ? (
+        <CreateTest
+          setShowCreateTest={setShowCreateModal}
+          showModal={showModal}
+          closeModal={() => {
+            closeModal();
+            setShowCreateModal("");
+            fetchTestData();
+          }}
+        />
+      ) : (
+        <></>
       )}
-      <div className={styles.cards}>
-        <ModuleCard
-          header="Users"
-          imageSrc={IconAvatar}
-          altText="Students Icon"
-          navigateTo="/users-module"
-        />
-        <ModuleCard
-          header="Questions"
-          imageSrc={IconList}
-          altText="Test Icon"
-          navigateTo="/questions-module"
-        />
-      </div>
-      <div className={styles.createCourse}>
-        My Courses
-        <Button onClick={() => setShowCreateCourse(true)}>
-          Create New Course
-        </Button>
-      </div>
-      <div className={styles.cards}>
-        {courses &&
-          courses.map((course) => (
-            <ModuleCard
-              key={course["Course Title"]}
-              header={course["Course Title"]}
-              imageSrc=""
-              altText=""
-            >
-              <div className={styles.cardsBody}>
-                <div>{course["Course Description"]}</div>
-                <div>
-                  <Button
-                    onClick={() => navigate(`/manage-course?id=${course._id}`)}
-                  >
-                    Manage
-                  </Button>
-                </div>
-              </div>
-            </ModuleCard>
-          ))}
-      </div>
-      <div className={styles.createCourse}>
-        My Tests
-        <Button onClick={() => (window.location.href = "/create-test")}>
-          Create New Test
-        </Button>
-      </div>
 
-      <div className={styles.cards}>
-        {tests &&
-          tests.map((test) => (
-            <ModuleCard
-              key={test["Test Name"]}
-              header={test["Test Name"]}
-              imageSrc=""
-              altText=""
-            >
-              <div className={styles.cardsBody}>
-                <div>{test["Test Description"]}</div>
-                <div>
-                  <Button
-                    onClick={() => navigate(`/manage-test?id=${test._id}`)}
-                  >
-                    Manage
-                  </Button>
+      {page === "course" && (
+        <>
+          <div className={styles.createCourse}>
+            My Courses
+            <Button onClick={() => setShowCreateModal("course")}>
+              Create New Course
+            </Button>
+          </div>
+          <div className={styles.cards}>
+            {courses.length > 0 ? (
+              courses.map((course) => (
+                <div key={course._id} className={styles.card}>
+                  <h1>{course["Course Title"]}</h1>
+                  <div className={styles.cardsBody}>
+                    <div className={styles.content}>
+                      {course["Course Description"]}
+                    </div>
+                    <div className={styles.buttonsContainer}>
+                      <Button
+                        onClick={() =>
+                          navigate(`/manage-course?id=${course._id}`)
+                        }
+                      >
+                        Manage
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          deleteItem(course._id, "Courses", fetchCourseData)
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </ModuleCard>
-          ))}
-      </div>
+              ))
+            ) : (
+              <p>No courses found.</p>
+            )}
+          </div>
+        </>
+      )}
+
+      {page === "tests" && (
+        <>
+          <div className={styles.createCourse}>
+            My Tests
+            <Button onClick={() => setShowCreateModal("test")}>
+              Create New Test
+            </Button>
+          </div>
+          <div className={styles.cards}>
+            {tests.length > 0 ? (
+              tests.map((test) => (
+                <div key={test._id} className={styles.card}>
+                  <h1>{test["Test Name"]}</h1>
+                  <div className={styles.cardsBody}>
+                    <div className={styles.content}>
+                      {test["Test Description"]}
+                    </div>
+                    <div className={styles.buttonsContainer}>
+                      <Button
+                        onClick={() => navigate(`/manage-test?id=${test._id}`)}
+                      >
+                        Manage
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          deleteItem(test._id, "Tests", () => {
+                            setTests((prev) =>
+                              prev.filter((t) => t._id !== test._id)
+                            );
+                          })
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No tests found.</p>
+            )}
+          </div>
+        </>
+      )}
+      {page === "Users" && (
+        <>
+          <div className={styles.createCourse}>All {page}</div>
+
+          <div style={{ padding: "0 20px" }}>
+            <DataTableManagement
+              tablePageName={page}
+              API={page === "Upload-data"}
+              collectionName={page}
+            />
+          </div>
+        </>
+      )}
+      {page === "Questions" && (
+        <>
+          <div className={styles.createCourse}>All {page}</div>
+
+          <div style={{ padding: "0 20px" }}>
+            <DataTableManagement
+              tablePageName={page}
+              API={"Upload-question"}
+              collectionName={page}
+            />
+          </div>
+        </>
+      )}
+
       <Modal />
     </>
   );

@@ -9,6 +9,7 @@ import Input from "../../utils/input";
 import Dropdown from "../../utils/select";
 import useModal from "../../utils/useModal";
 import { useNavigate } from "react-router-dom";
+import CreateTest from "../AdminHome/components/createTest";
 
 const ManageCourse = () => {
   const { Modal, showModal, closeModal } = useModal();
@@ -41,6 +42,8 @@ const ManageCourse = () => {
     participantsGroup: "",
     moduleTitle: "",
     moduleDescription: "",
+    newModuleTitle: "",
+    newModuleDescription: "",
   });
 
   const courseId = new URLSearchParams(window.location.search).get("id");
@@ -426,278 +429,318 @@ const ManageCourse = () => {
   };
 
   return (
-    <div className={styles.manageCourseContainer}>
-      {editMode === "course" ? (
-        <div className={styles.createCourseContainer}>
-          <ModuleCard header="Edit Course">
-            <form className={styles.createCourseForm}>
-              <Input
-                label="Course Title *"
-                value={formData.courseTitle}
-                onChange={updateForm("courseTitle")}
-                error={error.courseTitle}
-              />
-              <div>
-                {
-                  <span
-                    className={styles.hitAiButton}
-                    onClick={() =>
-                      generateDescription(
-                        formData.courseTitle,
-                        "courseDescription",
-                        updateForm,
-                        setError
-                      )
-                    }
-                  >
-                    ✨
-                  </span>
-                }
-                <Input
-                  type="textarea"
-                  label={`Course Description *`}
-                  value={formData.courseDescription}
-                  onChange={(value) => {
-                    updateForm("courseDescription")(value);
-                    setError((prev) => ({ ...prev, courseDescription: "" }));
-                  }}
-                  error={error.courseDescription}
-                />
-              </div>
-              <Input
-                type="date"
-                label="Start Date *"
-                value={formData.courseStartDate}
-                onChange={updateForm("courseStartDate")}
-                error={error.courseStartDate}
-              />
-              <Input
-                type="date"
-                label="End Date *"
-                value={formData.courseEndDate}
-                onChange={updateForm("courseEndDate")}
-                error={error.courseEndDate}
-              />
-              <Dropdown
-                label="Participants Group"
-                value={
-                  Array.isArray(formData.participantsGroup)
-                    ? formData.participantsGroup.join(", ")
-                    : "Select Groups"
-                }
-                onSelect={(value) => modifyGroup(value, "Users", "add")}
-                options={groupData.length ? groupData : ["No Groups Available"]}
-              />
-              <RenderSelectedGroups
-                groups={formData.participantsGroup}
-                type="Users"
-              />
-              <div className={styles.buttonContainer}>
-                <Button
-                  style={{ backgroundColor: "red" }}
-                  onClick={() => setEditMode("")}
-                >
-                  Cancel
-                </Button>
-                <Button shortcut="Enter" onClick={handleUpdateCourse}>
-                  Save
-                </Button>
-              </div>
-            </form>
-          </ModuleCard>
-        </div>
-      ) : editMode === "module" ? (
-        <div className={styles.createCourseContainer}>
-          <ModuleCard header="Edit Module">
-            <form className={styles.createCourseForm}>
-              <Input
-                label="Module Title *"
-                value={formData.moduleTitle}
-                onChange={updateForm("moduleTitle")}
-                error={error.moduleTitle}
-              />
-              <div>
-                {
-                  <span
-                    className={styles.hitAiButton}
-                    onClick={() =>
-                      generateDescription(
-                        formData.moduleTitle,
-                        "moduleDescription"
-                      )
-                    }
-                  >
-                    ✨
-                  </span>
-                }
-                <Input
-                  type="textarea"
-                  label="Module Description *"
-                  value={formData.moduleDescription || ""}
-                  onChange={(value) => {
-                    updateForm("moduleDescription")(value);
-                    setError((prev) => ({ ...prev, moduleDescription: "" }));
-                  }}
-                  error={error.moduleDescription}
-                />
-              </div>
-              <div className={styles.buttonContainer}>
-                <Button
-                  style={{ backgroundColor: "red" }}
-                  onClick={() => setEditMode("")}
-                >
-                  Cancel
-                </Button>
-                <Button shortcut="Enter" onClick={handleUpdateModule}>
-                  Save
-                </Button>
-              </div>
-            </form>
-          </ModuleCard>
-        </div>
-      ) : editMode === "addModule" ? (
-        <div className={styles.createCourseContainer}>
-          <ModuleCard header="Add Module">
-            <form className={styles.createCourseForm}>
-              <Input
-                label="Module Title *"
-                value={formData.newModuleTitle}
-                onChange={updateForm("newModuleTitle")}
-                error={error.newModuleTitle}
-              />
-              <Input
-                type="textarea"
-                label="Module Description *"
-                value={formData.newModuleDescription}
-                onChange={updateForm("newModuleDescription")}
-                error={error.newModuleDescription}
-              />
-              <Input
-                type="file"
-                accept=".mp4, .mkv, .webm, .avi, .mov, .hevc, video/*"
-                label="Upload Module Video *"
-                onChange={(value, e) => {
-                  updateForm("moduleVideo")(e);
-                  setError((prev) => ({ ...prev, moduleVideo: "" }));
-                }}
-                error={error.moduleVideo}
-              />
-              <div className={styles.buttonContainer}>
-                <Button
-                  style={{ backgroundColor: "red" }}
-                  onClick={() => setEditMode("")}
-                >
-                  Cancel
-                </Button>
-                <Button shortcut="Enter" onClick={handleAddModule}>
-                  Save
-                </Button>
-              </div>
-            </form>
-          </ModuleCard>
-        </div>
+    <>
+      {editMode === "createTest" ? (
+        <CreateTest
+          setShowCreateTest={setEditMode}
+          showModal={showModal}
+          closeModal={() => {
+            closeModal();
+            setEditMode("");
+          }}
+          courseId={courseId}
+        />
       ) : (
         <></>
       )}
-      <aside className={styles.sidebar}>
-        <h3>Course Details:-</h3>
-        <div className={styles.courseInfo}>
-          <h2>{courseData ? courseData["Course Title"] : "Loading..."}</h2>
-          <p>Start Date: {courseData?.["Start Date"]}</p>
-          <p>End Date: {courseData?.["End Date"]}</p>
-          <p>No. of Modules: {courseData?.modules?.length}</p>
-          <Button onClick={() => setEditMode("course")}>Edit</Button>
-        </div>
-
-        <h3>Modules:-</h3>
-        <div className={styles.courseInfo}>
-          {modules.map((mod, index) => (
-            <div
-              key={index}
-              className={`${styles.moduleItem} ${
-                selectedModuleIndex === index ? styles.active : ""
-              }`}
-              onClick={() => setSelectedModuleIndex(index)}
-            >
-              <span> {mod["Module Title"]}</span>
-              <span
-                className={styles.deleteModuleButton}
-                onClick={() => handleDeleteModule(index)}
-              >
-                🗑
-              </span>
-            </div>
-          ))}
-          <Button onClick={() => setEditMode("addModule")}>+ Add Module</Button>
-        </div>
-
-        <h3>Course Test:-</h3>
-        <div className={styles.courseInfo}>
-          <h2>{testData ? testData["Test Name"] : "No Test Created Yet"}</h2>
-          <p>
-            Start date:{" "}
-            {testData?.["Start Time"].split("T")[0].split("-").join("/")}
-          </p>
-          <p>
-            End date:{" "}
-            {testData?.["End Time"].split("T")[0].split("-").join("/")}
-          </p>
-          <p>Duration: {testData?.Duration}</p>
-          <p>No. of Attempts: {testData?.["Test Results"].length}</p>
-          <Button
-            onClick={() =>
-              navigate(
-                `/${testData ? "manage" : "create"}-test?courseId=${courseId}`
-              )
-            }
-          >
-            {testData ? "Manage Test" : "Create Test"}
-          </Button>
-        </div>
-      </aside>
-      <main className={styles.moduleContent}>
-        {selectedModule && (
-          <div
-            style={{
-              padding: "20px",
-              // width: "100%",
-              display: "flex",
-              columnGap: "20px",
-              justifyContent: "space-between",
-              // height: "70vh",
-              flexDirection: "row",
-            }}
-          >
-            {selectedModule.path && (
-              <video controls>
-                <source
-                  src={require(`../../assets/videos/${selectedModule.path
-                    .split("/")
-                    .slice(-2)
-                    .join("/")}`)}
-                  type="video/mp4"
+      <div className={styles.manageCourseContainer}>
+        {editMode === "course" ? (
+          <div className={styles.createCourseContainer}>
+            <ModuleCard header="Edit Course">
+              <form className={styles.createCourseForm}>
+                <Input
+                  label="Course Title *"
+                  value={formData.courseTitle}
+                  onChange={updateForm("courseTitle")}
+                  error={error.courseTitle}
                 />
-                Your browser does not support the video tag.
-              </video>
-            )}
-            <div style={{ width: "400px", display: "flex" }}>
-              <ModuleCard header={selectedModule["Module Title"]}>
-                <div className={styles.moduleDetails}>
-                  <p>{selectedModule["Module Description"]}</p>
+                <div>
+                  {
+                    <span
+                      className={styles.hitAiButton}
+                      onClick={() =>
+                        generateDescription(
+                          formData.courseTitle,
+                          "courseDescription",
+                          updateForm,
+                          setError
+                        )
+                      }
+                    >
+                      ✨
+                    </span>
+                  }
+                  <Input
+                    type="textarea"
+                    label={`Course Description *`}
+                    value={formData.courseDescription}
+                    onChange={(value) => {
+                      updateForm("courseDescription")(value);
+                      setError((prev) => ({ ...prev, courseDescription: "" }));
+                    }}
+                    error={error.courseDescription}
+                  />
+                </div>
+                <Input
+                  type="date"
+                  label="Start Date *"
+                  value={formData.courseStartDate}
+                  onChange={updateForm("courseStartDate")}
+                  error={error.courseStartDate}
+                />
+                <Input
+                  type="date"
+                  label="End Date *"
+                  value={formData.courseEndDate}
+                  onChange={updateForm("courseEndDate")}
+                  error={error.courseEndDate}
+                />
+                <Dropdown
+                  label="Participants Group"
+                  value={
+                    Array.isArray(formData.participantsGroup)
+                      ? formData.participantsGroup.join(", ")
+                      : "Select Groups"
+                  }
+                  onSelect={(value) => modifyGroup(value, "Users", "add")}
+                  options={
+                    groupData.length ? groupData : ["No Groups Available"]
+                  }
+                />
+                <RenderSelectedGroups
+                  groups={formData.participantsGroup}
+                  type="Users"
+                />
+                <div className={styles.buttonContainer}>
                   <Button
-                    className={styles.moduleEditButton}
-                    onClick={() => setEditMode("module")}
+                    style={{ backgroundColor: "red" }}
+                    onClick={() => setEditMode("")}
                   >
-                    Edit Module
+                    Cancel
+                  </Button>
+                  <Button shortcut="Enter" onClick={handleUpdateCourse}>
+                    Save
                   </Button>
                 </div>
-              </ModuleCard>
-            </div>
+              </form>
+            </ModuleCard>
           </div>
+        ) : editMode === "module" ? (
+          <div className={styles.createCourseContainer}>
+            <ModuleCard header="Edit Module">
+              <form className={styles.createCourseForm}>
+                <Input
+                  label="Module Title *"
+                  value={formData.moduleTitle}
+                  onChange={updateForm("moduleTitle")}
+                  error={error.moduleTitle}
+                />
+                <div>
+                  {
+                    <span
+                      className={styles.hitAiButton}
+                      onClick={() =>
+                        generateDescription(
+                          formData.moduleTitle,
+                          "moduleDescription",
+                          updateForm,
+                          setError
+                        )
+                      }
+                    >
+                      ✨
+                    </span>
+                  }
+                  <Input
+                    type="textarea"
+                    label="Module Description *"
+                    value={formData.moduleDescription || ""}
+                    onChange={(value) => {
+                      updateForm("moduleDescription")(value);
+                      setError((prev) => ({ ...prev, moduleDescription: "" }));
+                    }}
+                    error={error.moduleDescription}
+                  />
+                </div>
+                <div className={styles.buttonContainer}>
+                  <Button
+                    style={{ backgroundColor: "red" }}
+                    onClick={() => setEditMode("")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button shortcut="Enter" onClick={handleUpdateModule}>
+                    Save
+                  </Button>
+                </div>
+              </form>
+            </ModuleCard>
+          </div>
+        ) : editMode === "addModule" ? (
+          <div className={styles.createCourseContainer}>
+            <ModuleCard header="Add Module">
+              <form className={styles.createCourseForm}>
+                <Input
+                  label="Module Title *"
+                  value={formData.newModuleTitle}
+                  onChange={updateForm("newModuleTitle")}
+                  error={error.newModuleTitle}
+                />
+                <div>
+                  {
+                    <span
+                      className={styles.hitAiButton}
+                      onClick={() =>
+                        generateDescription(
+                          formData.newModuleTitle,
+                          "newModuleDescription",
+                          updateForm,
+                          setError
+                        )
+                      }
+                    >
+                      ✨
+                    </span>
+                  }
+                  <Input
+                    type="textarea"
+                    label="Module Description *"
+                    value={formData.newModuleDescription}
+                    onChange={updateForm("newModuleDescription")}
+                    error={error.newModuleDescription}
+                  />
+                </div>
+                <Input
+                  type="file"
+                  accept=".mp4, .mkv, .webm, .avi, .mov, .hevc, video/*"
+                  label="Upload Module Video *"
+                  onChange={(value, e) => {
+                    updateForm("moduleVideo")(e);
+                    setError((prev) => ({ ...prev, moduleVideo: "" }));
+                  }}
+                  error={error.moduleVideo}
+                />
+                <div className={styles.buttonContainer}>
+                  <Button
+                    style={{ backgroundColor: "red" }}
+                    onClick={() => setEditMode("")}
+                  >
+                    Cancel
+                  </Button>
+                  <Button shortcut="Enter" onClick={handleAddModule}>
+                    Save
+                  </Button>
+                </div>
+              </form>
+            </ModuleCard>
+          </div>
+        ) : (
+          <></>
         )}
-      </main>
-      <Modal />
-    </div>
+        <aside className={styles.sidebar}>
+          <h3>Course Details:-</h3>
+          <div className={styles.courseInfo}>
+            <h2>{courseData ? courseData["Course Title"] : "Loading..."}</h2>
+            <p>Start Date: {courseData?.["Start Date"]}</p>
+            <p>End Date: {courseData?.["End Date"]}</p>
+            <p>No. of Modules: {courseData?.modules?.length}</p>
+            <Button onClick={() => setEditMode("course")}>Edit</Button>
+          </div>
+
+          <h3>Modules:-</h3>
+          <div className={styles.courseInfo}>
+            {modules.map((mod, index) => (
+              <div
+                key={index}
+                className={`${styles.moduleItem} ${
+                  selectedModuleIndex === index ? styles.active : ""
+                }`}
+                onClick={() => setSelectedModuleIndex(index)}
+              >
+                <span> {mod["Module Title"]}</span>
+                <span
+                  className={styles.deleteModuleButton}
+                  onClick={() => handleDeleteModule(index)}
+                >
+                  🗑
+                </span>
+              </div>
+            ))}
+            <Button onClick={() => setEditMode("addModule")}>
+              + Add Module
+            </Button>
+          </div>
+
+          <h3>Course Test:-</h3>
+          <div className={styles.courseInfo}>
+            <h2>{testData ? testData["Test Name"] : "No Test Created Yet"}</h2>
+            <p>
+              Start date:{" "}
+              {testData?.["Start Time"].split("T")[0].split("-").join("/")}
+            </p>
+            <p>
+              End date:{" "}
+              {testData?.["End Time"].split("T")[0].split("-").join("/")}
+            </p>
+            <p>Duration: {testData?.Duration}</p>
+            <p>No. of Attempts: {testData?.["Test Results"].length}</p>
+            <Button
+              onClick={() => {
+                if (testData) {
+                  navigate(`/manage-test?courseId=${courseId}`);
+                } else {
+                  setEditMode("createTest");
+                }
+              }}
+            >
+              {testData ? "Manage Test" : "Create Test"}
+            </Button>
+          </div>
+        </aside>
+        <main className={styles.moduleContent}>
+          {selectedModule && (
+            <div
+              style={{
+                padding: "20px",
+                // width: "100%",
+                display: "flex",
+                columnGap: "20px",
+                justifyContent: "space-between",
+                // height: "70vh",
+                flexDirection: "row",
+              }}
+            >
+              {selectedModule.path && (
+                <video controls>
+                  <source
+                    src={require(`../../assets/videos/${selectedModule.path
+                      .split("/")
+                      .slice(-2)
+                      .join("/")}`)}
+                    type="video/mp4"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+              <div style={{ width: "400px", display: "flex" }}>
+                <ModuleCard header={selectedModule["Module Title"]}>
+                  <div className={styles.moduleDetails}>
+                    <p>{selectedModule["Module Description"]}</p>
+                    <Button
+                      className={styles.moduleEditButton}
+                      onClick={() => setEditMode("module")}
+                    >
+                      Edit Module
+                    </Button>
+                  </div>
+                </ModuleCard>
+              </div>
+            </div>
+          )}
+        </main>
+        <Modal />
+      </div>
+    </>
   );
 };
 

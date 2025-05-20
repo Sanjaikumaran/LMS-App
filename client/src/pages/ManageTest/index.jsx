@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import handleApiCall from "../../utils/handleAPI";
 import { generateDescription } from "../../utils/AIHelper";
@@ -10,11 +10,13 @@ import ModuleCard from "../../utils/ModuleCard";
 import Input from "../../utils/input";
 import Button from "../../utils/button";
 import Dropdown from "../../utils/select";
+import CreateTest from "../AdminHome/components/createTest";
 
 import styles from "./manage.module.css";
 // import "../../assets/styles/Test.css";
 
 const Test = () => {
+  const navigate = useNavigate();
   const { showModal, Modal, closeModal } = useModal();
   const [formData, setFormData] = useState({
     testName: "",
@@ -31,19 +33,22 @@ const Test = () => {
   });
   const [error, setError] = useState({});
   const [tableData, setTableData] = useState({
-    Users: [],
+    Participants: [],
     Questions: [],
     "Test Results": [],
   });
   const [tableColumns, setTableColumns] = useState({
-    Users: [],
+    Participants: [],
     Questions: [],
     "Test Results": [],
   });
   const [testId, setTestId] = useState("");
-  const [tableName, setTableName] = useState("Users");
+  const [tableName, setTableName] = useState("Participants");
   const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(false);
   const [displayAnswer, setDisplayAnswer] = useState("");
+  const [activeTab, setActiveTab] = useState("Overview");
+
+  const tabs = ["Overview", "Participants", "Questions", "Test Results"];
 
   const location = useLocation();
   const id = new URLSearchParams(location.search).get("id");
@@ -212,12 +217,12 @@ const Test = () => {
       setGroupData((prev) => ({ ...prev, allUsersGroups: uniqueGroups }));
       setTableColumns((prev) => ({
         ...prev,
-        Users: userColumns,
+        Participants: userColumns,
         "Test Results": resultColumns,
       }));
       setTableData((prev) => ({
         ...prev,
-        Users: users,
+        Participants: users,
         "Test Results": updatedTestResult,
       }));
     };
@@ -328,6 +333,7 @@ const Test = () => {
     } else {
       submitCallback();
     }
+    setActiveTab("Overview");
   };
   const updateForm = (field) => (value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -441,157 +447,304 @@ const Test = () => {
   //   link.download = `${testName} report.csv`;
   //   link.click();
   // };
-
-  return (
-    <div>
-      <div
-        style={{
-          display: "grid",
-          padding: "20px",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "16px",
-        }}
-      >
-        <ModuleCard header={testName}>
-          <form className={styles.createTestForm} onSubmit={handleSubmit}>
-            <Input
-              label="Test Name*"
-              value={testName}
-              onChange={(value) => {
-                updateForm("testName")(value);
-                setError((prev) => ({ ...prev, testName: "" }));
-              }}
-              error={error.testName}
-            />
-            <div>
-              {
-                <span
-                  className={styles.hitAiButton}
-                  onClick={() =>
-                    generateDescription(
-                      testName,
-                      "testDescription",
-                      updateForm,
-                      setError
-                    )
-                  }
-                >
-                  ✨
-                </span>
-              }
-              <Input
-                type="textarea"
-                label="Test Description *"
-                value={testDescription || ""}
-                onChange={(value) => {
-                  updateForm("testDescription")(value);
-                  setError((prev) => ({ ...prev, testDescription: "" }));
-                }}
-                error={error.testDescription}
-              />
-            </div>
-            {[
-              {
-                label: "Start Date and Time",
-                value: startTime,
-                field: "startTime",
+  const deleteItem = async () => {
+    showModal("Confirm", "Are you sure you want to delete?", [
+      { label: "Cancel", shortcut: "Escape", onClick: closeModal },
+      {
+        label: "Yes, Delete",
+        shortcut: "Enter",
+        onClick: async () => {
+          await handleApiCall({
+            API: "delete-data",
+            data: { collection: "Tests", data: [testId] },
+          });
+          showModal("Success", "Deleted Successfully", [
+            {
+              label: "Ok",
+              shortcut: "Enter",
+              onClick: () => {
+                navigate(`/admin`);
+                closeModal();
               },
-              { label: "End Date and Time", value: endTime, field: "endTime" },
-            ].map(({ label, value, field }) => (
+            },
+          ]);
+        },
+      },
+    ]);
+  };
+
+  const UpdateTestModal = () => {
+    return (
+      <>
+        <div className={styles.scrim}></div>
+        <div className={styles.createTestContainer}>
+          <div className={styles.createTestPanel}>
+            <h1 className={styles.createTestHeader}>Create Test</h1>
+            <form className={styles.createTestForm}>
               <Input
-                key={field}
+                label="Test Name *"
+                value={testName}
+                onChange={(value) => {
+                  updateForm("testName")(value);
+                  setError((prev) => ({ ...prev, testName: "" }));
+                }}
+                error={error.testName}
+              />
+              <div>
+                {
+                  <span
+                    className={styles.hitAiButton}
+                    onClick={() =>
+                      generateDescription(
+                        testName,
+                        "testDescription",
+                        updateForm,
+                        setError
+                      )
+                    }
+                  >
+                    ✨
+                  </span>
+                }
+                <Input
+                  type="textarea"
+                  label="Test Description *"
+                  value={testDescription || ""}
+                  onChange={(value) => {
+                    updateForm("testDescription")(value);
+                    setError((prev) => ({ ...prev, testDescription: "" }));
+                  }}
+                  error={error.testDescription}
+                />
+              </div>
+              <Input
                 type="datetime-local"
-                label={label}
-                value={value}
-                onChange={(val) => {
-                  updateForm(field)(val);
+                label="Start Date and Time"
+                value={startTime}
+                onChange={(value) => {
+                  updateForm("startTime")(value);
                   setError((prev) => ({ ...prev, startTime: "", endTime: "" }));
                 }}
-                onFocus={(e) => e.target?.showPicker?.()}
-                error={error[field]}
+                error={error.startTime}
               />
-            ))}
-
-            <Input
-              type="time"
-              step="1"
-              label="Duration (HH:MM:SS)"
-              value={duration}
-              onChange={updateForm("duration")}
-            />
-
-            <Input
-              type="number"
-              label="Attempts Limit"
-              value={attempts}
-              onChange={updateForm("attempts")}
-            />
-
-            <Dropdown
-              label="Participants Group"
-              value={selectedUsersGroups.join(", ") || "Select Groups"}
-              onSelect={(value) => modifyGroup(value, "Users", "add")}
-              options={
-                allUsersGroups.length ? allUsersGroups : ["No Groups Available"]
-              }
-            />
-            <RenderSelectedGroups groups={selectedUsersGroups} type="Users" />
-
-            <Dropdown
-              label="Questions Group"
-              value={selectedQuestionsGroups.join(", ") || "Select Groups"}
-              onSelect={(value) => modifyGroup(value, "Questions", "add")}
-              options={
-                allQuestionsGroups.length
-                  ? allQuestionsGroups
-                  : ["No Groups Available"]
-              }
-            />
-            <RenderSelectedGroups
-              groups={selectedQuestionsGroups}
-              type="Questions"
-            />
-
-            <Input label="Upload Questions" type="file" />
-
-            <Button type="submit" shortcut="ctrl+s">
-              Submit
-            </Button>
-          </form>
-        </ModuleCard>
-
-        <div>
-          <div className={styles.dataSelectorContainer}>
-            <Dropdown
-              value={tableName}
-              label="Select Data to Show"
-              options={["Users", "Questions", "Test Results"]}
-              onSelect={(value) => setTableName(value)}
-            />
-
-            {tableName === "Test Results" &&
-              tableData["Test Results"].length > 0 && (
-                <Button onClick={() => generateReport("csv")}>
-                  Generate Report
-                </Button>
-              )}
-          </div>
-
-          <div
-            className="data-table"
-            style={{ marginTop: "25px", border: "1px solid #007bff" }}
-          >
-            {tableColumns && tableData && (
-              <DataTableSection
-                columns={tableColumns[tableName]}
-                data={tableData[tableName]}
+              <Input
+                type="datetime-local"
+                label="End Date and Time"
+                value={endTime}
+                onChange={(value) => {
+                  updateForm("endTime")(value);
+                  setError((prev) => ({ ...prev, startTime: "", endTime: "" }));
+                }}
+                error={error.endTime}
               />
-            )}
+              <Input
+                type="time"
+                step="1"
+                label="Duration (HH:MM:SS)"
+                value={duration}
+                onChange={updateForm("duration")}
+              />
+              <Input
+                type="number"
+                label="Attempts Limit"
+                value={attempts}
+                onChange={updateForm("attempts")}
+              />
+              <Dropdown
+                label="Participants Group"
+                value={selectedUsersGroups.join(", ") || "Select Groups"}
+                onSelect={(value) => modifyGroup(value, "Users", "add")}
+                options={
+                  allUsersGroups.length
+                    ? allUsersGroups
+                    : ["No Groups Available"]
+                }
+              />
+              <RenderSelectedGroups groups={selectedUsersGroups} type="Users" />
+              <Dropdown
+                label="Questions Group"
+                value={selectedQuestionsGroups.join(", ") || "Select Groups"}
+                onSelect={(value) => modifyGroup(value, "Questions", "add")}
+                options={
+                  allQuestionsGroups.length
+                    ? allQuestionsGroups
+                    : ["No Groups Available"]
+                }
+              />
+              <RenderSelectedGroups
+                groups={selectedQuestionsGroups}
+                type="Questions"
+              />
+              <Input label="Upload Questions" type="file" />
+            </form>
+            <div className={styles.buttonContainer}>
+              <Button
+              
+                className={styles.cancelButton}
+                onClick={() => setActiveTab("Overview")}
+                shortcut={"Escape"}
+              >
+                Cancel
+              </Button>
+              <Button
+             
+                shortcut="Ctrl + S"
+                onClick={handleSubmit}
+              >
+                Update
+              </Button>
+            </div>
           </div>
         </div>
+      </>
+    );
+  };
+  return (
+    <>
+      <>
+        <div className={styles.header}>
+          <div className={styles.headerTop}>
+            <h1>{testName}</h1>
+            <div className={styles.headerButtons}>
+              {tableName === "Test Results" && (
+                <Button
+                  disabled={!tableData["Test Results"].length}
+                  tooltip={
+                    tableData["Test Results"].length
+                      ? ""
+                      : "No Test Results Found"
+                  }
+                  onClick={() => generateReport("csv")}
+                >
+                  Generate Report
+                </Button>
+              )}{" "}
+              {activeTab === "Overview" && (
+                <Button
+                  onClick={() => setActiveTab("editTest")}
+                  tooltip="Edit Test"
+                >
+                  Edit
+                </Button>
+              )}
+              <Button onClick={deleteItem} tooltip="Delete Test">
+                Delete
+              </Button>
+            </div>
+          </div>
+          <div className={styles.tabs}>
+            {tabs.map((tab, index) => (
+              <span
+                key={index}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setTableName(tab);
+                }}
+                className={tab === activeTab ? styles.activeTab : ""}
+              >
+                {tab}
+              </span>
+            ))}
+          </div>
+        </div>
+      </>
+      <div style={{ padding: "20px" }}>
+        {activeTab === "Overview" || activeTab === "editTest" ? (
+          <>
+            <div className={styles.testDetailsContainer}>
+              <div className={styles.detailCard}>
+                <div className={styles.detailCardHeader}>
+                  <h1
+                    style={{
+                      color: "#080c2ba6",
+                      borderRight: "1px solid #e1e1e3",
+                    }}
+                  >
+                    Title
+                  </h1>{" "}
+                  <h1>{testName}</h1>
+                </div>
+                <div className={styles.detailCardBody}>
+                  <p>Description:</p>
+                  <p style={{ color: "#080c2bd9" }}>{testDescription}</p>
+                  <hr />
+                  <div className={styles.detailsColumn}>
+                    <div>
+                      {" "}
+                      <p>Start Date:</p>
+                      <p style={{ color: "#080c2bd9" }}>
+                        {startTime.split("T")[0]}
+                      </p>
+                    </div>
+                    <div>
+                      {" "}
+                      <p>End Date:</p>
+                      <p style={{ color: "#080c2bd9" }}>
+                        {endTime.split("T")[0]}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.detailsColumn}>
+                    <div>
+                      {" "}
+                      <p>Duration:</p>
+                      <p style={{ color: "#080c2bd9" }}>{duration}</p>
+                    </div>
+                    <div>
+                      <p>Attempts Limit:</p>
+                      <p style={{ color: "#080c2bd9" }}>{attempts}</p>
+                    </div>
+                  </div>{" "}
+                  <div className={styles.detailsColumn}>
+                    <div>
+                      {" "}
+                      <p>Participants Group:</p>
+                      {selectedUsersGroups.length
+                        ? selectedUsersGroups.map((group) => (
+                            <p style={{ color: "#080c2bd9" }}>{group}</p>
+                          ))
+                        : "No Groups Selected"}
+                    </div>
+                    <div>
+                      <p>Questions Group:</p>
+                      {selectedQuestionsGroups.length
+                        ? selectedQuestionsGroups.map((group) => (
+                            <p style={{ color: "#080c2bd9" }}>{group}</p>
+                          ))
+                        : "No Groups Selected"}
+                    </div>
+                  </div>
+                  <hr />
+                  <div></div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          activeTab !== "editTest" && (
+            <div>
+              <div
+                className="data-table"
+                style={{ marginTop: "25px", borderRadius: "4px" }}
+              >
+                {tableColumns && tableData && (
+                  <DataTableSection
+                    columns={tableColumns[tableName]}
+                    data={tableData[tableName]}
+                  />
+                )}
+              </div>
+            </div>
+          )
+        )}
       </div>
+      {activeTab === "editTest" && (
+        <>
+          <UpdateTestModal />
+        </>
+      )}
       {<Modal />}
-    </div>
+    </>
   );
 };
 

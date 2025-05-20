@@ -20,6 +20,7 @@ import { UserProvider } from "./utils/context/userContext";
 
 const App = () => {
   const [showProfile, setShowProfile] = useState(true);
+  const [page,setPage] = useState(localStorage.getItem('page'));
 
   const instructions = [
     "Instruction 1: Please read carefully.",
@@ -40,7 +41,7 @@ const App = () => {
   return (
     <UserProvider>
       <Router>
-        <Navbar showProfile={showProfile} />
+        <Navbar showProfile={showProfile} setPage={setPage}/>
         <Routes>
           <Route
             path="/"
@@ -102,7 +103,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <>
                   <ChangeTitle title="Admin" />
-                  <Admin />
+                  <Admin page={page??'course'} />
                 </>
               </ProtectedRoute>
             }

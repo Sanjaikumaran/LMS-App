@@ -9,12 +9,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--primary-btn-color);
+   background: linear-gradient(86.73deg, #3696e5 0.38%, #7424dc 98.88%);
+
   color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 6px;
   padding: 10px 20px;
-  margin-top: 15px;
+
   cursor: pointer;
   transition: background-color 0.3s ease;
   text-align: center;

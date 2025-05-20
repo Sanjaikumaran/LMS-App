@@ -4,6 +4,7 @@ import "../assets/styles/components.css";
 import { useUser } from "./context/userContext";
 
 const Navbar = (props) => {
+  const path = window.location.pathname.split("/").pop();
   const { user } = useUser();
 
   const showProfile = (profileDetails) => {
@@ -54,8 +55,15 @@ const Navbar = (props) => {
             <h1 style={{ margin: 0 }}>Quizzards</h1>
           </div>
           <div className="nav-links">
-            {/* <span>Home</span>
-            <span>About</span>*/}
+           {path === 'admin' && (
+            <>
+              <span onClick={()=>props.setPage('course')}>Course</span>
+              <span  onClick={()=>props.setPage('tests')}>Tests</span>
+              <span  onClick={()=>props.setPage('Users')}>Users</span>
+              <span  onClick={()=>props.setPage('Questions')}>Questions</span>
+
+            </>
+           )}
             <a
               target="_blank"
               rel="noopener noreferrer"

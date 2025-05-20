@@ -1,7 +1,6 @@
 /* Navbar */
 .navbar {
-  background-color: #007bff;
-  color: white;
+ background: linear-gradient(90deg, rgb(114 41 221 / 58%) 0%, rgb(80 103 224 / 47%) 50%, rgb(80 103 224 / 48%) 81.11%, rgb(34 184 229 / 66%) 100%); color: white;
   padding: 15px;
   display: flex;
   justify-content: space-between;
@@ -193,8 +192,8 @@
 } */
 /* Data Table */
 .action-div {
-  margin: 20px;
-  padding: 10px;
+  margin: 15px;
+
   display: flex;
 }
 
@@ -230,7 +229,7 @@ body ::-webkit-scrollbar {
 }
 
 body ::-webkit-scrollbar-thumb {
-  background-color: #007bff;
+  background-color: #a3a3a7;
 
   border-radius: 5px;
 }

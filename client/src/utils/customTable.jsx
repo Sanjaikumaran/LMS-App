@@ -45,18 +45,19 @@ const ActionDiv = ({
 
 const DataTableSection = ({ columns, data, onRowSelected, isSelectable }) => {
   const customStyles = {
-    rows: { style: { padding: "10px", maxHeight: "72px", width: "100%" } },
+    rows: { style: { maxHeight: "60px", width: "100%", minHeight: "40px" ,border:"1px solid #bebebe"} },
+    headRow: { style: { minHeight: "45px",border:"1px solid #bebebe",borderBottom:"none" } },
     headCells: {
       style: {
-        color: "white",
-        fontSize: "larger",
+        color: "#080c2bcc",
+        fontSize: "15px",
         fontWeight: "bold",
-        backgroundColor: "#007bff",
-        padding: "0 8px",
+    borderRight: "1px solid #bebebe",
+        padding: "2px 8px",
         width: "100%",
       },
     },
-    cells: { style: { padding: "0 8px", width: "100%" } },
+    cells: { style: { width: "100%", borderRight: "1px solid #bebebe" } },
   };
 
   return (
@@ -65,13 +66,14 @@ const DataTableSection = ({ columns, data, onRowSelected, isSelectable }) => {
         columns={columns}
         data={data}
         highlightOnHover
-        striped
+        // striped
         fixedHeader
         responsive
         fixedHeaderScrollHeight="80vh"
         defaultSortFieldId={1}
         customStyles={customStyles}
         selectableRows={isSelectable}
+        
         onSelectedRowsChange={onRowSelected}
       />
     </div>
