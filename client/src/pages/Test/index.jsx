@@ -40,7 +40,21 @@ const Quiz = () => {
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = highlightedOptions[currentQuestionIndex] || [];
-
+  useEffect(() => {
+    const enterFullscreen = () => {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => {
+          console.warn("Fullscreen failed:", err);
+        });
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    };
+    enterFullscreen(); 
+  }, []);
   useEffect(() => {
     async function fetchTestData() {
       try {
