@@ -23,7 +23,6 @@ const Quiz = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const switchCount = useRef(0);
-  const warned = useRef(false);
   const { isModalOpen, showModal, Modal, closeModal } = useModal();
 
   const queryParams = new URLSearchParams(location.search);
@@ -67,7 +66,6 @@ const Quiz = () => {
               shortcut: "Enter",
               onClick: () => {
                 handleTestSubmit();
-                exitFullscreen();
                 navigate("/home");
               },
             },
@@ -86,7 +84,6 @@ const Quiz = () => {
             "You switched tabs or lost focus. Please do not do this again or the test will end.",
             [{ label: "OK", shortcut: "Enter", onClick: enterFullscreen }]
           );
-          warned.current = true;
         } else if (switchCount.current >= 2) {
           showModal(
             "Disqualified",
@@ -97,7 +94,6 @@ const Quiz = () => {
                 shortcut: "Enter",
                 onClick: () => {
                   handleTestSubmit();
-                  exitFullscreen();
                   navigate("/home");
                 },
               },
@@ -107,14 +103,89 @@ const Quiz = () => {
       }
     };
 
+    const handleKeyDown = (event) => {
+      if (
+        (event.altKey &&
+          (event.key === "ArrowLeft" || event.key === "ArrowRight")) ||
+        (event.ctrlKey &&
+          (event.key === "r" ||
+            event.key === "R" ||
+            event.key === "w" ||
+            event.key === "W")) ||
+        event.key === "F5"
+      ) {
+        event.preventDefault();
+        showModal(
+          "Navigation Disabled",
+          "Using browser navigation or refresh shortcuts is disabled during the test.",
+          [{ label: "OK", shortcut: "Enter", onClick: () => {} }]
+        );
+      }
+    };
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+      return "";
+    };
+
+    const handleContextMenu = (e) => e.preventDefault();
+
+    const handleCopyCutPaste = (e) => {
+      e.preventDefault();
+      showModal(
+        "Action Disabled",
+        "Copy, paste, and cut are disabled during the test.",
+        [{ label: "OK", shortcut: "Enter", onClick: () => {} }]
+      );
+    };
+    const handleBlurOrVisibility = () => {
+      if (document.hidden || document.visibilityState === "hidden") {
+        switchCount.current += 1;
+        if (switchCount.current === 1) {
+          showModal(
+            "Warning",
+            "You switched away from the test. Please return and avoid switching."
+          );
+        } else if (switchCount.current >= 2) {
+          showModal("Disqualified", "Multiple switches detected. Test ended.", [
+            {
+              label: "OK",
+              onClick: () => {
+                handleTestSubmit();
+                navigate("/home");
+              },
+            },
+          ]);
+        }
+      }
+    };
+
+    window.addEventListener("blur", handleBlurOrVisibility);
+    document.addEventListener("visibilitychange", handleBlurOrVisibility);
+
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("contextmenu", handleContextMenu);
+    window.addEventListener("copy", handleCopyCutPaste);
+    window.addEventListener("cut", handleCopyCutPaste);
+    window.addEventListener("paste", handleCopyCutPaste);
 
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("copy", handleCopyCutPaste);
+      window.removeEventListener("cut", handleCopyCutPaste);
+      window.removeEventListener("paste", handleCopyCutPaste);
+      window.removeEventListener("blur", handleBlurOrVisibility);
+      document.removeEventListener("visibilitychange", handleBlurOrVisibility);
     };
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, showModal]);
   const exitFullscreen = () => {
     if (document.fullscreenElement) {
