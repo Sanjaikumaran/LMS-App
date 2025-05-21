@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import ModuleCard from "../../utils/ModuleCard";
 import Button from "../../utils/button";
 import useModal from "../../utils/useModal";
 import styles from "./admin.module.css";
 import { useUser } from "../../utils/context/userContext";
 import handleApiCall from "../../utils/handleAPI";
-import IconAvatar from "../../assets/icons/education.png";
-import IconList from "../../assets/icons/list.png";
 import CreateCourse from "./components/createCourse";
 import CreateTest from "./components/createTest";
 import { DataTableManagement } from "../../utils/customTable";
@@ -64,6 +61,7 @@ const Admin = ({ page }) => {
       fetchCourseData();
       fetchTestData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id, user?.userId]);
   const deleteItem = async (id, collection, refetchFunc) => {
     showModal("Confirm", "Are you sure you want to delete?", [

@@ -288,12 +288,13 @@ const Quiz = () => {
       <React.Fragment key={idx}>
         {part}
         {idx < parts.length - 1 && (
-          <Input
-            type="text"
-            placeholder=""
-            className={styles.fillAnswerInput}
+          <input
             value={answer !== "not-answered" ? answer?.[idx] || "" : ""}
-            onChange={(value) => updateAnswer(value, idx)}
+            placeholder=""
+            onChange={(e) => {
+              updateAnswer(e.target.value, idx);
+            }}
+            className={styles.fillAnswerInput}
           />
         )}
       </React.Fragment>
@@ -305,84 +306,97 @@ const Quiz = () => {
       <div className={styles.testBody}>
         {/* Test Panel */}
         <div className={styles.testApp}>
-          <h1 className={styles.questionSectionHeader}>
-            {currentQuestion?.Question.includes("____")
-              ? renderBlanks(currentQuestion)
-              : currentQuestion?.Question}
-          </h1>
-
-          {currentQuestion?.Option.includes("Paragraph") ? (
-            <div>
-              <textarea
-                className={styles.fillAnswerInput}
-                placeholder="Type Your Answer..."
-                value={selectedOption !== "not-answered" ? selectedOption : ""}
-                onChange={(e) => updateAnswer(e.target.value, 0, "paragraphs")}
-              />
-            </div>
-          ) : (
-            <ul className={styles.testOptionsContainer}>
-              {currentQuestion?.Option.filter((opt) => opt !== "None").map(
-                (opt, idx) => {
-                  const isSelected =
-                    currentQuestion.type === "radio"
-                      ? selectedOption === opt
-                      : selectedOption.includes(opt);
-                  return (
-                    <li
-                      key={idx}
-                      onClick={() =>
-                        handleOptionSelect(opt, currentQuestion.type)
-                      }
-                      className={`${styles.option} ${
-                        isSelected ? styles.selected : ""
-                      }`}
-                    >
-                      <Input
-                        label={opt}
-                        labelClassName={styles.label}
-                        className={
-                          currentQuestion.type === "radio"
-                            ? styles.radioInput
-                            : styles.checkboxInput
-                        }
-                        type={currentQuestion.type}
-                        value={opt}
-                        checked={isSelected}
-                        onChange={() =>
+          <div>
+            {" "}
+            <h1 className={styles.questionSectionHeader}>
+              {currentQuestion?.Question.includes("____")
+                ? renderBlanks(currentQuestion)
+                : currentQuestion?.Question}
+            </h1>
+            {currentQuestion?.Option.includes("Paragraph") ? (
+              <div>
+                <textarea
+                  className={styles.fillAnswerInput}
+                  placeholder="Type Your Answer..."
+                  value={
+                    selectedOption !== "not-answered" ? selectedOption : ""
+                  }
+                  onChange={(e) =>
+                    updateAnswer(e.target.value, 0, "paragraphs")
+                  }
+                />
+              </div>
+            ) : (
+              <ul className={styles.testOptionsContainer}>
+                {currentQuestion?.Option.filter((opt) => opt !== "None").map(
+                  (opt, idx) => {
+                    const isSelected =
+                      currentQuestion.type === "radio"
+                        ? selectedOption === opt
+                        : selectedOption.includes(opt);
+                    return (
+                      <li
+                        key={idx}
+                        onClick={() =>
                           handleOptionSelect(opt, currentQuestion.type)
                         }
-                      />
-                    </li>
-                  );
-                }
-              )}
-            </ul>
-          )}
+                        className={`${styles.option} ${
+                          isSelected ? styles.selected : ""
+                        }`}
+                      >
+                        <Input
+                          label={opt}
+                          labelClassName={styles.label}
+                          className={
+                            currentQuestion.type === "radio"
+                              ? styles.radioInput
+                              : styles.checkboxInput
+                          }
+                          type={currentQuestion.type}
+                          value={opt}
+                          checked={isSelected}
+                          onChange={() =>
+                            handleOptionSelect(opt, currentQuestion.type)
+                          }
+                        />
+                      </li>
+                    );
+                  }
+                )}
+              </ul>
+            )}
+          </div>
 
           <div className={styles.testFooter}>
-            {currentQuestionIndex > 0 && (
-              <Button onClick={() => navigateQuestion("Prev")}>Previous</Button>
-            )}
-            <Button
-              onClick={() =>
-                currentQuestionIndex === totalQuestions - 1
-                  ? confirmSubmit()
-                  : navigateQuestion("Next")
-              }
-              className={`${styles.button} ${
-                currentQuestionIndex === totalQuestions - 1
-                  ? styles.submitButton
-                  : ""
-              }`}
-            >
-              {currentQuestionIndex === totalQuestions - 1 ? "Submit" : "Next"}
-            </Button>
-            {currentQuestionIndex !== totalQuestions - 1 && (
-              <Button className={styles.skipButton} onClick={skipQuestion}>
-                Skip
+            <div>
+              {currentQuestionIndex > 0 && (
+                <Button onClick={() => navigateQuestion("Prev")}>
+                  Previous
+                </Button>
+              )}
+              <Button
+                onClick={() =>
+                  currentQuestionIndex === totalQuestions - 1
+                    ? confirmSubmit()
+                    : navigateQuestion("Next")
+                }
+                className={`${styles.button} ${
+                  currentQuestionIndex === totalQuestions - 1
+                    ? styles.submitButton
+                    : ""
+                }`}
+              >
+                {currentQuestionIndex === totalQuestions - 1
+                  ? "Submit"
+                  : "Next"}
               </Button>
-            )}
+              {currentQuestionIndex !== totalQuestions - 1 && (
+                <Button className={styles.skipButton} onClick={skipQuestion}>
+                  Skip
+                </Button>
+              )}
+            </div>
+
             <p>
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </p>
@@ -390,7 +404,7 @@ const Quiz = () => {
         </div>
 
         {/* Sidebar */}
-        <div>
+        <div className={styles.sideBar}>
           <ModuleCard header="Timer">
             <div className={styles.timerSection}>
               <div className={styles.timerCircle}>

@@ -51,13 +51,11 @@ app.post("/upload-video", (req, res) => {
 
     fs.writeFile(fullPath, req.file.buffer, (fsErr) => {
       if (fsErr) {
-        return res
-          .status(500)
-          .json({
-            flag: false,
-            message: "Saving file failed",
-            error: fsErr.message,
-          });
+        return res.status(500).json({
+          flag: false,
+          message: "Saving file failed",
+          error: fsErr.message,
+        });
       }
 
       res.status(200).json({

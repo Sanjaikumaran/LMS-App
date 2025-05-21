@@ -10,7 +10,7 @@ import styles from "./createTest.module.css";
 import { generateDescription } from "../../../../utils/AIHelper";
 const CreateTest = ({ setShowCreateTest, showModal, closeModal, courseId }) => {
   const { user } = useUser();
- 
+
   const [formData, setFormData] = useState({
     testName: "",
     testDescription: "",
@@ -194,7 +194,7 @@ const CreateTest = ({ setShowCreateTest, showModal, closeModal, courseId }) => {
       <div className={styles.createTestContainer}>
         <div className={styles.createTestPanel}>
           <h1 className={styles.createTestHeader}>Create Test</h1>
-             <form className={styles.createTestForm}>
+          <form className={styles.createTestForm}>
             <Input
               label="Test Name *"
               value={testName}
@@ -288,9 +288,8 @@ const CreateTest = ({ setShowCreateTest, showModal, closeModal, courseId }) => {
               type="Questions"
             />
             <Input label="Upload Questions" type="file" />
-          
           </form>
-            <div className={styles.buttonContainer}>
+          <div className={styles.buttonContainer}>
             <Button
               shortcut={"Escape"}
               className={styles.cancelButton}

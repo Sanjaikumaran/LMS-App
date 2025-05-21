@@ -64,14 +64,14 @@
   width: 100%;
   flex-direction: column;
 }
-.addInstructionBtn{
+.addInstructionBtn {
   background: white;
   color: black;
   border: 1px solid #ccc;
   margin-top: 20px;
   width: 100%;
 }
-.addInstructionBtn:hover{
+.addInstructionBtn:hover {
   background-color: #e4e4e4;
 }
 .detailCardHeader h1 {

@@ -614,7 +614,7 @@ const ManageCourse = () => {
                   />
                 </div>
                 <Input
-                style={{padding: "0"}}
+                  style={{ padding: "0" }}
                   type="file"
                   accept=".mp4, .mkv, .webm, .avi, .mov, .hevc, video/*"
                   label="Upload Module Video *"
