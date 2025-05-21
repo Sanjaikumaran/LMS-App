@@ -1,17 +1,21 @@
-.instructionsContainer {
+.instructionMain {
   display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 30px;
+}
+.instructionsContainer {
+  border: 1px solid #e1e1e3;
+  display: flex;
+  width: 100%;
   flex-direction: column;
-  justify-content: center;
   padding: 20px;
 }
-
 .instructionsTitle {
-  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
-  color: #6f2f72;
+  color: #080c2bd9;
   display: flex;
   justify-content: center;
 }
-
 .instructionsDescription {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   color: #333;
@@ -19,16 +23,48 @@
   font-size: large;
   margin: 10px 0;
 }
-
 .instructionsList {
   list-style: disc;
   text-align: justify;
   font-size: large;
   margin: 10px 0;
 }
-
 .buttonContainer {
   display: flex;
   justify-content: center;
   padding: 20px;
+}
+.detailCard h1 {
+  padding: 15px;
+  color: #080c2bd9;
+  margin: 0;
+}
+.detailCard {
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0px 0px 2px #080c2b29, 0px 1px 4px #080c2b1f;
+  display: flex;
+  column-gap: 8px;
+  display: flex;
+  width: 40%;
+  flex-direction: column;
+}
+.detailCardHeader {
+  display: flex;
+  padding: 10px;
+  border-bottom: 1px solid #e1e1e3;
+  flex-direction: row;
+}
+.detailCardBody {
+  padding: 20px;
+  color: #080c2ba6;
+}
+.detailsColumn {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+  /* gap: 50px; */
+}
+.detailsColumn div {
+  width: 200px;
 }

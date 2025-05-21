@@ -20,7 +20,7 @@ import { UserProvider } from "./utils/context/userContext";
 
 const App = () => {
   const [showProfile, setShowProfile] = useState(true);
-  const [page,setPage] = useState(localStorage.getItem('page'));
+  const [page, setPage] = useState(localStorage.getItem("page"));
 
   const instructions = [
     "Instruction 1: Please read carefully.",
@@ -41,7 +41,9 @@ const App = () => {
   return (
     <UserProvider>
       <Router>
-        <Navbar showProfile={showProfile} setPage={setPage}/>
+        {!showProfile && (
+          <Navbar showProfile={showProfile} setPage={setPage} page={page} />
+        )}
         <Routes>
           <Route
             path="/"
@@ -59,7 +61,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Student"]}>
                 <>
                   <ChangeTitle title="Home" />
-                  <AssignedQuiz />
+                  <AssignedQuiz page={page} />
                 </>
               </ProtectedRoute>
             }
@@ -70,7 +72,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Student"]}>
                 <>
                   <ChangeTitle title="Instructions" />
-                  <Instructions instructions={instructions} />
+                  <Instructions instruction={instructions} />
                 </>
               </ProtectedRoute>
             }
@@ -103,7 +105,7 @@ const App = () => {
               <ProtectedRoute allowedRoles={["Admin"]}>
                 <>
                   <ChangeTitle title="Admin" />
-                  <Admin page={page??'course'} />
+                  <Admin page={page ?? "course"} />
                 </>
               </ProtectedRoute>
             }

@@ -72,53 +72,67 @@ const Signin = () => {
 
   return (
     <>
-      <div className={styles.loginContainer}>
-        <h1 className={styles.loginHeader}>Login</h1>
-        <div className={styles.loginForm}>
-          <div>
+      <mian className={styles.loginPage}>
+        <div className={styles.loginContainer}>
+          <h1 className={styles.loginHeader}>Login</h1>
+          <div className={styles.loginForm}>
+            {/* <div>
             <h1>Jeppiaar University</h1>
-          </div>
-          <div className={styles.inputContainer}>
-            <Input
-              label="User ID"
-              placeHolder="Enter your roll no."
-              value={userId}
-              error={responseMessage?.userId}
-              onChange={(value) => {
-                setResponseMessage(null);
-                setUserId(value);
-              }}
-              required
-              disabled={isLoading}
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeHolder="Enter your password"
-              value={userPassword}
-              error={responseMessage?.password}
-              onChange={(value) => {
-                setResponseMessage(null);
-                setUserPassword(value);
-              }}
-              required
-              disabled={isLoading}
-            />
-            {responseMessage && typeof responseMessage === "string" && (
-              <MessageBox error={responseMessage} />
-            )}
-          </div>
+          </div> */}
+            <div className={styles.inputContainer}>
+              <Input
+                label="User ID"
+                placeHolder="Enter your roll no."
+                value={userId}
+                error={responseMessage?.userId}
+                onChange={(value) => {
+                  setResponseMessage(null);
+                  setUserId(value);
+                }}
+                required
+                disabled={isLoading}
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeHolder="Enter your password"
+                value={userPassword}
+                error={responseMessage?.password}
+                onChange={(value) => {
+                  setResponseMessage(null);
+                  setUserPassword(value);
+                }}
+                required
+                disabled={isLoading}
+              />
+              {responseMessage && typeof responseMessage === "string" && (
+                <MessageBox error={responseMessage} />
+              )}
+            </div>
 
-          <Button
-            onClick={handleLogin}
-            disabled={isLoading || isModalOpen}
-            isLoading={isLoading}
-            shortcut="Enter"
-          >
-            Login
-          </Button>
+            <Button
+              onClick={handleLogin}
+              disabled={isLoading || isModalOpen}
+              isLoading={isLoading}
+              className={styles.loginButton}
+              shortcut="Enter"
+            >
+              Login
+            </Button>
+          </div>
         </div>
-      </div>
+        <section className={styles.sideImg}>
+          <div class="quote_box">
+            <div class="l-h" id="author_text">
+              "We are changing the world with Technology"
+            </div>
+            <h3 class="m-v-sm f-s-14 t-r">
+              - <b id="author_name">Bill Gates</b>
+            </h3>
+          </div>
+        </section>
+      </mian>
+
       <Modal />
     </>
   );

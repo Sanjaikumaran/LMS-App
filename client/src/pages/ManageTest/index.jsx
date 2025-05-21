@@ -16,8 +16,13 @@ import styles from "./manage.module.css";
 // import "../../assets/styles/Test.css";
 
 const Test = () => {
+  const location = useLocation();
+  const id = new URLSearchParams(location.search).get("id");
+
   const navigate = useNavigate();
   const { showModal, Modal, closeModal } = useModal();
+  const [courseDetails, setCourseDetails] = useState({});
+
   const [formData, setFormData] = useState({
     testName: "",
     startTime: "",
@@ -26,6 +31,7 @@ const Test = () => {
     attempts: "",
     selectedUsersGroups: [],
     selectedQuestionsGroups: [],
+    instructions: [],
   });
   const [groupData, setGroupData] = useState({
     allUsersGroups: [],
@@ -47,12 +53,10 @@ const Test = () => {
   const [isAnswersModalOpen, setIsAnswersModalOpen] = useState(false);
   const [displayAnswer, setDisplayAnswer] = useState("");
   const [activeTab, setActiveTab] = useState("Overview");
-
+  const [courseId, setCourseId] = useState(
+    new URLSearchParams(location.search).get("courseId")
+  );
   const tabs = ["Overview", "Participants", "Questions", "Test Results"];
-
-  const location = useLocation();
-  const id = new URLSearchParams(location.search).get("id");
-  const courseId = new URLSearchParams(location.search).get("courseId");
 
   const {
     testName,
@@ -63,46 +67,67 @@ const Test = () => {
     attempts,
     selectedUsersGroups,
     selectedQuestionsGroups,
+    instructions,
   } = formData;
   const { allUsersGroups, allQuestionsGroups } = groupData;
+  const [instruction, setInstruction] = useState(instructions || [""]);
+  const fetchCourseData = async (courseId) => {
+    const response = await handleApiCall({
+      API: "find-data",
+      data: {
+        collection: "Courses",
+        condition: { key: "_id", value: courseId },
+      },
+    });
+    if (response.flag) {
+      const data = response.data.data[0];
+      setCourseDetails(data);
+    }
+  };
+  const fetchTest = async () => {
+    const response = await handleApiCall({
+      API: "find-data",
+      data: {
+        collection: "Tests",
+        condition: id
+          ? { key: "_id", value: id }
+          : { key: "courseId", value: courseId },
+      },
+    });
 
-  useEffect(() => {
-    (async () => {
-      const response = await handleApiCall({
-        API: "find-data",
-        data: {
-          collection: "Tests",
-          condition: id
-            ? { key: "_id", value: id }
-            : { key: "courseId", value: courseId },
-        },
-      });
-
-      if (response.flag) {
-        const data = response.data.data[0];
-        setFormData({
-          testName: data["Test Name"],
-          testDescription: data["Test Description"],
-          startTime: data["Start Time"],
-          endTime: data["End Time"],
-          duration: data["Duration"],
-          attempts: data["Attempts Limit"],
-          selectedUsersGroups: data["Participants Group"],
-          selectedQuestionsGroups: data["Questions Group"],
-        });
-        setTestId(data._id);
-        console.log(data["Test Results"]);
-
-        setTableData((prev) => ({
-          ...prev,
-          "Test Results": data["Test Results"],
-        }));
+    if (response.flag) {
+      const data = response.data.data[0];
+      if (data?.courseId) {
+        fetchCourseData(data.courseId);
+        setCourseId(data.courseId);
       }
-    })();
-  }, [id]);
+      setFormData({
+        testName: data["Test Name"],
+        testDescription: data["Test Description"],
+        startTime: data["Start Time"],
+        endTime: data["End Time"],
+        duration: data["Duration"],
+        attempts: data["Attempts Limit"],
+        selectedUsersGroups: data["Participants Group"],
+        selectedQuestionsGroups: data["Questions Group"],
+        instructions: data["Instructions"],
+      });
+      setInstruction(data["Instructions"]);
+      setTestId(data._id);
+      console.log(data["Test Results"]);
+
+      setTableData((prev) => ({
+        ...prev,
+        "Test Results": data["Test Results"],
+      }));
+    }
+  };
   useEffect(() => {
-    console.log(tableData);
-  }, [tableData]);
+    if (id) {
+      fetchTest();
+    }
+  }, [id]);
+
   useEffect(() => {
     const loadData = async () => {
       const response = await handleApiCall({
@@ -222,7 +247,9 @@ const Test = () => {
       }));
       setTableData((prev) => ({
         ...prev,
-        Participants: users,
+        Participants: users.filter((u) =>
+          selectedUsersGroups.includes(u.Group)
+        ),
         "Test Results": updatedTestResult,
       }));
     };
@@ -472,133 +499,79 @@ const Test = () => {
       },
     ]);
   };
-
-  const UpdateTestModal = () => {
-    return (
-      <>
-        <div className={styles.scrim}></div>
-        <div className={styles.createTestContainer}>
-          <div className={styles.createTestPanel}>
-            <h1 className={styles.createTestHeader}>Create Test</h1>
-            <form className={styles.createTestForm}>
-              <Input
-                label="Test Name *"
-                value={testName}
-                onChange={(value) => {
-                  updateForm("testName")(value);
-                  setError((prev) => ({ ...prev, testName: "" }));
-                }}
-                error={error.testName}
-              />
-              <div>
+  const handleInstructionSubmit = async () => {
+    const trimmedInstruction = instruction.map((instr) => instr.trim());
+    if (trimmedInstruction.length === 0) {
+      setError({ instruction: "Instruction is required" });
+      return;
+    }
+    showModal("Confirm", "Want to save the changes?", [
+      {
+        label: "Yes",
+        shortcut: "Enter",
+        onClick: async () => {
+          try {
+            const response = await handleApiCall({
+              API: "Update-data",
+              data: {
+                collection: "Tests",
+                condition: { _id: testId },
+                data: { Instructions: instruction },
+              },
+            });
+            if (response.flag) {
+              showModal("Success", "Instructions updated successfully", [
                 {
-                  <span
-                    className={styles.hitAiButton}
-                    onClick={() =>
-                      generateDescription(
-                        testName,
-                        "testDescription",
-                        updateForm,
-                        setError
-                      )
-                    }
-                  >
-                    ✨
-                  </span>
-                }
-                <Input
-                  type="textarea"
-                  label="Test Description *"
-                  value={testDescription || ""}
-                  onChange={(value) => {
-                    updateForm("testDescription")(value);
-                    setError((prev) => ({ ...prev, testDescription: "" }));
-                  }}
-                  error={error.testDescription}
-                />
-              </div>
-              <Input
-                type="datetime-local"
-                label="Start Date and Time"
-                value={startTime}
-                onChange={(value) => {
-                  updateForm("startTime")(value);
-                  setError((prev) => ({ ...prev, startTime: "", endTime: "" }));
-                }}
-                error={error.startTime}
-              />
-              <Input
-                type="datetime-local"
-                label="End Date and Time"
-                value={endTime}
-                onChange={(value) => {
-                  updateForm("endTime")(value);
-                  setError((prev) => ({ ...prev, startTime: "", endTime: "" }));
-                }}
-                error={error.endTime}
-              />
-              <Input
-                type="time"
-                step="1"
-                label="Duration (HH:MM:SS)"
-                value={duration}
-                onChange={updateForm("duration")}
-              />
-              <Input
-                type="number"
-                label="Attempts Limit"
-                value={attempts}
-                onChange={updateForm("attempts")}
-              />
-              <Dropdown
-                label="Participants Group"
-                value={selectedUsersGroups.join(", ") || "Select Groups"}
-                onSelect={(value) => modifyGroup(value, "Users", "add")}
-                options={
-                  allUsersGroups.length
-                    ? allUsersGroups
-                    : ["No Groups Available"]
-                }
-              />
-              <RenderSelectedGroups groups={selectedUsersGroups} type="Users" />
-              <Dropdown
-                label="Questions Group"
-                value={selectedQuestionsGroups.join(", ") || "Select Groups"}
-                onSelect={(value) => modifyGroup(value, "Questions", "add")}
-                options={
-                  allQuestionsGroups.length
-                    ? allQuestionsGroups
-                    : ["No Groups Available"]
-                }
-              />
-              <RenderSelectedGroups
-                groups={selectedQuestionsGroups}
-                type="Questions"
-              />
-              <Input label="Upload Questions" type="file" />
-            </form>
-            <div className={styles.buttonContainer}>
-              <Button
-              
-                className={styles.cancelButton}
-                onClick={() => setActiveTab("Overview")}
-                shortcut={"Escape"}
-              >
-                Cancel
-              </Button>
-              <Button
-             
-                shortcut="Ctrl + S"
-                onClick={handleSubmit}
-              >
-                Update
-              </Button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
+                  label: "Ok",
+                  shortcut: "Enter",
+                  onClick: () => {
+                    fetchTest();
+                    setActiveTab("Overview");
+                    closeModal();
+                  },
+                },
+              ]);
+            } else {
+              showModal("Faild", "Failed to update instructions", [
+                {
+                  label: "Ok",
+                  shortcut: "Enter",
+                  onClick: () => {
+                    setActiveTab("Overview");
+                    closeModal();
+                  },
+                },
+              ]);
+            }
+          } catch (error) {
+            showModal("Uncaught Error", "Failed to update instructions", [
+              {
+                label: "Ok",
+                shortcut: "Enter",
+                onClick: () => {
+                  setActiveTab("Overview");
+                  closeModal();
+                },
+              },
+            ]);
+            console.log(error);
+          }
+        },
+      },
+      {
+        label: "No",
+        shortcut: "Escape",
+        onClick: () => {
+          setActiveTab("Overview");
+          closeModal();
+        },
+      },
+    ]);
   };
+
+  useEffect(() => {
+    console.log(instruction, instructions);
+  }, [instruction, instructions]);
   return (
     <>
       <>
@@ -618,7 +591,7 @@ const Test = () => {
                 >
                   Generate Report
                 </Button>
-              )}{" "}
+              )}
               {activeTab === "Overview" && (
                 <Button
                   onClick={() => setActiveTab("editTest")}
@@ -649,7 +622,9 @@ const Test = () => {
         </div>
       </>
       <div style={{ padding: "20px" }}>
-        {activeTab === "Overview" || activeTab === "editTest" ? (
+        {activeTab === "Overview" ||
+        activeTab === "editTest" ||
+        activeTab === "editInstructions" ? (
           <>
             <div className={styles.testDetailsContainer}>
               <div className={styles.detailCard}>
@@ -661,7 +636,7 @@ const Test = () => {
                     }}
                   >
                     Title
-                  </h1>{" "}
+                  </h1>
                   <h1>{testName}</h1>
                 </div>
                 <div className={styles.detailCardBody}>
@@ -670,14 +645,12 @@ const Test = () => {
                   <hr />
                   <div className={styles.detailsColumn}>
                     <div>
-                      {" "}
                       <p>Start Date:</p>
                       <p style={{ color: "#080c2bd9" }}>
                         {startTime.split("T")[0]}
                       </p>
                     </div>
                     <div>
-                      {" "}
                       <p>End Date:</p>
                       <p style={{ color: "#080c2bd9" }}>
                         {endTime.split("T")[0]}
@@ -686,7 +659,6 @@ const Test = () => {
                   </div>
                   <div className={styles.detailsColumn}>
                     <div>
-                      {" "}
                       <p>Duration:</p>
                       <p style={{ color: "#080c2bd9" }}>{duration}</p>
                     </div>
@@ -694,14 +666,15 @@ const Test = () => {
                       <p>Attempts Limit:</p>
                       <p style={{ color: "#080c2bd9" }}>{attempts}</p>
                     </div>
-                  </div>{" "}
+                  </div>
                   <div className={styles.detailsColumn}>
                     <div>
-                      {" "}
                       <p>Participants Group:</p>
                       {selectedUsersGroups.length
                         ? selectedUsersGroups.map((group) => (
-                            <p style={{ color: "#080c2bd9" }}>{group}</p>
+                            <p key={group} style={{ color: "#080c2bd9" }}>
+                              {group}
+                            </p>
                           ))
                         : "No Groups Selected"}
                     </div>
@@ -715,13 +688,83 @@ const Test = () => {
                     </div>
                   </div>
                   <hr />
-                  <div></div>
+                </div>
+                {courseId && (
+                  <>
+                    <div className={styles.detailCardHeader}>
+                      <h1
+                        style={{
+                          color: "#080c2ba6",
+                          borderRight: "1px solid #e1e1e3",
+                        }}
+                      >
+                        Course
+                      </h1>
+                      <h1>{courseDetails["Course Title"]}</h1>
+                    </div>
+                    <div className={styles.detailCardBody}>
+                      <p>Description:</p>
+                      <p style={{ color: "#080c2bd9" }}>
+                        {courseDetails["Course Description"]}
+                      </p>
+                      <hr />
+                      <div className={styles.detailsColumn}>
+                        <div>
+                          <p>Start Date:</p>
+                          <p style={{ color: "#080c2bd9" }}>
+                            {courseDetails["Start Date"]}
+                          </p>
+                        </div>
+                        <div>
+                          <p>End Date:</p>
+                          <p style={{ color: "#080c2bd9" }}>
+                            {courseDetails["End Date"]}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={styles.detailsColumn}>
+                        <div>
+                          <p>No of Modules:</p>
+                          <p style={{ color: "#080c2bd9" }}>
+                            {courseDetails["modules"]?.length}
+                          </p>
+                        </div>
+                        <div>
+                          <p>Participants</p>
+                          {courseDetails["Participants Group"]?.map((group) => (
+                            <p style={{ color: "#080c2bd9" }}>{group}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className={styles.instructionsContainer}>
+                <div
+                  className={styles.detailCardHeader}
+                  style={{
+                    justifyContent: "space-between",
+                    paddingRight: "20px",
+                  }}
+                >
+                  <h1>{testName} Instructions</h1>
+                  <Button onClick={() => setActiveTab("editInstructions")}>
+                    {instructions?.length ? "Edit" : "Add"}
+                  </Button>
+                </div>
+                <div className={styles.detailCardBody}>
+                  {instructions?.map((instruction, index) => (
+                    <p style={{ color: "#080c2bd9" }}>
+                      {index + 1}. {instruction}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>
           </>
         ) : (
-          activeTab !== "editTest" && (
+          (activeTab !== "editTest" || activeTab !== "editInstructions") && (
             <div>
               <div
                 className="data-table"
@@ -738,9 +781,189 @@ const Test = () => {
           )
         )}
       </div>
-      {activeTab === "editTest" && (
+      {(activeTab === "editTest" || activeTab === "editInstructions") && (
         <>
-          <UpdateTestModal />
+          <div className={styles.scrim}></div>
+          <div className={styles.createTestContainer}>
+            <div className={styles.createTestPanel}>
+              {activeTab === "editTest" ? (
+                <>
+                  <h1 className={styles.createTestHeader}>Create Test</h1>
+                  <form className={styles.createTestForm}>
+                    <Input
+                      label="Test Name *"
+                      value={testName}
+                      onChange={(value) => {
+                        updateForm("testName")(value);
+                        setError((prev) => ({ ...prev, testName: "" }));
+                      }}
+                      error={error.testName}
+                    />
+                    <div>
+                      {
+                        <span
+                          className={styles.hitAiButton}
+                          onClick={() =>
+                            generateDescription(
+                              testName,
+                              "testDescription",
+                              updateForm,
+                              setError
+                            )
+                          }
+                        >
+                          ✨
+                        </span>
+                      }
+                      <Input
+                        type="textarea"
+                        label="Test Description *"
+                        value={testDescription || ""}
+                        onChange={(value) => {
+                          updateForm("testDescription")(value);
+                          setError((prev) => ({
+                            ...prev,
+                            testDescription: "",
+                          }));
+                        }}
+                        error={error.testDescription}
+                      />
+                    </div>
+                    <Input
+                      type="datetime-local"
+                      label="Start Date and Time"
+                      value={startTime}
+                      onChange={(value) => {
+                        updateForm("startTime")(value);
+                        setError((prev) => ({
+                          ...prev,
+                          startTime: "",
+                          endTime: "",
+                        }));
+                      }}
+                      error={error.startTime}
+                    />
+                    <Input
+                      type="datetime-local"
+                      label="End Date and Time"
+                      value={endTime}
+                      onChange={(value) => {
+                        updateForm("endTime")(value);
+                        setError((prev) => ({
+                          ...prev,
+                          startTime: "",
+                          endTime: "",
+                        }));
+                      }}
+                      error={error.endTime}
+                    />
+                    <Input
+                      type="time"
+                      step="1"
+                      label="Duration (HH:MM:SS)"
+                      value={duration}
+                      onChange={updateForm("duration")}
+                    />
+                    <Input
+                      type="number"
+                      label="Attempts Limit"
+                      value={attempts}
+                      onChange={updateForm("attempts")}
+                    />
+                    <Dropdown
+                      label="Participants Group"
+                      value={selectedUsersGroups.join(", ") || "Select Groups"}
+                      onSelect={(value) => modifyGroup(value, "Users", "add")}
+                      options={
+                        allUsersGroups.length
+                          ? allUsersGroups
+                          : ["No Groups Available"]
+                      }
+                    />
+                    <RenderSelectedGroups
+                      groups={selectedUsersGroups}
+                      type="Users"
+                    />
+                    <Dropdown
+                      label="Questions Group"
+                      value={
+                        selectedQuestionsGroups.join(", ") || "Select Groups"
+                      }
+                      onSelect={(value) =>
+                        modifyGroup(value, "Questions", "add")
+                      }
+                      options={
+                        allQuestionsGroups.length
+                          ? allQuestionsGroups
+                          : ["No Groups Available"]
+                      }
+                    />
+                    <RenderSelectedGroups
+                      groups={selectedQuestionsGroups}
+                      type="Questions"
+                    />
+                    <Input label="Upload Questions" type="file" />
+                  </form>
+                </>
+              ) : activeTab === "editInstructions" ? (
+                <>
+                  <h1 className={styles.createTestHeader}>
+                    {instructions?.length > 1
+                      ? "Edit Instructions"
+                      : "Add Instructions"}
+                  </h1>
+
+                  <form className={styles.createTestForm}>
+                    {instruction.map((instr, index) => (
+                      <Input
+                        label={`Instruction ${index + 1}`}
+                        placeHolder="Enter Instruction"
+                        type="textarea"
+                        row={4}
+                        key={index}
+                        value={instr}
+                        onChange={(value) => {
+                          const updated = [...instruction];
+                          updated[index] = value;
+                          setInstruction(updated);
+                        }}
+                        error={error.instruction}
+                      />
+                    ))}
+
+                    <Button
+                      type="button"
+                      className={styles.addInstructionBtn}
+                      onClick={() => setInstruction((prev) => [...prev, ""])}
+                    >
+                      + Add Instruction
+                    </Button>
+                  </form>
+                </>
+              ) : (
+                <></>
+              )}
+              <div className={styles.buttonContainer}>
+                <Button
+                  className={styles.cancelButton}
+                  onClick={() => setActiveTab("Overview")}
+                  shortcut={"Escape"}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  shortcut="Ctrl + S"
+                  onClick={
+                    activeTab === "editTest"
+                      ? handleSubmit
+                      : handleInstructionSubmit
+                  }
+                >
+                  Update
+                </Button>
+              </div>
+            </div>
+          </div>
         </>
       )}
       {<Modal />}

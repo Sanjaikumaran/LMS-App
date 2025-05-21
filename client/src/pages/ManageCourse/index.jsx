@@ -83,57 +83,59 @@ const ManageCourse = () => {
       }));
     }
   }, [selectedModule, selectedModuleIndex]);
+  const fetchCourseData = async () => {
+    try {
+      const { flag, data } = await handleApiCall({
+        API: "find-data",
+        data: {
+          collection: "Courses",
+          condition: { key: "_id", value: courseId },
+        },
+      });
 
+      if (flag && data.data.length) {
+        const course = data.data[0];
+        setFormData((prev) => ({
+          ...prev,
+          courseTitle: course["Course Title"],
+          courseDescription: course["Course Description"],
+          courseStartDate: course["Start Date"],
+          courseEndDate: course["End Date"],
+          participantsGroup: course["Participants Group"] || [],
+        }));
+
+        setCourseData(course);
+        setModules(course.modules || []);
+      }
+    } catch (err) {
+      console.log("Error fetching course data:", err.message);
+    }
+  };
+  const fetchTest = async () => {
+    try {
+      const { flag, data } = await handleApiCall({
+        API: "find-data",
+        data: {
+          collection: "Tests",
+          condition: { key: "courseId", value: courseId },
+        },
+      });
+
+      if (flag && data.data.length) {
+        console.log(data.data[0]);
+
+        setTestData(data.data[0]);
+      }
+    } catch (err) {
+      console.log("Error fetching course data:", err.message);
+    }
+  };
   useEffect(() => {
-    const fetchCourseData = async () => {
-      try {
-        const { flag, data } = await handleApiCall({
-          API: "find-data",
-          data: {
-            collection: "Courses",
-            condition: { key: "_id", value: courseId },
-          },
-        });
-
-        if (flag && data.data.length) {
-          const course = data.data[0];
-          setFormData((prev) => ({
-            ...prev,
-            courseTitle: course["Course Title"],
-            courseDescription: course["Course Description"],
-            courseStartDate: course["Start Date"],
-            courseEndDate: course["End Date"],
-            participantsGroup: course["Participants Group"] || [],
-          }));
-
-          setCourseData(course);
-          setModules(course.modules || []);
-        }
-      } catch (err) {
-        console.log("Error fetching course data:", err.message);
-      }
-    };
-    const fetchTest = async () => {
-      try {
-        const { flag, data } = await handleApiCall({
-          API: "find-data",
-          data: {
-            collection: "Tests",
-            condition: { key: "courseId", value: courseId },
-          },
-        });
-
-        if (flag && data.data.length) {
-          console.log(data.data[0]);
-
-          setTestData(data.data[0]);
-        }
-      } catch (err) {
-        console.log("Error fetching course data:", err.message);
-      }
-    };
-    fetchTest();
-    fetchCourseData();
+    if (courseId) {
+      fetchCourseData();
+      fetchTest();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   const updateForm = (field) => (value) => {
@@ -437,6 +439,7 @@ const ManageCourse = () => {
           closeModal={() => {
             closeModal();
             setEditMode("");
+            fetchTest();
           }}
           courseId={courseId}
         />
@@ -611,6 +614,7 @@ const ManageCourse = () => {
                   />
                 </div>
                 <Input
+                style={{padding: "0"}}
                   type="file"
                   accept=".mp4, .mkv, .webm, .avi, .mov, .hevc, video/*"
                   label="Upload Module Video *"
@@ -675,11 +679,11 @@ const ManageCourse = () => {
           <div className={styles.courseInfo}>
             <h2>{testData ? testData["Test Name"] : "No Test Created Yet"}</h2>
             <p>
-              Start date:{" "}
+              Start date:
               {testData?.["Start Time"].split("T")[0].split("-").join("/")}
             </p>
             <p>
-              End date:{" "}
+              End date:
               {testData?.["End Time"].split("T")[0].split("-").join("/")}
             </p>
             <p>Duration: {testData?.Duration}</p>

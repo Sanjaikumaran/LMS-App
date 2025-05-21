@@ -44,7 +44,6 @@ textarea.fillAnswerInput {
   overflow: auto;
   height: fit-content;
 }
-
 .option {
   display: flex;
   align-items: center;
@@ -59,7 +58,6 @@ textarea.fillAnswerInput {
   background-color: #007bff;
   color: white;
 }
-
 .option.selected:hover {
   background-color: #0245d6;
   color: white;
@@ -91,7 +89,6 @@ textarea.fillAnswerInput {
   font-weight: bold;
   margin-right: 10px;
 }
-
 /* Quiz Footer */
 .testFooter {
   text-align: center;
@@ -100,7 +97,6 @@ textarea.fillAnswerInput {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
-
 .skipButton {
   background-color: #113bc4;
 }
@@ -113,14 +109,11 @@ textarea.fillAnswerInput {
 .submitButton:hover {
   background-color: #09633d;
 }
-
 /* Timer Section */
 .timerSection {
   background-color: rgb(255, 255, 255);
-
   padding: 20px 30px;
   border-radius: 8px !important;
-
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -157,7 +150,6 @@ textarea.fillAnswerInput {
   color: #333;
   font-weight: bold;
 }
-
 /* Question Number Section */
 .questionNumberSection {
   margin-top: 10px;

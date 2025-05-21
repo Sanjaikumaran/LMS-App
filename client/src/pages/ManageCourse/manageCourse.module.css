@@ -4,17 +4,15 @@
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
 }
-
 /* Sidebar Styles */
 .sidebar {
   width: 280px;
-  background-color: #2c3e50;
-  color: #ecf0f1;
+  background-color: #f5f5f7;
+  color: #080c2bcc;
   padding: 20px;
   overflow-y: auto;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
-
 .sidebar h3 {
   margin-top: 0;
   font-size: 1.1rem;
@@ -22,30 +20,26 @@
   border-bottom: 1px solid #7f8c8d;
   padding-bottom: 5px;
 }
-
 .courseInfo {
   margin-bottom: 20px;
 }
-
 .courseInfo h2 {
   font-size: 1.2rem;
   margin: 10px 0 5px;
 }
-
 .moduleItem {
-  padding: 10px;
+  padding: 5px 10px;
   margin-bottom: 6px;
   border-radius: 5px;
   cursor: pointer;
-  background-color: #34495e;
+  background-color: #ffffff;
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-
 .moduleItem:hover {
-  background-color: #3b5770;
+  background-color: #e4e4e4;
 }
 .deleteModuleButton {
   background-color: #f1f1f1;
@@ -54,14 +48,16 @@
   padding: 4px;
 }
 .deleteModuleButton:hover {
-  background-color: #ff4d4d;
+  background-color: #c6c9ff;
 }
 .active {
   background-color: #1abc9c;
   font-weight: bold;
   color: #fff;
 }
-
+.active:hover{
+  background-color: #1abc9c;
+}
 /* Main Content Styles */
 .moduleContent {
   padding: 30px;
@@ -69,7 +65,6 @@
   background-color: #fff;
   position: relative;
 }
-
 /* Module Video */
 .moduleContent video {
   max-width: 100%;
@@ -80,6 +75,8 @@
 .moduleDetails {
   display: flex;
   flex-direction: column;
+  height: 57vh;
+  justify-content: space-between;
   padding: 20px;
 }
 /* Module Description */
@@ -89,7 +86,6 @@
   margin-top: 20px;
   color: #333;
 }
-
 .createCourseContainer {
   display: flex;
   justify-content: center;
@@ -99,18 +95,15 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 998;
 }
-
 .createCourseForm {
   margin: auto;
   margin-top: 20px;
   max-width: 600px;
   padding: 0 20px 10px 20px;
 }
-
 .selectedGroups {
   display: flex;
   flex-direction: row;
@@ -118,7 +111,6 @@
   gap: 5px;
   margin-top: 10px;
 }
-
 .selectedGroup {
   background-color: #007bff;
   color: white;
@@ -127,7 +119,6 @@
   display: inline-flex;
   align-items: center;
 }
-
 .removeGroupButton {
   background: none;
   color: white;
@@ -140,10 +131,10 @@
   margin-top: 0;
   cursor: pointer;
 }
-
 .buttonContainer {
   display: grid;
   justify-content: end;
+  margin-top: 20px;
   gap: 20px;
   grid-auto-flow: column;
 }
@@ -155,4 +146,11 @@
   padding: 2px;
   right: -415px;
   border-radius: 2px;
+}
+.createCourseForm input[type="file"]::file-selector-button {
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  border: none;
+  background-color: #007bff;
 }

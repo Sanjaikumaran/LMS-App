@@ -9,7 +9,7 @@ import Button from "../../utils/button";
 
 import styles from "./home.module.css";
 
-const AssignedQuiz = () => {
+const AssignedQuiz = ({ page }) => {
   const [assignedTests, setAssignedTests] = useState([]);
   const [assignedCourses, setAssignedCourses] = useState([]);
   const [timeLeft, setTimeLeft] = useState({});
@@ -108,67 +108,88 @@ const AssignedQuiz = () => {
 
   return (
     <>
-      <div className={styles.createCourse}>My Courses</div>
-      <div className={styles.assignedQuizContainer}>
-        {assignedCourses.length === 0 ? (
-          <div className={styles.noTestContainer}>
-            <h1>No test available</h1>
-            <p>Please check back later</p>
-          </div>
-        ) : (
-          assignedCourses.map((course) => {
-            return (
-              <div key={course._id} className={styles.cardContainer}>
-                <h1 className={styles.cardHeader}>{course["Course Title"]}</h1>
-                <div className={styles.cardBody}>
-                  <div className={styles.cardsBody}>
-                    <div>{course["Course Description"]}</div>
-                    <div>
-                      <Button
-                        onClick={() => navigate(`/my-course?id=${course._id}`)}
-                      >
-                        Start Learning
-                      </Button>
+      {page === "course" && (
+        <>
+          <div className={styles.createCourse}>My Courses</div>
+          <div className={styles.assignedQuizContainer}>
+            {assignedCourses.length === 0 ? (
+              <div className={styles.noTestContainer}>
+                <h1>No test available</h1>
+                <p>Please check back later</p>
+              </div>
+            ) : (
+              assignedCourses.map((course) => {
+                return (
+                  <div key={course._id} className={styles.cardContainer}>
+                    <h1 className={styles.cardHeader}>
+                      {course["Course Title"]}
+                    </h1>
+                    <div className={styles.cardBody}>
+                      <div className={styles.cardsBody}>
+                        <div className={styles.content}>
+                          {course["Course Description"]}
+                        </div>
+                        <div style={{ marginTop: "20px" }}>
+                          <Button
+                            onClick={() =>
+                              navigate(`/my-course?id=${course._id}`)
+                            }
+                          >
+                            Start Learning
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-      <div className={styles.createCourse}>My Tests</div>
-      <div className={styles.assignedQuizContainer}>
-        {assignedTests.length === 0 ? (
-          <div className={styles.noTestContainer}>
-            <h1>No test available</h1>
-            <p>Please check back later</p>
+                );
+              })
+            )}
           </div>
-        ) : (
-          assignedTests.map((test) => {
-            const countdown = timeLeft[test._id];
-            const isDisabled = countdown !== "available";
-
-            return (
-              <div key={test._id} className={styles.cardContainer}>
-                <h1 className={styles.cardHeader}>{test["Test Name"]}</h1>
-                <div className={styles.cardBody}>
-                  <div className={styles.buttonContainer}>
-                    <Button
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => navigate(`/instructions?id=${test._id}`)}
-                      isLoading={!countdown}
-                    >
-                      {getButtonLabel(countdown)}
-                    </Button>
-                  </div>
-                </div>
+        </>
+      )}
+      {page === "tests" && (
+        <>
+          {" "}
+          <div className={styles.createCourse}>My Tests</div>
+          <div className={styles.assignedQuizContainer}>
+            {assignedTests.length === 0 ? (
+              <div className={styles.noTestContainer}>
+                <h1>No test available</h1>
+                <p>Please check back later</p>
               </div>
-            );
-          })
-        )}
-      </div>
+            ) : (
+              assignedTests.map((test) => {
+                const countdown = timeLeft[test._id];
+                const isDisabled = countdown !== "available";
+
+                return (
+                  <div key={test._id} className={styles.cardContainer}>
+                    <h1 className={styles.cardHeader}>{test["Test Name"]}</h1>
+                    <div className={styles.cardBody}>
+                      <div className={styles.content}>
+                        {test["Test Description"]}
+                      </div>
+
+                      <div className={styles.buttonContainer}>
+                        <Button
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() =>
+                            navigate(`/instructions?id=${test._id}`)
+                          }
+                          isLoading={!countdown}
+                        >
+                          {getButtonLabel(countdown)}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
     </>
   );
 };

@@ -11,7 +11,6 @@
   text-align: start;
   margin-bottom: 5px;
 }
-
 .input {
   padding: 8px;
   border: 1px solid #ccc;
@@ -21,15 +20,12 @@
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
-
 .input:focus.normalBorder {
   border-color: #3b82f6;
 }
-
 .errorBorder {
   border: 1px solid #ef4444;
 }
-
 .errorText {
   margin-top: 0.25rem;
   font-size: 0.875rem;

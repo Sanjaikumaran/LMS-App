@@ -8,7 +8,6 @@
   font-weight: bold;
   border: 1px solid #d1d1d1;
 }
-
 .createCourse button {
   background: linear-gradient(86.73deg, #3696e5 0.38%, #7424dc 98.88%);
   color: #ffffff;
@@ -19,11 +18,9 @@
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
-
 .createCourse button:hover {
   background-color: #e6e2e2;
 }
-
 /* Cards Layout */
 .cards {
   display: flex;
@@ -40,7 +37,6 @@
   border-radius: 4px;
   box-shadow: 0 2px 4px 0 #0000000f;
   cursor: pointer;
-
   width: 500px;
 }
 .card h1 {
@@ -64,7 +60,6 @@
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
-
 .buttonsContainer {
   display: flex;
   justify-content: center;

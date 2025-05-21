@@ -2,9 +2,11 @@ import React, { useEffect } from "react";
 import { CgProfile } from "react-icons/cg";
 import "../assets/styles/components.css";
 import { useUser } from "./context/userContext";
+import { useLocation } from "react-router-dom";
 
 const Navbar = (props) => {
-  const path = window.location.pathname.split("/").pop();
+  const location = useLocation();
+  const [path, setPath] = React.useState("");
   const { user } = useUser();
 
   const showProfile = (profileDetails) => {
@@ -27,6 +29,10 @@ const Navbar = (props) => {
     document.body.appendChild(profileContainer);
   };
 
+  useEffect(() => {
+    const currentPath = location.pathname.split("/").pop();
+    setPath(currentPath);
+  }, [location.pathname]);
   useEffect(() => {
     const bodyClick = (event) => {
       const profileExist = document.querySelector(".profile-container");
@@ -55,15 +61,40 @@ const Navbar = (props) => {
             <h1 style={{ margin: 0 }}>Quizzards</h1>
           </div>
           <div className="nav-links">
-           {path === 'admin' && (
-            <>
-              <span onClick={()=>props.setPage('course')}>Course</span>
-              <span  onClick={()=>props.setPage('tests')}>Tests</span>
-              <span  onClick={()=>props.setPage('Users')}>Users</span>
-              <span  onClick={()=>props.setPage('Questions')}>Questions</span>
+            {["home", "admin"].includes(path) && (
+              <>
+                <span
+                  className={props.page === "course" ? "active-nav" : ""}
+                  onClick={() => props.setPage("course")}
+                >
+                  Course
+                </span>
+                <span
+                  className={props.page === "tests" ? "active-nav" : ""}
+                  onClick={() => props.setPage("tests")}
+                >
+                  Tests
+                </span>
+              </>
+            )}
 
-            </>
-           )}
+            {path === "admin" && (
+              <>
+                <span
+                  className={props.page === "Users" ? "active-nav" : ""}
+                  onClick={() => props.setPage("Users")}
+                >
+                  Users
+                </span>
+                <span
+                  className={props.page === "Questions" ? "active-nav" : ""}
+                  onClick={() => props.setPage("Questions")}
+                >
+                  Questions
+                </span>
+              </>
+            )}
+
             <a
               target="_blank"
               rel="noopener noreferrer"

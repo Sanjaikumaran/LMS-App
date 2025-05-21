@@ -10,21 +10,17 @@
   justify-content: center;
   align-items: center;
    background: linear-gradient(86.73deg, #3696e5 0.38%, #7424dc 98.88%);
-
   color: white;
   border: none;
   border-radius: 6px;
   padding: 10px 20px;
-
   cursor: pointer;
   transition: background-color 0.3s ease;
   text-align: center;
 }
-
 .button:hover {
   background-color: var(--hover-btn-color);
 }
-
 .disabled {
   background-color: var(--disabled-btn-color);
   cursor: not-allowed !important;
@@ -41,7 +37,6 @@
   display: inline-block;
   vertical-align: middle;
 }
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -53,7 +48,6 @@
   display: inline-block;
   cursor: pointer;
 }
-
 .tooltip::after {
   content: attr(tooltip);
   position: absolute;
@@ -71,7 +65,6 @@
   transition: opacity 0.3s ease, visibility 0.3s ease;
   z-index: 10;
 }
-
 .tooltip:hover::after {
   opacity: 1;
   visibility: visible;

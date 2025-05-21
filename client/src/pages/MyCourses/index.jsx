@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import handleApiCall from "../../utils/handleAPI";
 
 import ModuleCard from "../../utils/ModuleCard";
 import styles from "./manageCourse.module.css";
+import Button from "../../utils/button";
 
 const ManageCourse = () => {
+  const navigate = useNavigate();
   const [courseData, setCourseData] = useState(null);
   const [modules, setModules] = useState([]);
   const [testData, setTestData] = useState(null);
@@ -87,15 +91,22 @@ const ManageCourse = () => {
         <div className={styles.courseInfo}>
           <h2>{testData ? testData["Test Name"] : "No Test Created Yet"}</h2>
           <p>
-            Start date:{" "}
+            Start date:
             {testData?.["Start Time"].split("T")[0].split("-").join("/")}
           </p>
           <p>
-            End date:{" "}
+            End date:
             {testData?.["End Time"].split("T")[0].split("-").join("/")}
           </p>
           <p>Duration: {testData?.Duration}</p>
           <p>Attempts Limit: {testData?.["Attempts Limit"]}</p>
+          {testData && (
+            <Button
+              onClick={() => navigate(`/instructions?id=${testData?._id}`)}
+            >
+              Goto Test
+            </Button>
+          )}
         </div>
       </aside>
       <main className={styles.moduleContent}>

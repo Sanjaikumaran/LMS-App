@@ -6,7 +6,6 @@
   align-items: center;
   gap: 20px;
 }
-
 .noQuizContainer {
   display: flex;
   flex-direction: column;
@@ -18,20 +17,17 @@
   font-family: Arial, sans-serif;
   padding: 20px;
 }
-
 .noQuizContainer h1 {
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 10px;
   color: #007bff;
 }
-
 .noQuizContainer p {
   font-size: 1.2rem;
   color: #555;
   margin: 0;
 }
-
 /* Module Card */
 .cards {
   display: flex;
@@ -40,7 +36,6 @@
   gap: 20px;
   justify-content: flex-start;
 }
-
 .cardContainer {
   margin-top: 20px;
   background-color: rgb(255, 255, 255);
@@ -53,19 +48,11 @@
   overflow: inherit;
   flex: 1 1 350px;
 }
-
 .cardHeader {
-  background-color: #007bff;
-  color: white;
   margin: 0;
-  border-radius: 8px 8px 0 0 !important;
-  min-height: 100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  padding: 30px;
+  border-bottom: 1px solid #e1e1e3;
 }
-
 .cardBody {
   background-color: rgb(255, 255, 255);
   border-radius: 10px;
@@ -73,6 +60,9 @@
   border-radius: 8px !important;
   max-height: 23 rem;
   overflow-y: auto;
+}
+.content {
+  min-height: 100px;
 }
 .imageContainer {
   justify-content: center;
@@ -85,21 +75,14 @@
   padding: 10px;
   display: flex;
   justify-content: center;
+  margin-top: 20px;
 }
-
 .createCourse {
   display: flex;
-  margin-top: 20px;
-
   align-items: center;
   justify-content: space-between;
-  background-color: #007bff;
-  color: white;
-  padding: 15px 20px;
+  padding: 15px;
   font-size: 1.5em;
   font-weight: bold;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   border: 1px solid #d1d1d1;
-  margin-bottom: 20px;
 }

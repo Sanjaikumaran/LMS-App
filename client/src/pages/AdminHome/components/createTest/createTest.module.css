@@ -8,7 +8,6 @@
   background: #080c2b99;
   z-index: 15;
 }
-
 /* Create Test Panel Container */
 .createTestContainer {
   display: flex;
@@ -20,7 +19,6 @@
   height: 100%;
   z-index: 20;
 }
-
 /* Panel Header */
 .createTestHeader {
   display: flex;
@@ -34,7 +32,6 @@
   padding: 16px;
   margin: 0;
 }
-
 /* Form Container */
 .createTestForm {
   margin: auto;
@@ -42,7 +39,6 @@
   max-width: 600px;
   padding: 0 20px 10px 20px;
 }
-
 /* Panel Style */
 .createTestPanel {
   position: relative;
@@ -52,7 +48,6 @@
   border-radius: 6px 0px 0px 6px;
   overflow-y: auto;
 }
-
 /* Selected Groups Display */
 .selectedGroups {
   display: flex;
@@ -61,7 +56,6 @@
   gap: 5px;
   margin-top: 10px;
 }
-
 .selectedGroup {
   background: linear-gradient(86.73deg, #3696e5 0.38%, #7424dc 98.88%);
   color: white;
@@ -70,23 +64,19 @@
   display: inline-flex;
   align-items: center;
 }
-
 .removeGroupButton {
   background: none;
   color: white;
   border: none;
   padding: 5px 5px;
-
   font-weight: bold;
   margin: 0 0 0 5px;
   cursor: pointer;
 }
-
 /* Group Dropdown */
 .groupSelector {
   position: relative;
 }
-
 .groupDropdown {
   position: absolute;
   top: 100%;
@@ -99,16 +89,13 @@
   background-color: white;
   z-index: 10;
 }
-
 .groupItem {
   padding: 8px;
   cursor: pointer;
 }
-
 .groupItem:hover {
   background-color: #f0f0f0;
 }
-
 /* File Input Style */
 .createTestForm input[type="file"]::file-selector-button {
   padding: 10px;
@@ -117,12 +104,10 @@
   border: none;
   background-color: #007bff;
 }
-
 .createTestForm input[type="file"] {
   padding: 0 !important;
   width: 100% !important;
 }
-
 /* Footer Button Layout */
 .buttonContainer {
   display: grid;
@@ -138,7 +123,6 @@
   border: 1px solid #e1e1e3;
   color: #080c2bd9;
 }
-
 .hitAiButton {
   position: relative;
   top: 18px;
