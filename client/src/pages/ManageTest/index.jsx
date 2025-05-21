@@ -748,7 +748,7 @@ const Test = () => {
                     paddingRight: "20px",
                   }}
                 >
-                  <h1>{testName} Instructions</h1>
+                  <h1>Instructions</h1>
                   <Button onClick={() => setActiveTab("editInstructions")}>
                     {instructions?.length ? "Edit" : "Add"}
                   </Button>

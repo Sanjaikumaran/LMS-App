@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useUser } from "../../utils/context/userContext";
@@ -22,6 +22,8 @@ const Quiz = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const switchCount = useRef(0);
+  const warned = useRef(false);
   const { isModalOpen, showModal, Modal, closeModal } = useModal();
 
   const queryParams = new URLSearchParams(location.search);
@@ -40,21 +42,87 @@ const Quiz = () => {
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
   const selectedOption = highlightedOptions[currentQuestionIndex] || [];
+
+  const enterFullscreen = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch((err) => {
+        console.error("Failed to enter fullscreen:", err);
+      });
+    }
+  };
+
   useEffect(() => {
-    const enterFullscreen = () => {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => {
-          console.warn("Fullscreen failed:", err);
-        });
-      } else if (elem.webkitRequestFullscreen) {
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        elem.msRequestFullscreen();
+    enterFullscreen();
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        showModal(
+          "Warning",
+          "Are you sure you want to leave the test? You will lose your progress.",
+          [
+            { label: "Cancel", shortcut: "Escape", onClick: enterFullscreen },
+            {
+              label: "Yes, exit",
+              shortcut: "Enter",
+              onClick: () => {
+                handleTestSubmit();
+                exitFullscreen();
+                navigate("/home");
+              },
+            },
+          ]
+        );
       }
     };
-    enterFullscreen(); 
-  }, []);
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        switchCount.current += 1;
+
+        if (switchCount.current === 1) {
+          showModal(
+            "Tab Switching Detected",
+            "You switched tabs or lost focus. Please do not do this again or the test will end.",
+            [{ label: "OK", shortcut: "Enter", onClick: enterFullscreen }]
+          );
+          warned.current = true;
+        } else if (switchCount.current >= 2) {
+          showModal(
+            "Disqualified",
+            "You have been disqualified for switching tabs multiple times.",
+            [
+              {
+                label: "OK",
+                shortcut: "Enter",
+                onClick: () => {
+                  handleTestSubmit();
+                  exitFullscreen();
+                  navigate("/home");
+                },
+              },
+            ]
+          );
+        }
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+    // eslint-disable-next-line
+  }, [navigate, showModal]);
+  const exitFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => {
+        console.error("Failed to exit fullscreen:", err);
+      });
+    }
+  };
   useEffect(() => {
     async function fetchTestData() {
       try {
@@ -176,7 +244,16 @@ const Quiz = () => {
       res.flag
         ? "Your test has been submitted!"
         : "Error submitting test. Please contact admin.",
-      [{ label: "Ok", shortcut: "Enter", onClick: () => navigate("/summary") }]
+      [
+        {
+          label: "Ok",
+          shortcut: "Enter",
+          onClick: () => {
+            exitFullscreen();
+            navigate("/summary");
+          },
+        },
+      ]
     );
   }, [
     highlightedOptions,
