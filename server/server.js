@@ -2,7 +2,11 @@ const cors = require("cors");
 const fs = require("fs");
 const express = require("express");
 const multer = require("multer");
-const connectToReplicaSet = require("./database");
+const {
+  connectToReplicaSet,
+  setupDb,
+  syncCollectionData,
+} = require("./database");
 require("dotenv").config();
 const path = require("path");
 
@@ -17,9 +21,32 @@ app.listen(5001);
 const args = process.argv.slice(2).map((arg) => arg.toLowerCase());
 let dbPreference = "Remote";
 
-if (args.includes("-local") || args.includes("-l")) dbPreference = "Local";
-else if (args.includes("-remote") || args.includes("-r"))
+async function syncAllCollections(from = "Remote", to = "Local") {
+  const source = await setupDb(from);
+  const target = await setupDb(to);
+
+  if (source.error || target.error) {
+    console.error("Failed to connect to one or both DBs");
+    return;
+  }
+
+  const collectionsToSync = ["Users", "Courses", "Questions", "Tests"];
+
+  for (const collection of collectionsToSync) {
+    const result = await syncCollectionData(source, target, collection);
+    console.log(`[${collection}] ${result.message}`);
+  }
+}
+
+if (args.includes("-local") || args.includes("-l")) {
+  dbPreference = "Local";
+} else if (args.includes("-remote") || args.includes("-r")) {
   dbPreference = "Remote";
+} else if (args.includes("-syncLocal") || args.includes("-sl")) {
+  syncAllCollections("Remote", "Local");
+} else if (args.includes("-syncRemote") || args.includes("-sr")) {
+  syncAllCollections("Local", "Remote");
+}
 
 async function getDbConnection() {
   return await connectToReplicaSet(dbPreference);

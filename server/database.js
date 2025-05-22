@@ -64,7 +64,40 @@ const setupDb = async (preferred = "Remote") => {
     return { error: err, message: "Error during DB setup" };
   }
 };
+async function syncCollectionData(sourceDb, targetDb, collectionName) {
+  try {
+    const sourceCollection = sourceDb.collection(collectionName);
+    const targetCollection = targetDb.collection(collectionName);
 
+    const sourceData = await sourceCollection.find({}).toArray();
+
+    if (!sourceData.length) {
+      return {
+        flag: false,
+        message: `No data found in source collection: ${collectionName}`,
+      };
+    }
+
+    // Clear the target collection before sync (optional)
+    await targetCollection.deleteMany({});
+
+    // Remove _id to avoid duplication errors during insert
+    const cleanData = sourceData.map(({ _id, ...doc }) => doc);
+
+    const result = await targetCollection.insertMany(cleanData);
+
+    if (result.acknowledged) {
+      return {
+        flag: true,
+        message: `Synced ${result.insertedCount} documents to ${collectionName}`,
+      };
+    } else {
+      return { flag: false, message: "Insert operation failed" };
+    }
+  } catch (err) {
+    return { flag: false, message: err.message };
+  }
+}
 async function connectToReplicaSet(preferred = "Remote") {
   const db = await setupDb(preferred);
   if (!db || db.error) {
@@ -271,4 +304,6 @@ async function connectToReplicaSet(preferred = "Remote") {
   };
 }
 
-module.exports = connectToReplicaSet;
+module.exports.connectToReplicaSet = connectToReplicaSet;
+module.exports.setupDb = setupDb;
+module.exports.syncCollectionData = syncCollectionData;
