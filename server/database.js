@@ -78,13 +78,10 @@ async function syncCollectionData(sourceDb, targetDb, collectionName) {
       };
     }
 
-    // Clear the target collection before sync (optional)
+
     await targetCollection.deleteMany({});
 
-    // Remove _id to avoid duplication errors during insert
-    const cleanData = sourceData.map(({ _id, ...doc }) => doc);
-
-    const result = await targetCollection.insertMany(cleanData);
+    const result = await targetCollection.insertMany(sourceData);
 
     if (result.acknowledged) {
       return {

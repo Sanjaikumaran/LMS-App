@@ -44,8 +44,10 @@ if (args.includes("-local") || args.includes("-l")) {
   dbPreference = "Remote";
 } else if (args.includes("-syncLocal") || args.includes("-sl")) {
   syncAllCollections("Remote", "Local");
+
 } else if (args.includes("-syncRemote") || args.includes("-sr")) {
-  syncAllCollections("Local", "Remote");
+  syncAllCollections("Local", "Remote")
+
 }
 
 async function getDbConnection() {
