@@ -124,10 +124,10 @@ const Signin = () => {
         <section className={styles.sideImg}>
           <div class="quote_box">
             <div class="l-h" id="author_text">
-              "We are changing the world with Technology"
+           “Learning gives creativity, creativity leads to thinking, thinking provides knowledge, and knowledge makes you great.”
             </div>
             <h3 class="m-v-sm f-s-14 t-r">
-              - <b id="author_name">Bill Gates</b>
+              - <b id="author_name">Dr. APJ Abdul Kalam</b>
             </h3>
           </div>
         </section>

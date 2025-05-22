@@ -17,15 +17,28 @@ const Navbar = (props) => {
 
     const profileContainer = document.createElement("div");
     profileContainer.className = "profile-container";
-    const profileInfo = document.createElement("div");
+
+    const profileInfo = document.createElement("ul");
     profileInfo.className = "profile-info";
-    Object.keys(user).map(async (detail) => {
+
+    Object.keys(profileDetails).forEach((detail) => {
       const detailList = document.createElement("li");
-      detailList.classList = "detail";
-      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span> ${user[detail]}</span></p>`;
+      detailList.className = "detail";
+      detailList.innerHTML = `<p><span>${detail}:</span>&nbsp;<span>${profileDetails[detail]}</span></p>`;
       profileInfo.appendChild(detailList);
     });
+
+    const logoutButton = document.createElement("button");
+    logoutButton.innerText = "Log Out";
+    logoutButton.className = "logout-btn";
+    logoutButton.onclick = () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
+    };
+
     profileContainer.appendChild(profileInfo);
+    profileContainer.appendChild(logoutButton);
     document.body.appendChild(profileContainer);
   };
 
@@ -105,7 +118,17 @@ const Navbar = (props) => {
             {!props.showProfile && (
               <li
                 onClick={() => {
-                  showProfile(props.userData);
+                  showProfile(
+                    props.userData ||
+                      Object.fromEntries(
+                        Object.entries(user).filter(
+                          ([key]) =>
+                            !["_id", "userType", "Password", "userId"].includes(
+                              key
+                            )
+                        )
+                      )
+                  );
                 }}
                 className="show-profile"
               >

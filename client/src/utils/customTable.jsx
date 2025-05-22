@@ -172,38 +172,85 @@ const DataTableManagement = (props) => {
   };
 
   const addNew = () => {
+    const page = localStorage.getItem("page");
     inputsRef.current = {};
+    let errors = {};
+
     const fields = tableColumns.filter(
-      (col) => col !== "_id" && col !== "userType"
+      (col) =>
+        col !== "_id" &&
+        col !== "userType" &&
+        col !== "Password" &&
+        (page === "Questions" || col !== "Group")
     );
 
     const elements = fields.map((col) => (
       <Input
         key={col}
+        onChange={(value) => {
+          inputsRef.current[col] = value;
+        }}
         placeholder={col}
+        error={errors[col]}
         className={col}
-        ref={(el) => (inputsRef.current[col] = el)}
       />
     ));
 
     setModalProps({
-      headingText: "Add New User",
+      headingText: "Add New " + page,
       elements,
       saveCallback: (closeModal) => async () => {
         const newData = Object.fromEntries(
-          tableColumns.map((col) => [col, inputsRef.current[col]?.value || ""])
+          fields.map((col) => [col, inputsRef.current[col] || ""])
         );
+
+        if (page === "Users") {
+          newData["Group"] = newData["Department"] || "";
+          newData["userType"] = "Student";
+          newData["Password"] = "123";
+        }
+
+        let hasErrors = false;
+        Object.keys(newData).forEach((key) => {
+          if (newData[key] === "") {
+            errors[key] = "Field is required";
+            hasErrors = true;
+          } else {
+            errors[key] = "";
+          }
+        });
+
+        if (hasErrors) {
+          closeModal();
+
+          showModal("Error", "Please fill all the fields!", [
+            {
+              label: "Ok",
+              shortcut: "Enter",
+              onclick: () => {
+                closeModal();
+              },
+            },
+          ]);
+          return;
+        }
+
         try {
           const response = await handleApiCall({
             API: "insert-data",
             data: { data: newData, collection: props.collectionName },
           });
+
           if (response.flag) {
+                  closeModal();
+
             showModal("Info", "Data Inserted successfully!", [
               {
                 label: "Ok",
                 shortcut: "Enter",
-                onclick: () => setTableData((prev) => [...prev, newData]),
+                onclick: () => {
+                  setTableData((prev) => [...prev, newData]);
+                },
               },
             ]);
           } else {
@@ -212,7 +259,6 @@ const DataTableManagement = (props) => {
         } catch (err) {
           showRetryModal("Error", err.message, addNew);
         }
-        closeModal();
       },
       onClose: () => setModalProps(null),
     });
