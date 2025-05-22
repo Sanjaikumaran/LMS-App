@@ -61,7 +61,7 @@ const Admin = ({ page }) => {
       fetchCourseData();
       fetchTestData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id, user?.userId]);
   const deleteItem = async (id, collection, refetchFunc) => {
     showModal("Confirm", "Are you sure you want to delete?", [
@@ -209,7 +209,7 @@ const Admin = ({ page }) => {
           <div style={{ padding: "0 20px" }}>
             <DataTableManagement
               tablePageName={page}
-              API={page === "Upload-data"}
+              API={"Upload-data"}
               collectionName={page}
             />
           </div>

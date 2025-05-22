@@ -82,7 +82,7 @@ const DataTableSection = ({ columns, data, onRowSelected, isSelectable }) => {
         // striped
         fixedHeader
         responsive
-        fixedHeaderScrollHeight="80vh"
+        fixedHeaderScrollHeight="70vh"
         defaultSortFieldId={1}
         customStyles={customStyles}
         selectableRows={isSelectable}
@@ -242,7 +242,7 @@ const DataTableManagement = (props) => {
           });
 
           if (response.flag) {
-                  closeModal();
+            closeModal();
 
             showModal("Info", "Data Inserted successfully!", [
               {

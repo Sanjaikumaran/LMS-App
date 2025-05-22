@@ -6,11 +6,10 @@ import { generateDescription } from "../../utils/AIHelper";
 import FileUpload from "../../utils/fileUpload";
 import { DataTableSection } from "../../utils/customTable";
 import useModal from "../../utils/useModal";
-import ModuleCard from "../../utils/ModuleCard";
+
 import Input from "../../utils/input";
 import Button from "../../utils/button";
 import Dropdown from "../../utils/select";
-import CreateTest from "../AdminHome/components/createTest";
 
 import styles from "./manage.module.css";
 // import "../../assets/styles/Test.css";
@@ -31,7 +30,7 @@ const Test = () => {
     attempts: "",
     selectedUsersGroups: [],
     selectedQuestionsGroups: [],
-    instructions: [],
+    instructions: [""],
   });
   const [groupData, setGroupData] = useState({
     allUsersGroups: [],
@@ -112,7 +111,7 @@ const Test = () => {
         selectedQuestionsGroups: data["Questions Group"],
         instructions: data["Instructions"],
       });
-      setInstruction(data["Instructions"]);
+      setInstruction(data["Instructions"] || [""]);
       setTestId(data._id);
       console.log(data["Test Results"]);
 
@@ -123,10 +122,10 @@ const Test = () => {
     }
   };
   useEffect(() => {
-    if (id) {
+    if (id || courseId) {
       fetchTest();
     }
-  }, [id]);
+  }, [id, courseId]);
 
   useEffect(() => {
     const loadData = async () => {

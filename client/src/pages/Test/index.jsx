@@ -243,6 +243,7 @@ const Quiz = () => {
           const shuffled = filtered.sort(() => Math.random() - 0.5);
           setQuestions(shuffled);
           setSelectedOptions(Array(shuffled.length).fill("not-answered"));
+          setHighlightedOptions(Array(shuffled.length).fill("not-answered"));
         }
       } catch (err) {
         console.log(`[Test] --> ${err.message}`);
@@ -390,7 +391,11 @@ const Quiz = () => {
     if (type === "paragraphs") {
       updated[currentQuestionIndex] = value;
     } else {
-      updated[currentQuestionIndex] = updated[currentQuestionIndex] || [];
+      updated[currentQuestionIndex] = Array.isArray(
+        updated[currentQuestionIndex]
+      )
+        ? updated[currentQuestionIndex]
+        : [];
       updated[currentQuestionIndex][index] = value;
     }
     setHighlightedOptions(updated);

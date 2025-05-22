@@ -94,14 +94,16 @@ const fileUpload = (
       if (response.flag) {
         submitCallback && submitCallback(groupName);
         fetchCallback();
-        showModal("Info", "Data Uploaded Successfully!", {
-          label: "Ok",
-          shortcut: "Enter",
-          onclick: () => {
-            fileInput.value = "";
-            closeModal();
+        showModal("Info", "Data Uploaded Successfully!", [
+          {
+            label: "Ok",
+            shortcut: "Enter",
+            onclick: () => {
+              fileInput.value = "";
+              closeModal();
+            },
           },
-        });
+        ]);
       } else {
         showModal("Error", response.error, [
           { label: "Retry", shortcut: "Enter", onclick: retryUpload },
@@ -176,21 +178,26 @@ const fileUpload = (
     }
 
     if (apiEndpoint === "Upload-question") {
-      showModal("Enter Question Group Name", <Input id="groupName" />, [
-        {
-          label: "Ok",
-          shortcut: "Enter",
-          onclick: () => {
-            groupName = document.getElementById("groupName").value.trim();
-            insertData = insertData.map((q) => ({
-              ...q,
-              Group: groupName,
-            }));
-            handleUpload(insertData);
+      showModal(
+        "Enter Question Group Name",
+        <Input id="groupName" onChange={(val) => {}} />,
+        [
+          {
+            label: "Ok",
+            shortcut: "Enter",
+            onClick: () => {
+              groupName = document.getElementById("groupName").value.trim();
+
+              insertData = insertData.map((q) => ({
+                ...q,
+                Group: groupName,
+              }));
+              handleUpload(insertData);
+            },
           },
-        },
-        { label: "Cancel", shortcut: "Escape", onclick: closeModal },
-      ]);
+          { label: "Cancel", shortcut: "Escape", onclick: closeModal },
+        ]
+      );
     } else {
       handleUpload(insertData);
     }
