@@ -91,7 +91,7 @@ const App = () => {
           <Route
             path="/summary"
             element={
-              <ProtectedRoute allowedRoles={["Student"]}>
+              <ProtectedRoute allowedRoles={["Student", "Admin"]}>
                 <>
                   <ChangeTitle title="Summary" />
                   <TestSummary />

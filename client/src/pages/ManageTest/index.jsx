@@ -183,7 +183,7 @@ const Test = () => {
             (item) => item && item._id === testItem.UserID
           );
 
-          delete testItem["UserID"];
+          
           if (matchedItem) {
             testItem.Answer = JSON.parse(testItem.Answer);
 
@@ -212,6 +212,19 @@ const Test = () => {
               "Answered Questions": answeredQuestions || 0,
               Skipped: skipped || 0,
               "Not Answered": notAnswered || 0,
+              "Score": testItem.Score,
+              "View Summary": (
+                <Button
+                className={styles.viewSummary}
+                  onClick={() => {
+                    localStorage.setItem("page", "tests");
+                    navigate(`/summary?id=${testId}&userId=${testItem.UserID}`);
+                  }}
+                >
+                  View
+                </Button>
+              ),
+              // "Remarks": JSON.parse(testItem.Summary)["Overall Comments"],
               // ...testItem,
               // answersObj: answers,
               // Answers: showAnswers(index),

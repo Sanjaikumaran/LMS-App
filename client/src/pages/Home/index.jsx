@@ -181,6 +181,16 @@ const AssignedQuiz = ({ page }) => {
                         >
                           {getButtonLabel(countdown)}
                         </Button>
+                         <Button
+                          type="button"
+                         
+                          onClick={() =>
+                            navigate(`/summary?id=${test._id}`)
+                          }
+                          isLoading={!countdown}
+                        >
+                        Test Summary
+                        </Button>
                       </div>
                     </div>
                   </div>

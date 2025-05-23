@@ -8,7 +8,10 @@ const Navbar = (props) => {
   const location = useLocation();
   const [path, setPath] = React.useState("");
   const { user } = useUser();
-
+  const setPage = (page) => {
+    props.setPage(page);
+    localStorage.setItem("page", page);
+  };
   const showProfile = (profileDetails) => {
     const isExist = document.querySelector(".profile-container");
     if (isExist) {
@@ -45,7 +48,12 @@ const Navbar = (props) => {
   useEffect(() => {
     const currentPath = location.pathname.split("/").pop();
     setPath(currentPath);
-  }, [location.pathname]);
+    if (currentPath === "home") {
+      if (!["course", "tests"].includes(props.page)) {
+        setPage("course");
+      }
+    }
+  }, [location.pathname, props.page]);
   useEffect(() => {
     const bodyClick = (event) => {
       const profileExist = document.querySelector(".profile-container");
@@ -78,13 +86,13 @@ const Navbar = (props) => {
               <>
                 <span
                   className={props.page === "course" ? "active-nav" : ""}
-                  onClick={() => props.setPage("course")}
+                  onClick={() => setPage("course")}
                 >
                   Course
                 </span>
                 <span
                   className={props.page === "tests" ? "active-nav" : ""}
-                  onClick={() => props.setPage("tests")}
+                  onClick={() => setPage("tests")}
                 >
                   Tests
                 </span>
@@ -95,13 +103,13 @@ const Navbar = (props) => {
               <>
                 <span
                   className={props.page === "Users" ? "active-nav" : ""}
-                  onClick={() => props.setPage("Users")}
+                  onClick={() => setPage("Users")}
                 >
                   Users
                 </span>
                 <span
                   className={props.page === "Questions" ? "active-nav" : ""}
-                  onClick={() => props.setPage("Questions")}
+                  onClick={() => setPage("Questions")}
                 >
                   Questions
                 </span>

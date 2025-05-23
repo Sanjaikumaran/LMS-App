@@ -124,5 +124,88 @@ Generate 10 short and precise questions related to the title.
     console.log(error);
   }
 };
+const generateTestSummary = async (title, data) => {
+  try {
+    const response = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "user",
+            content: `Test Title: ${title}  
+Test Data: ${JSON.stringify(data)}
 
-export { generateDescription, generateQuestions };
+Using the provided test title and data, generate a comprehensive, structured, and professional summary of the test performance. Your summary must include the following components:
+
+1. **Total Number of Questions**  
+2. **Number of Correct Answers**  
+3. **Number of Incorrect Answers**  
+4. **Number of Skipped Questions**  
+5. **Number of Unanswered Questions**  
+6. **Overall Score** – Represented as a percentage out of 100%.  
+7. **Score Rationale** – Clearly explain how the score was determined, including how partial credits were calculated for near-correct answers.  
+8. **Suggestions for Improvement** – Provide specific, actionable, and encouraging feedback for future enhancement in understanding and performance.  
+
+**Additional Requirements:**
+
+- Award **partial credit** where applicable and explain the reasoning clearly (minimum of 5 words per explanation).  
+- Replace references to "the user" with **"Your"** to make the summary direct and personalized.  
+- Maintain a **constructive, balanced, and encouraging tone** that promotes growth and learning.  
+- Ensure the summary is **easy to read**, well-structured, and professional in presentation.
+
+**Response Format ):**
+
+{
+  "Total Questions": int,
+  "Correct Answers": int,
+  "Incorrect Answers": int,
+  "Skipped Questions": int,
+  "Unanswered Questions": int,
+  "Score": int,
+  "Scoring Details": [
+    {
+      "Question 1": ["<Question Text>", "<Scoring Explanation - minimum 5 words>"]
+    },
+    {
+      "Question 2": ["<Question Text>", "<Scoring Explanation - minimum 5 words>"]
+    }
+    ...
+  ],
+  "Details": [
+    {
+      "Question 1": ["<Question Text>", "<Explanation of the given answer>", "<Targeted Suggestion for Improvement>"]
+    },
+    {
+      "Question 2": ["<Question Text>", "<Explanation>", "<Suggestion>"]
+    }
+    ...
+  ],
+  "Overall Comments": "<Encouraging, well-rounded final feedback reflecting both strengths and areas for improvement>"
+}
+`,
+          },
+        ],
+      },
+
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.REACT_APP_GROQ_API_KEY}`,
+        },
+      }
+    );
+    console.log(
+      "AI Summary",
+      JSON.parse(response.data.choices[0].message.content)
+    );
+    if (response.status === 200) {
+      const content = response.data.choices[0].message.content.trim();
+      return JSON.parse(content);
+    }
+    return "Failed to generate questions.";
+  } catch (error) {
+    console.log(error);
+  }
+};
+export { generateDescription, generateQuestions, generateTestSummary };

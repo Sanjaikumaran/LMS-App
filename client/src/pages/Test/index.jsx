@@ -10,7 +10,7 @@ import handleApiCall from "../../utils/handleAPI";
 import Button from "../../utils/button";
 import Input from "../../utils/input";
 import ModuleCard from "../../utils/ModuleCard";
-
+import { generateTestSummary } from "../../utils/AIHelper";
 import styles from "./test.module.css";
 
 const radius = 50;
@@ -37,6 +37,7 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(1);
   const [endTime, setEndTime] = useState("");
   const [isAutoSubmit, setIsAutoSubmit] = useState(false);
+  const [title, setTitle] = useState("");
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
@@ -203,10 +204,12 @@ const Quiz = () => {
         });
         if (res.flag) {
           const {
+            "Test Name": title,
             "End Time": end,
             "Questions Group": group,
             Duration,
           } = res.data.data[0];
+          setTitle(title);
           setEndTime(end);
           setQuestionsGroup(group);
           const [h, m, s] = Duration.split(":").map(Number);
@@ -234,6 +237,7 @@ const Quiz = () => {
             const { _id, Answer, ...rest } = q;
             return {
               ...rest,
+              Answer,
               type: Answer.length > 1 ? "checkbox" : "radio",
             };
           });
@@ -255,40 +259,21 @@ const Quiz = () => {
   const handleTestSubmit = useCallback(async () => {
     setSelectedOptions(highlightedOptions);
 
-    const summary = {
-      score: 0,
-      totalQuestions,
-      answered: 0,
-      notAnswered: 0,
-      skipped: 0,
-    };
+    const userAnswers = selectedOptions.map((ans, idx) => ({
+      Question: questions[idx].Question,
+      Options: questions[idx].Option,
+      Correct: questions[idx].Answer,
+      "User Answer": ans,
+    }));
+    showModal("Info", "Submitting your test...", [
+      { label: "Ok", shortcut: "Enter", onClick: closeModal },
+    ]);
+    const summary = await generateTestSummary(title, userAnswers);
 
-    const correctAnswers = questions.map((q) =>
-      q.Answer?.length === 1 ? q.Answer[0] : q.Answer
+    localStorage.setItem(
+      String(id) + "summary",
+      JSON.stringify({ ...summary, "Test Name": title })
     );
-
-    selectedOptions.forEach((userAns, index) => {
-      const correct = correctAnswers[index];
-
-      if (userAns === "skipped") summary.skipped++;
-      else if (userAns === "not-answered") summary.notAnswered++;
-      else {
-        summary.answered++;
-        if (Array.isArray(correct)) {
-          if (
-            Array.isArray(userAns) &&
-            correct.length === userAns.length &&
-            correct.every((ans) => userAns.includes(ans))
-          ) {
-            summary.score++;
-          }
-        } else if (correct === userAns) {
-          summary.score++;
-        }
-      }
-    });
-
-    localStorage.setItem("summary", JSON.stringify(summary));
 
     const answerList = selectedOptions.map((ans, idx) => ({
       [questions[idx].Question]: ans,
@@ -305,37 +290,41 @@ const Quiz = () => {
           "Test Results": {
             UserID: user.userId || user._id,
             Answer: JSON.stringify(answerList),
-            Score: summary.score,
+            Score: summary.Score,
+            Summary: JSON.stringify(summary),
           },
         },
       },
     });
-
-    showModal(
-      res.flag ? "Info" : "Error",
-      res.flag
-        ? "Your test has been submitted!"
-        : "Error submitting test. Please contact admin.",
-      [
-        {
-          label: "Ok",
-          shortcut: "Enter",
-          onClick: () => {
-            exitFullscreen();
-            navigate("/summary");
+    if (res.flag) {
+      closeModal();
+      showModal(
+        res.flag ? "Info" : "Error",
+        res.flag
+          ? "Your test has been submitted!"
+          : "Error submitting test. Please contact admin.",
+        [
+          {
+            label: "Ok",
+            shortcut: "Enter",
+            onClick: () => {
+              exitFullscreen();
+              navigate("/summary?id=" + id);
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   }, [
     highlightedOptions,
-    totalQuestions,
-    questions,
     selectedOptions,
+    showModal,
+    closeModal,
+    title,
     id,
     user.userId,
     user._id,
-    showModal,
+    questions,
     navigate,
   ]);
 
@@ -379,7 +368,6 @@ const Quiz = () => {
         shortcut: "Enter",
         onClick: () => {
           handleTestSubmit();
-          closeModal();
         },
       },
       { label: "No", shortcut: "Escape", onClick: closeModal },
@@ -474,7 +462,6 @@ const Quiz = () => {
         {/* Test Panel */}
         <div className={styles.testApp}>
           <div>
-            {" "}
             <h1 className={styles.questionSectionHeader}>
               {currentQuestion?.Question.includes("____")
                 ? renderBlanks(currentQuestion)

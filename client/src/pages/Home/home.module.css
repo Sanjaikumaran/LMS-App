@@ -2,8 +2,6 @@
 .assignedQuizContainer {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
   padding: 20px;
   gap: 20px;
 }
@@ -38,16 +36,14 @@
   justify-content: flex-start;
 }
 .cardContainer {
-  margin-top: 20px;
-  background-color: rgb(255, 255, 255);
-  border-radius: 10px;
-  min-width: 200px;
-  min-height: 380px;
-  max-width: 480px;
-  box-shadow: 0 4px 15px #00000029;
-  border: 1px solid #d1d1d1;
-  overflow: inherit;
-  flex: 1 1 350px;
+  display: flex;
+  flex-direction: column;
+  width: 500px;
+  border: 1px solid #ebecee;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px 0 #0000000f;
+  cursor: pointer;
+  width: 500px;
 }
 .cardHeader {
   margin: 0;
@@ -75,6 +71,7 @@
 .buttonContainer {
   padding: 10px;
   display: flex;
+  gap: 10px;
   justify-content: center;
   margin-top: 20px;
 }
