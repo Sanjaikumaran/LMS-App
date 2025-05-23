@@ -72,7 +72,7 @@ const Signin = () => {
 
   return (
     <>
-      <mian className={styles.loginPage}>
+      <div className={styles.loginPage}>
         <div className={styles.loginContainer}>
           <h1 className={styles.loginHeader}>Login</h1>
           <div className={styles.loginForm}>
@@ -122,16 +122,17 @@ const Signin = () => {
           </div>
         </div>
         <section className={styles.sideImg}>
-          <div class="quote_box">
-            <div class="l-h" id="author_text">
-           “Learning gives creativity, creativity leads to thinking, thinking provides knowledge, and knowledge makes you great.”
+          <div className="quote_box">
+            <div className="l-h" id="author_text">
+              “Learning gives creativity, creativity leads to thinking, thinking
+              provides knowledge, and knowledge makes you great.”
             </div>
-            <h3 class="m-v-sm f-s-14 t-r">
+            <h3 className="m-v-sm f-s-14 t-r">
               - <b id="author_name">Dr. APJ Abdul Kalam</b>
             </h3>
           </div>
         </section>
-      </mian>
+      </div>
 
       <Modal />
     </>

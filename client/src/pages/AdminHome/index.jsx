@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 
 import Button from "../../utils/button";
 import useModal from "../../utils/useModal";
+import ModulCard from "../../utils/ModuleCard";
 import styles from "./admin.module.css";
 import { useUser } from "../../utils/context/userContext";
 import handleApiCall from "../../utils/handleAPI";
 import CreateCourse from "./components/createCourse";
 import CreateTest from "./components/createTest";
 import { DataTableManagement } from "../../utils/customTable";
+import { generateQuestions } from "../../utils/AIHelper";
+import Dropdown from "../../utils/select";
+import Input from "../../utils/input";
 const Admin = ({ page }) => {
   localStorage.setItem("page", page);
   const { Modal, showModal, closeModal } = useModal();
@@ -18,6 +22,11 @@ const Admin = ({ page }) => {
   const [courses, setCourses] = useState([]);
   const [tests, setTests] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState("");
+  const [showQuestionModal, setShowQuestionModal] = useState("");
+  const [selectedTitle, setSelectedTitle] = useState("");
+  const [aiQuestions, setAiQuestions] = useState([]);
+  const [questionGroup, setQuestionGroup] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const fetchTestData = async () => {
     try {
       const response = await handleApiCall({
@@ -88,7 +97,65 @@ const Admin = ({ page }) => {
       },
     ]);
   };
+  const triggerQuestionModal = async (title) => {
+    const questoins = await generateQuestions(title);
 
+    setSelectedTitle("");
+    setAiQuestions(questoins);
+    setIsLoading(false);
+    setShowQuestionModal("aiQuestions");
+  };
+
+  const insertQuestions = async (group, questions) => {
+    if (group.trim() === "") {
+      setShowQuestionModal("");
+      showModal("Error", "Group is required", [
+        {
+          label: "Ok",
+          shortcut: "Enter",
+          onClick: () => {
+            closeModal();
+            setShowQuestionModal("aiQuestions");
+          },
+        },
+      ]);
+      return;
+    }
+    const dataToInsert = questions.map((question) => {
+      return {
+        Question: question.Question,
+        Option: question.Options,
+        Answer: question.Answer,
+        Group: group,
+      };
+    });
+    console.log(dataToInsert);
+    try {
+      const { flag } = await handleApiCall({
+        API: "insert-data",
+        data: { collection: "Questions", data: dataToInsert },
+      });
+      showModal(
+        flag ? "Success" : "Error",
+        flag ? "Questions Added Successfully" : "Questions not Added",
+        [
+          {
+            label: "Ok",
+            shortcut: "Enter",
+            onClick: ()=>{
+               window.location.reload();
+              closeModal();
+              setShowQuestionModal(null);
+            },
+          },
+        ]
+      );
+    } catch (err) {
+      showModal("Uncaught Error", err.message, [
+        { label: "Ok", shortcut: "Enter", onClick: closeModal },
+      ]);
+    }
+  };
   return (
     <>
       {showCreateModal === "course" ? (
@@ -215,9 +282,14 @@ const Admin = ({ page }) => {
           </div>
         </>
       )}
-      {page === "Questions" && (
+      {(page === "Questions" || showQuestionModal === null) && (
         <>
-          <div className={styles.createCourse}>All {page}</div>
+          <div className={styles.createCourse}>
+            All {page}
+            <Button onClick={() => setShowQuestionModal("selectTitle")}>
+              Generate Questions
+            </Button>
+          </div>
 
           <div style={{ padding: "0 20px" }}>
             <DataTableManagement
@@ -227,6 +299,148 @@ const Admin = ({ page }) => {
             />
           </div>
         </>
+      )}
+      {showQuestionModal === "selectTitle" ? (
+        <>
+          <div className={styles.scrim}></div>
+          <div className={styles.questionModal}>
+            <ModulCard header="Select Title">
+              <div className={styles.questionModalBody}>
+                <div>Select the course or test to generate questions for.</div>
+                <br />
+                <Dropdown
+                  value={selectedTitle}
+                  placeHolder={"Select Title"}
+                  options={[
+                    ...courses.map((course) => course["Course Title"]),
+                    ...tests.map((test) => test["Test Name"]),
+                  ]}
+                  onSelect={(value) => {
+                    setSelectedTitle(value);
+                  }}
+                />
+                <div className={styles.buttonContainer}>
+                  <Button
+                    onClick={() => {
+                      setShowQuestionModal("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      triggerQuestionModal(selectedTitle);
+                      setIsLoading(true);
+                    }}
+                    isLoading={isLoading}
+                  >
+                    Generate Questions
+                  </Button>
+                </div>
+              </div>
+            </ModulCard>
+          </div>
+        </>
+      ) : showQuestionModal === "aiQuestions" ? (
+        <>
+          <div className={styles.scrim}></div>
+
+          <div className={styles.questionModal}>
+            <div>
+              <h1 className={styles.questionModalHeader}>Create Test</h1>
+              <div
+                className={styles.questionModalBody}
+                style={{ width: "70vh", height: "70vh" }}
+              >
+                {aiQuestions.length > 0 &&
+                  aiQuestions.map((question, index) => (
+                    <div key={index} className={styles.questionContainer}>
+                      <Input
+                        label={"Question " + (index + 1)}
+                        value={question.Question}
+                        onChange={(value) => {
+                          const newQuestions = [...aiQuestions];
+                          newQuestions[index] = {
+                            ...newQuestions[index],
+                            Question: value,
+                          };
+                          setAiQuestions(newQuestions);
+                        }}
+                      />
+                      <div className={styles.questionHelpers}>
+                        <div className={styles.questionOptions}>
+                          <p>Options</p>
+                          {question.Options.map((option, i) => (
+                            <Input
+                              key={i}
+                              value={option}
+                              disabled={["None", "Paragraph"].includes(option)}
+                              onChange={(value) => {
+                                const newQuestions = [...aiQuestions];
+                                const updatedOptions = [
+                                  ...newQuestions[index].Options,
+                                ];
+                                updatedOptions[i] = value;
+                                newQuestions[index].Options = updatedOptions;
+                                setAiQuestions(newQuestions);
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div className={styles.questionAnswers}>
+                          <p>Answers</p>
+                          {question.Answer.map((answer, i) => (
+                            <Input
+                              key={i}
+                              disabled={answer === "Paragraph"}
+                              value={answer}
+                              onChange={(value) => {
+                                const newQuestions = [...aiQuestions];
+                                const updatedAnswers = [
+                                  ...newQuestions[index].Answer,
+                                ];
+                                updatedAnswers[i] = value;
+                                newQuestions[index].Answer = updatedAnswers;
+                                setAiQuestions(newQuestions);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+              <div className={styles.footer}>
+                {" "}
+                <Input
+                  label={"Enter Question Group"}
+                  value={questionGroup}
+                  onChange={(value) => {
+                    setQuestionGroup(value);
+                  }}
+                />
+                <div className={styles.buttonContainer}>
+                  <Button
+                    onClick={() => {
+                      setShowQuestionModal("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      insertQuestions(questionGroup, aiQuestions);
+                    }}
+                  >
+                    Add Questions
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <></>
       )}
 
       <Modal />

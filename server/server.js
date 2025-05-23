@@ -44,10 +44,8 @@ if (args.includes("-local") || args.includes("-l")) {
   dbPreference = "Remote";
 } else if (args.includes("-syncLocal") || args.includes("-sl")) {
   syncAllCollections("Remote", "Local");
-
 } else if (args.includes("-syncRemote") || args.includes("-sr")) {
-  syncAllCollections("Local", "Remote")
-
+  syncAllCollections("Local", "Remote");
 }
 
 async function getDbConnection() {
@@ -206,16 +204,28 @@ app.post("/delete-data", async (req, res) => {
 });
 app.post("/insert-data", async (req, res) => {
   const { data, collection } = req.body.data;
-  try {
+  if (Array.isArray(data) && data.length > 1) {
     const dbConnection = await getDbConnection();
-    const result = await dbConnection.insertDocument(collection, data);
+    const result = await dbConnection.insertData(collection, data);
     if (result.flag) {
       res.status(200).json({ flag: true, message: result.message });
     } else {
       res.status(500).json({ flag: false, message: result.message });
     }
-  } catch (error) {
-    res.status(500).json({ flag: false, message: "Database connection error" });
+  } else {
+    try {
+      const dbConnection = await getDbConnection();
+      const result = await dbConnection.insertDocument(collection, data);
+      if (result.flag) {
+        res.status(200).json({ flag: true, message: result.message });
+      } else {
+        res.status(500).json({ flag: false, message: result.message });
+      }
+    } catch (error) {
+      res
+        .status(500)
+        .json({ flag: false, message: "Database connection error" });
+    }
   }
 });
 app.post("/find-data", async (req, res) => {

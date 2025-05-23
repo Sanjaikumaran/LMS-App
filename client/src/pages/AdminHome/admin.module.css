@@ -65,3 +65,75 @@
   justify-content: center;
   gap: 10px;
 }
+.scrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #080c2b99;
+  z-index: 15;
+}
+.questionModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  font-size: 1.5em;
+  font-weight: bold;
+  border-bottom: 1px solid #e1e1e3;
+  margin: 0;
+  padding: 16px;
+}
+.questionModal {
+  position: fixed;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  z-index: 16;
+}
+.questionModalBody {
+  padding: 20px;
+  max-height: 70%;
+  background-color: #ffffff;
+  min-height: 210px;
+  overflow: auto;
+}
+
+.buttonContainer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+  position: sticky;
+}
+.footer{
+  padding: 20px;
+  background-color: #ffffff;
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid #e1e1e3;
+}
+.questionContainer {
+  margin-top: 20px;
+}
+.questionHelpers {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin-top: 10px;
+}
+.questionOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.questionAnswers {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
