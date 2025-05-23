@@ -108,7 +108,7 @@ const AssignedQuiz = ({ page }) => {
 
   return (
     <>
-      {page === "course" && (
+      {(page === "course" || page !=='tests') && (
         <>
           <div className={styles.createCourse}>My Courses</div>
           <div className={styles.assignedQuizContainer}>
