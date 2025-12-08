@@ -4,7 +4,7 @@ const handleApiCall = async (props) => {
   const { API, data, APIURL, host, port, method = "POST" } = props;
   const hostname = new URL(window.location.href).hostname;
   const finalURL =
-    APIURL || `http://${host || hostname}:${port || 5000}/${API}`;
+    APIURL || `http://${host || hostname}/${API}`;
 
   try {
     const config = {
