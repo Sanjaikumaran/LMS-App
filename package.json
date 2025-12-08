@@ -1,33 +1,29 @@
 {
-  "name": "quizzards",
+  "name": "server",
   "version": "1.0.0",
-  "main": "server/server.js",
-  "bin": "server/server.js",
-  "pkg": {
-    "targets": [
-      "node16-win-x64",
-      "node16-macos-x64",
-      "node16-linux-x64"
-    ],
-    "gui": true,
-    "assets": [
-      "client/build/**/*",
-      "server/**/*"
-    ]
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.1"
-  },
+  "description": "node server for the Quizzards application",
+  "main": "server.js -l",
   "scripts": {
-    "start": "node server/server.js",
-    "client": "npm start --prefix client",
-    "server": "node server/server.js",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "postinstall": "npm install --prefix client && npm run build --prefix client",
-    "build": "npm run build --prefix client",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node server.js -l",
+    "start": "node server.js -l",
+    "install": "npm install --force"
+    
   },
+  "keywords": [
+    "node"
+  ],
+  "author": "SK",
+  "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.7"
+    "connect-mongo": "^5.1.0",
+    "connect-session-sequelize": "^7.1.7",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "mongodb": "^6.10.0",
+    "multer": "^1.4.5-lts.2",
+    "node-session": "^1.2.1"
   }
 }
