@@ -2,47 +2,59 @@ const cors = require("cors");
 const fs = require("fs");
 const express = require("express");
 const multer = require("multer");
-const connectToReplicaSet = require("./database");
+const {
+  connectToReplicaSet,
+  setupDb,
+  syncCollectionData,
+} = require("./database");
 require("dotenv").config();
 const path = require("path");
 
 const app = express();
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (
-        !origin ||
-        origin.includes("*") ||
-        origin.includes("localhost") ||
-        origin.endsWith(".vercel.app")
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../client/build")));
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
-});
+
 app.listen(5001);
+app.use("/videos", express.static(path.join(__dirname, "videos")));
 const args = process.argv.slice(2).map((arg) => arg.toLowerCase());
 let dbPreference = "Remote";
 
-if (args.includes("-local") || args.includes("-l")) dbPreference = "Local";
-else if (args.includes("-remote") || args.includes("-r"))
+async function syncAllCollections(from = "Remote", to = "Local") {
+  const source = await setupDb(from);
+  const target = await setupDb(to);
+
+  if (source.error || target.error) {
+    console.error("Failed to connect to one or both DBs");
+    return;
+  }
+
+  const collectionsToSync = ["Users", "Courses", "Questions", "Tests"];
+
+  for (const collection of collectionsToSync) {
+    const result = await syncCollectionData(source, target, collection);
+    console.log(`[${collection}] ${result.message}`);
+  }
+}
+
+if (args.includes("-local") || args.includes("-l")) {
+  dbPreference = "Local";
+} else if (args.includes("-remote") || args.includes("-r")) {
   dbPreference = "Remote";
+} else if (args.includes("-syncLocal") || args.includes("-sl")) {
+  syncAllCollections("Remote", "Local");
+} else if (args.includes("-syncRemote") || args.includes("-sr")) {
+  syncAllCollections("Local", "Remote");
+}
 
 async function getDbConnection() {
   return await connectToReplicaSet(dbPreference);
 }
 
 const upload = multer({ storage: multer.memoryStorage() }).single("video");
+function sanitizeFileName(name) {
+  return name.replace(/[<>:"/\\|?*]/g, "_");
+}
 
 app.post("/upload-video", (req, res) => {
   upload(req, res, (err) => {
@@ -62,19 +74,20 @@ app.post("/upload-video", (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const finalFilename =
+    const rawFilename =
       filename || `video_${Date.now()}${path.extname(req.file.originalname)}`;
+
+    const finalFilename = sanitizeFileName(rawFilename);
+
     const fullPath = path.join(uploadDir, finalFilename);
 
     fs.writeFile(fullPath, req.file.buffer, (fsErr) => {
       if (fsErr) {
-        return res
-          .status(500)
-          .json({
-            flag: false,
-            message: "Saving file failed",
-            error: fsErr.message,
-          });
+        return res.status(500).json({
+          flag: false,
+          message: "Saving file failed",
+          error: fsErr.message,
+        });
       }
 
       res.status(200).json({
@@ -85,6 +98,7 @@ app.post("/upload-video", (req, res) => {
     });
   });
 });
+
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
   try {
@@ -196,16 +210,28 @@ app.post("/delete-data", async (req, res) => {
 });
 app.post("/insert-data", async (req, res) => {
   const { data, collection } = req.body.data;
-  try {
+  if (Array.isArray(data) && data.length > 1) {
     const dbConnection = await getDbConnection();
-    const result = await dbConnection.insertDocument(collection, data);
+    const result = await dbConnection.insertData(collection, data);
     if (result.flag) {
       res.status(200).json({ flag: true, message: result.message });
     } else {
       res.status(500).json({ flag: false, message: result.message });
     }
-  } catch (error) {
-    res.status(500).json({ flag: false, message: "Database connection error" });
+  } else {
+    try {
+      const dbConnection = await getDbConnection();
+      const result = await dbConnection.insertDocument(collection, data);
+      if (result.flag) {
+        res.status(200).json({ flag: true, message: result.message });
+      } else {
+        res.status(500).json({ flag: false, message: result.message });
+      }
+    } catch (error) {
+      res
+        .status(500)
+        .json({ flag: false, message: "Database connection error" });
+    }
   }
 });
 app.post("/find-data", async (req, res) => {
