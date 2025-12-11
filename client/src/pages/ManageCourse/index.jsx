@@ -121,7 +121,7 @@ const ManageCourse = () => {
         },
       });
 
-      if (flag && data.data.length) {
+      if (flag && data?.data.length) {
         console.log(data.data[0]);
 
         setTestData(data.data[0]);
@@ -306,10 +306,13 @@ const ManageCourse = () => {
     formData.append("courseName", courseName);
 
     try {
-      const response = await fetch("http://localhost:5000/upload-video", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/upload-video`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const result = await response.json();
 

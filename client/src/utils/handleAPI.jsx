@@ -3,8 +3,7 @@ import axios from "axios";
 const handleApiCall = async (props) => {
   const { API, data, APIURL, host, port, method = "POST" } = props;
   const hostname = new URL(window.location.href).hostname;
-  const finalURL =
-     APIURL || `https://lms-app-production-5198.up.railway.app/${API}`;
+  const finalURL = APIURL || `${process.env.REACT_APP_API_URL}/${API}`;
 
   try {
     const config = {
