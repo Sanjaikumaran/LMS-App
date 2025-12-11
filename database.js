@@ -1,7 +1,7 @@
 const { MongoClient, ObjectId } = require("mongodb");
 
 const uriRemote =
-  "mongodb+srv://sanjaikumaran0311:RdJEe2tpfl3P931q@cluster0.vek3x.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+  "mongodb://mongo:cLkmnnboRRCfKgxYxhQmZVGIKAnhrfFd@turntable.proxy.rlwy.net:52293";
 
 const uriLocal =
   "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.1";
