@@ -70,9 +70,9 @@ const ManageCourse = () => {
 
     fetchGroups();
   }, []);
-  useEffect(() => {
-    console.log(testData);
-  }, [testData]);
+  function sanitizeFileName(name) {
+    return name.replace(/\?/g, "_");
+  }
   useEffect(() => {
     if (selectedModule) {
       setFormData((prev) => ({
@@ -718,17 +718,23 @@ const ManageCourse = () => {
               }}
             >
               {selectedModule.path && (
-                <video controls>
+                <video
+                  key={selectedModule.path} // 👈 forces rerender
+                  controls
+                >
                   <source
-                    src={require(`../../assets/videos/${selectedModule.path
+                    src={`${
+                      process.env.REACT_APP_API_URL
+                    }/videos/${sanitizeFileName(selectedModule.path)
                       .split("/")
                       .slice(-2)
-                      .join("/")}`)}
+                      .join("/")}`}
                     type="video/mp4"
                   />
                   Your browser does not support the video tag.
                 </video>
               )}
+
               <div style={{ width: "400px", display: "flex" }}>
                 <ModuleCard header={selectedModule["Module Title"]}>
                   <div className={styles.moduleDetails}>

@@ -14,10 +14,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../client/build")));
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/build", "index.html"));
-});
+
 app.listen(5001);
+app.use("/videos", express.static(path.join(__dirname, "videos")));
 const args = process.argv.slice(2).map((arg) => arg.toLowerCase());
 let dbPreference = "Remote";
 
@@ -53,6 +52,9 @@ async function getDbConnection() {
 }
 
 const upload = multer({ storage: multer.memoryStorage() }).single("video");
+function sanitizeFileName(name) {
+  return name.replace(/[<>:"/\\|?*]/g, "_");
+}
 
 app.post("/upload-video", (req, res) => {
   upload(req, res, (err) => {
@@ -72,8 +74,11 @@ app.post("/upload-video", (req, res) => {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const finalFilename =
+    const rawFilename =
       filename || `video_${Date.now()}${path.extname(req.file.originalname)}`;
+
+    const finalFilename = sanitizeFileName(rawFilename);
+
     const fullPath = path.join(uploadDir, finalFilename);
 
     fs.writeFile(fullPath, req.file.buffer, (fsErr) => {
@@ -93,6 +98,7 @@ app.post("/upload-video", (req, res) => {
     });
   });
 });
+
 app.post("/login", async (req, res) => {
   const { Id, userPass } = req.body.data;
   try {
